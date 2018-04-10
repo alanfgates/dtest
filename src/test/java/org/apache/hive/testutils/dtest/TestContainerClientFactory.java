@@ -17,6 +17,8 @@
  */
 package org.apache.hive.testutils.dtest;
 
+import org.apache.hive.testutils.dtest.impl.ContainerResult;
+import org.apache.hive.testutils.dtest.impl.DockerClientFactory;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -25,7 +27,7 @@ import java.util.concurrent.TimeUnit;
 
 public class TestContainerClientFactory {
 
-  static class DummyContainerClientFactory extends ContainerClientFactory {
+  public static class DummyContainerClientFactory extends ContainerClientFactory {
     @Override
     public ContainerClient getClient(int buildNum) {
       return new ContainerClient() {

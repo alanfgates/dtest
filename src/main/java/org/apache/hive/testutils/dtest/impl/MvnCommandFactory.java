@@ -15,7 +15,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.hive.testutils.dtest;
+package org.apache.hive.testutils.dtest.impl;
+
+import org.apache.hive.testutils.dtest.ContainerCommand;
+import org.apache.hive.testutils.dtest.ContainerCommandFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;

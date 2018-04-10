@@ -17,6 +17,8 @@
  */
 package org.apache.hive.testutils.dtest;
 
+import org.apache.hive.testutils.dtest.impl.ContainerResult;
+
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 

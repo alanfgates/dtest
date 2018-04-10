@@ -17,6 +17,9 @@
  */
 package org.apache.hive.testutils.dtest;
 
+import org.apache.hive.testutils.dtest.impl.SimpleAnalyzerFactory;
+import org.apache.hive.testutils.dtest.impl.Utils;
+
 import java.io.IOException;
 
 public abstract class ResultAnalyzerFactory {

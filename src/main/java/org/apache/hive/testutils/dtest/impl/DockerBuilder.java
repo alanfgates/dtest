@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.hive.testutils.dtest;
+package org.apache.hive.testutils.dtest.impl;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -24,7 +24,7 @@ import java.io.IOException;
 /**
  * Utility class to build various pieces we need like the Docker file and the commands
  */
-class DockerBuilder {
+public class DockerBuilder {
 
   /**
    * Build the docker file
@@ -34,7 +34,7 @@ class DockerBuilder {
    * @param buildNum build number
    * @throws IOException if we fail to write the docker file
    */
-  static void createDockerFile(String dir, String repo, String branch, int buildNum)
+  public static void createDockerFile(String dir, String repo, String branch, int buildNum)
       throws IOException {
     FileWriter writer = new FileWriter(dir + File.separatorChar + "Dockerfile");
     writer.write("FROM centos\n");

@@ -15,13 +15,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.hive.testutils.dtest;
+package org.apache.hive.testutils.dtest.impl;
 
-class ContainerResult {
+public class ContainerResult {
 
-  final String name;
-  final int rc;
-  final String logs;
+  public final String name;
+  public final int rc;
+  public final String logs;
 
   public ContainerResult(String name, int rc, String logs) {
     this.name = name;

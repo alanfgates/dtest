@@ -17,7 +17,7 @@
  */
 package org.apache.hive.testutils.dtest;
 
-interface ContainerCommand {
+public interface ContainerCommand {
 
   /**
    * Get a unique container name for this command.  This must return the same value every time

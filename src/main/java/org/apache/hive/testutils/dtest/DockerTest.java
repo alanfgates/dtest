@@ -17,7 +17,6 @@
  */
 package org.apache.hive.testutils.dtest;
 
-import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.GnuParser;
@@ -25,11 +24,12 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.OptionBuilder;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
+import org.apache.hive.testutils.dtest.impl.ContainerResult;
+import org.apache.hive.testutils.dtest.impl.DTestLogger;
+import org.apache.hive.testutils.dtest.impl.DockerBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.ArrayList;
@@ -42,6 +42,7 @@ import java.util.concurrent.TimeUnit;
 
 public class DockerTest {
   private static final Logger LOG = LoggerFactory.getLogger(DockerTest.class);
+  private static final String SUMMARY_LOG = "summary";
 
   private ContainerClient docker;
   private ContainerCommandFactory commandFactory;
@@ -125,35 +126,56 @@ public class DockerTest {
     String repo = cmd.getOptionValue("r");
     int buildNum = Integer.parseInt(cmd.getOptionValue("n"));
 
+    DTestLogger logger = null;
+    int rc = 0;
     try {
-      ContainerClientFactory containerClientFactory =
-          ContainerClientFactory.get(cmd.getOptionValue("F"));
-      docker = containerClientFactory.getClient(buildNum);
-      commandFactory = ContainerCommandFactory.get(cmd.getOptionValue("C"));
-      analyzerFactory = ResultAnalyzerFactory.get(cmd.getOptionValue("R"));
+      logger = new DTestLogger(dir);
+      try {
+        ContainerClientFactory containerClientFactory =
+            ContainerClientFactory.get(cmd.getOptionValue("F"));
+        docker = containerClientFactory.getClient(buildNum);
+        commandFactory = ContainerCommandFactory.get(cmd.getOptionValue("C"));
+        analyzerFactory = ResultAnalyzerFactory.get(cmd.getOptionValue("R"));
+      } catch (IOException e) {
+        String msg = "Failed to instantiate one of the factories.";
+        err.println(msg + "  See log for details.");
+        LOG.error(msg, e);
+        return 1;
+      }
+      try {
+        buildDockerImage(dir, repo, branch, buildNum);
+      } catch (IOException e) {
+        String msg = "Failed to build docker image, might mean your code doesn't compile";
+        err.println(msg + "  See log for details.");
+        LOG.error(msg, e);
+        return 1;
+      }
+      try {
+        runContainers(logger, numContainers, out);
+      } catch (IOException e) {
+        String msg = "Failed to run one or more of the containers.";
+        err.println(msg + "  See log for details.");
+        LOG.error(msg, e);
+        return 1;
+      }
     } catch (IOException e) {
-      String msg = "Failed to instantiate one of the factories.";
-      err.println(msg + "  See log for details.");
-      LOG.error(msg, e);
+      String msg = "Failed to open the logger.  This often means you gave a bogus output directory.";
+      err.println(msg);
+      LOG.error(msg);
       return 1;
+    } finally {
+      if (logger != null) {
+        try {
+          logger.close();
+        } catch (IOException e) {
+          String msg = "Failed to close the logger.";
+          err.println(msg);
+          LOG.error(msg);
+          rc = 1;
+        }
+      }
     }
-    try {
-      buildDockerImage(dir, repo, branch, buildNum);
-    } catch (IOException e) {
-      String msg = "Failed to build docker image, might mean your code doesn't compile";
-      err.println(msg + "  See log for details.");
-      LOG.error(msg, e);
-      return 1;
-    }
-    try {
-      runContainers(dir, numContainers, out);
-    } catch (IOException e) {
-      String msg = "Failed to run one or more of the containers.";
-      err.println(msg + "  See log for details.");
-      LOG.error(msg, e);
-      return 1;
-    }
-    return 0;
+    return rc;
   }
 
   private void usage(Options opts) {
@@ -167,7 +189,8 @@ public class DockerTest {
     docker.buildImage(dir, 30, TimeUnit.MINUTES);
   }
 
-  private void runContainers(String dir, int numContainers, PrintStream out) throws IOException {
+  private void runContainers(DTestLogger logger, int numContainers, PrintStream out)
+      throws IOException {
     List<ContainerCommand> taskCmds = commandFactory.getContainerCommands("/root/hive");
 
     final ResultAnalyzer analyzer = analyzerFactory.getAnalyzer();
@@ -178,7 +201,6 @@ public class DockerTest {
     for (ContainerCommand taskCmd : taskCmds) {
       tasks.add(executor.submit(() -> {
         ContainerResult result = docker.runContainer(3, TimeUnit.HOURS, taskCmd);
-        FileWriter writer = new FileWriter(dir + File.separator + result.name);
         analyzer.analyzeLog(result);
         StringBuilder statusMsg = new StringBuilder("Task ")
             .append(result.name)
@@ -190,10 +212,7 @@ public class DockerTest {
         } else {
           statusMsg.append(" FAILED to run tom completion");
         }
-        LOG.info(statusMsg.toString());
-        writer.write(statusMsg.toString());
-        writer.write(result.logs);
-        writer.close();
+        new DTestLogger().write(result.name, statusMsg.toString());
         return 1;
       }));
     }
@@ -216,15 +235,15 @@ public class DockerTest {
 
     executor.shutdown();
     if (analyzer.getErrors().size() > 0) {
-      LOG.info("All Errors:");
+      logger.write(SUMMARY_LOG, "All Errors:");
       for (String error : analyzer.getErrors()) {
-        LOG.info(error);
+        logger.write(SUMMARY_LOG, error);
       }
     }
     if (analyzer.getFailed().size() > 0) {
-      LOG.info("All Failures:");
+      logger.write(SUMMARY_LOG, "All Failures:");
       for (String failure : analyzer.getFailed()) {
-        LOG.info(failure);
+        logger.write(SUMMARY_LOG, failure);
       }
     }
     StringBuilder msg = new StringBuilder("Test run ");
@@ -237,7 +256,7 @@ public class DockerTest {
         .append(analyzer.getErrors().size())
         .append(", Failures: ")
         .append(analyzer.getFailed().size());
-    LOG.info(msg.toString());
+    logger.write(SUMMARY_LOG, msg.toString());
     out.println(msg.toString());
   }
 

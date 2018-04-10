@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.hive.testutils.dtest;
+package org.apache.hive.testutils.dtest.impl;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,31 +31,34 @@ public class StreamPumper implements Runnable {
   private final AtomicBoolean keepGoing;
   private final BufferedReader reader;
   private final StringBuilder buffer;
+  private final String containerId;
 
-  public StreamPumper(AtomicBoolean keepGoing, InputStream input) {
+  StreamPumper(AtomicBoolean keepGoing, InputStream input, String containerId) {
     this.keepGoing = keepGoing;
     reader = new BufferedReader(new InputStreamReader(input));
+    this.containerId = containerId;
     buffer = new StringBuilder();
   }
 
-  public String getOutput() {
+  String getOutput() {
     return buffer.toString();
   }
 
   @Override
   public void run() {
     try {
+      DTestLogger logger = new DTestLogger();
       while (keepGoing.get()) {
         if (reader.ready()) {
           String s = reader.readLine();
-          LOG.info(s);
+          logger.write(containerId, s);
           buffer.append(s).append('\n');
         } else {
           Thread.sleep(1000);
         }
       }
     } catch (Exception e) {
-      LOG.error("Caught exception while puming stream", e);
+      LOG.error("Caught exception while pumping stream", e);
     }
 
   }

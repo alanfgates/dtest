@@ -17,6 +17,9 @@
  */
 package org.apache.hive.testutils.dtest;
 
+import org.apache.hive.testutils.dtest.impl.DockerClientFactory;
+import org.apache.hive.testutils.dtest.impl.Utils;
+
 import java.io.IOException;
 
 /**
@@ -25,7 +28,7 @@ import java.io.IOException;
  */
 public abstract class ContainerClientFactory {
 
-  static ContainerClientFactory get(String factoryClassName) throws IOException {
+  public static ContainerClientFactory get(String factoryClassName) throws IOException {
     if (factoryClassName == null) factoryClassName = DockerClientFactory.class.getName();
 
     Class<? extends ContainerClientFactory> clazz = Utils.getClass(factoryClassName,

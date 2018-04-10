@@ -15,7 +15,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.hive.testutils.dtest;
+package org.apache.hive.testutils.dtest.impl;
+
+import com.google.common.annotations.VisibleForTesting;
+import org.apache.hive.testutils.dtest.ResultAnalyzer;
+import org.apache.hive.testutils.dtest.impl.ContainerResult;
 
 import java.util.Collections;
 import java.util.List;
@@ -24,7 +28,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-class SimpleResultAnalyzer implements ResultAnalyzer {
+@VisibleForTesting
+public class SimpleResultAnalyzer implements ResultAnalyzer {
   private boolean hadTimeouts;
   private boolean runSucceeded;
   private AtomicInteger succeeded;
@@ -38,7 +43,8 @@ class SimpleResultAnalyzer implements ResultAnalyzer {
   private final Pattern qTestFailure;
   private final Pattern timeout;
 
-  SimpleResultAnalyzer() {
+  @VisibleForTesting
+  public SimpleResultAnalyzer() {
     // Access to these does not need to be synchronized because they only go from start state to
     // the opposite state (eg hadTimeouts starts at false and can move to true, but can never
     // move back to false).

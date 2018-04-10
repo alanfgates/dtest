@@ -15,14 +15,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.hive.testutils.dtest;
+package org.apache.hive.testutils.dtest.impl;
 
-import java.io.IOException;
+public class ProcessResults {
+  public final String stdout;
+  public final String stderr;
+  public final int rc;
 
-public class DockerClientFactory extends ContainerClientFactory {
-
-  @Override
-  public ContainerClient getClient(int buildNum) {
-    return new DockerClient(buildNum);
+  public ProcessResults(String stdout, String stderr, int rc) {
+    this.stdout = stdout;
+    this.stderr = stderr;
+    this.rc = rc;
   }
 }

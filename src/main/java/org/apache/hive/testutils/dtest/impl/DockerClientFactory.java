@@ -15,12 +15,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.hive.testutils.dtest;
+package org.apache.hive.testutils.dtest.impl;
 
-public class SimpleAnalyzerFactory extends ResultAnalyzerFactory {
+import org.apache.hive.testutils.dtest.ContainerClient;
+import org.apache.hive.testutils.dtest.ContainerClientFactory;
+
+public class DockerClientFactory extends ContainerClientFactory {
 
   @Override
-  public ResultAnalyzer getAnalyzer() {
-    return new SimpleResultAnalyzer();
+  public ContainerClient getClient(int buildNum) {
+    return new DockerClient(buildNum);
   }
 }

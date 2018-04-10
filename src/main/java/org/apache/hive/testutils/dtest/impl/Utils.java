@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.hive.testutils.dtest;
+package org.apache.hive.testutils.dtest.impl;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -46,17 +46,18 @@ public class Utils {
     }
   }
 
-  static ProcessResults runProcess(long secondsToWait, String... cmd) throws IOException {
-    LOG.info("Going to run: " + StringUtils.join(cmd, " ") + "\n");
+  static ProcessResults runProcess(String containerId, long secondsToWait, String... cmd)
+      throws IOException {
+    LOG.info("Going to run: " + StringUtils.join(cmd, " "));
     Process proc = Runtime.getRuntime().exec(cmd);
     AtomicBoolean running = new AtomicBoolean(true);
-    StreamPumper stdout = new StreamPumper(running, proc.getInputStream());
-    StreamPumper stderr = new StreamPumper(running, proc.getErrorStream());
+    StreamPumper stdout = new StreamPumper(running, proc.getInputStream(), containerId);
+    StreamPumper stderr = new StreamPumper(running, proc.getErrorStream(), containerId);
     new Thread(stdout).start();
     new Thread(stderr).start();
     try {
       if (!proc.waitFor(secondsToWait, TimeUnit.SECONDS)) {
-        throw new RuntimeException("Process " + cmd[0] + " failed to run in " + secondsToWait +
+        throw new IOException("Process " + cmd[0] + " failed to run in " + secondsToWait +
             " seconds");
       }
     } catch (InterruptedException e) {

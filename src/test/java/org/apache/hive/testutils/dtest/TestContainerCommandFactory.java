@@ -17,6 +17,7 @@
  */
 package org.apache.hive.testutils.dtest;
 
+import org.apache.hive.testutils.dtest.impl.MvnCommandFactory;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -26,7 +27,7 @@ import java.util.List;
 
 public class TestContainerCommandFactory {
 
-  static class DummyContainerCommandFactory extends ContainerCommandFactory {
+  public static class DummyContainerCommandFactory extends ContainerCommandFactory {
     @Override
     public List<ContainerCommand> getContainerCommands(String baseDir) throws IOException {
       return Collections.emptyList();

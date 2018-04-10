@@ -15,16 +15,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.hive.testutils.dtest;
+package org.apache.hive.testutils.dtest.impl;
 
-public class ProcessResults {
-  final String stdout;
-  final String stderr;
-  final int rc;
+import org.apache.hive.testutils.dtest.ResultAnalyzer;
+import org.apache.hive.testutils.dtest.ResultAnalyzerFactory;
 
-  public ProcessResults(String stdout, String stderr, int rc) {
-    this.stdout = stdout;
-    this.stderr = stderr;
-    this.rc = rc;
+public class SimpleAnalyzerFactory extends ResultAnalyzerFactory {
+
+  @Override
+  public ResultAnalyzer getAnalyzer() {
+    return new SimpleResultAnalyzer();
   }
 }

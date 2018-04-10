@@ -1,4 +1,4 @@
-package org.apache.hive.testutils.dtest;
+package org.apache.hive.testutils.dtest.impl;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -65,7 +65,7 @@ public class TestSimpleResultAnalyzer {
     Assert.assertFalse(analyzer.runSucceeded());
   }
 
-  static final String LOG1 =
+  public static final String LOG1 =
       "[INFO] ------------------------------------------------------------------------\n" +
       "[INFO] Building Hive Integration - Unit Tests 3.0.0-SNAPSHOT\n" +
       "[INFO] ------------------------------------------------------------------------\n" +
@@ -94,7 +94,7 @@ public class TestSimpleResultAnalyzer {
       "[INFO]\n" +
       "[INFO] Tests run: 12, Failures: 0, Errors: 0, Skipped: 0\n";
 
-  static final String LOG2 =
+  public static final String LOG2 =
       "main:\n" +
           "[delete] Deleting directory /root/hive/itests/qtest/target/tmp\n" +
           "[delete] Deleting directory /root/hive/itests/qtest/target/testconf\n" +
@@ -120,7 +120,7 @@ public class TestSimpleResultAnalyzer {
           "at org.junit.Assert.fail(Assert.java:88)\n" +
           "at org.apache.hadoop.hive.ql.QTestUtil.failedDiff(QTestUtil.java:2166)";
 
-  static final String LOG3 =
+  public static final String LOG3 =
       "[INFO] -------------------------------------------------------\n" +
       "[INFO]  T E S T S \n" +
       "[INFO] -------------------------------------------------------\n" +

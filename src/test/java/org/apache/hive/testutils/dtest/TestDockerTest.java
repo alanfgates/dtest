@@ -18,6 +18,11 @@
 package org.apache.hive.testutils.dtest;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.hive.testutils.dtest.impl.ContainerResult;
+import org.apache.hive.testutils.dtest.impl.DockerClient;
+import org.apache.hive.testutils.dtest.impl.ProcessResults;
+import org.apache.hive.testutils.dtest.impl.SimpleResultAnalyzer;
+import org.apache.hive.testutils.dtest.impl.TestSimpleResultAnalyzer;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -41,7 +46,7 @@ public class TestDockerTest {
   private PrintStream out;
   private PrintStream err;
 
-  static class MySuccessfulClientFactory extends ContainerClientFactory {
+  public static class MySuccessfulClientFactory extends ContainerClientFactory {
     @Override
     public ContainerClient getClient(int buildNum) {
       return new ContainerClient() {
@@ -61,7 +66,7 @@ public class TestDockerTest {
     }
   }
 
-  static class MySuccessfulWithFailingTestsClientFactory extends ContainerClientFactory {
+  public static class MySuccessfulWithFailingTestsClientFactory extends ContainerClientFactory {
     @Override
     public ContainerClient getClient(int buildNum) {
       return new ContainerClient() {
@@ -81,7 +86,7 @@ public class TestDockerTest {
     }
   }
 
-  static class MyTimingOutClientFactory extends ContainerClientFactory {
+  public static class MyTimingOutClientFactory extends ContainerClientFactory {
     @Override
     public ContainerClient getClient(int buildNum) {
       return new ContainerClient() {
@@ -101,7 +106,7 @@ public class TestDockerTest {
     }
   }
 
-  static class MyFailingClientFactory extends ContainerClientFactory {
+  public static class MyFailingClientFactory extends ContainerClientFactory {
     @Override
     public ContainerClient getClient(int buildNum) {
       return new ContainerClient() {
@@ -122,7 +127,7 @@ public class TestDockerTest {
   }
 
 
-  static class MyCommandFactory extends ContainerCommandFactory {
+  public static class MyCommandFactory extends ContainerCommandFactory {
     @Override
     public List<ContainerCommand> getContainerCommands(String baseDir) throws IOException {
       return Collections.singletonList(new ContainerCommand() {
@@ -139,7 +144,7 @@ public class TestDockerTest {
     }
   }
 
-  static class MyItestCommandFactory extends ContainerCommandFactory {
+  public static class MyItestCommandFactory extends ContainerCommandFactory {
     @Override
     public List<ContainerCommand> getContainerCommands(String baseDir) throws IOException {
       return Collections.singletonList(new ContainerCommand() {
@@ -156,7 +161,7 @@ public class TestDockerTest {
     }
   }
 
-  static class MyResultAnalyzerFactory extends ResultAnalyzerFactory {
+  public static class MyResultAnalyzerFactory extends ResultAnalyzerFactory {
     @Override
     public ResultAnalyzer getAnalyzer() {
       final SimpleResultAnalyzer contained = new SimpleResultAnalyzer();
