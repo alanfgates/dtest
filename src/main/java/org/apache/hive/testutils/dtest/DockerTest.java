@@ -213,6 +213,7 @@ public class DockerTest {
           statusMsg.append(" FAILED to run tom completion");
         }
         new DTestLogger().write(result.name, statusMsg.toString());
+        logger.write(SUMMARY_LOG, statusMsg.toString());
         return 1;
       }));
     }

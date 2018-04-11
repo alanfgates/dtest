@@ -22,8 +22,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -89,15 +87,11 @@ public class DTestLogger {
   }
 
   private static class Writer implements Runnable {
-    private final String dir;
     private FileWriter mainWriter;
-    private Map<String, FileWriter> containerWriters;
 
     Writer(String dir) throws IOException {
-      this.dir = dir;
       mainWriter = new FileWriter(dir + File.separatorChar + LOG_FILE);
       mainWriter.write("Test started at " + new Date().toString());
-      containerWriters = new HashMap<>();
     }
 
     @Override
@@ -107,13 +101,12 @@ public class DTestLogger {
         Calendar cal = Calendar.getInstance();
         try {
           while ((m = queue.take()) != null) {
-            FileWriter containerWriter = getContainerWriter(m.containerId);
             cal.setTimeInMillis(m.time);
-            String msg = cal.get(Calendar.HOUR) + ":" + cal.get(Calendar.MINUTE) + ':' +
+            String msg = cal.get(Calendar.HOUR_OF_DAY) + ":" + cal.get(Calendar.MINUTE) + ':' +
                 cal.get(Calendar.SECOND) + ',' + cal.get(Calendar.MILLISECOND) + " [" +
                 m.containerId + "] :" + m.content + '\n';
             mainWriter.write(msg);
-            containerWriter.write(msg);
+            mainWriter.flush();
           }
         } catch (InterruptedException e) {
           // Assume this means we're supposed to quit.
@@ -137,15 +130,6 @@ public class DTestLogger {
         mainWriter.write("Test completed at " + new Date().toString());
       }
       mainWriter = null;
-    }
-
-    private FileWriter getContainerWriter(String containerId) throws IOException {
-      FileWriter writer = containerWriters.get(containerId);
-      if (writer == null) {
-        writer = new FileWriter(dir + File.separatorChar + containerId + ".log");
-        containerWriters.put(containerId, writer);
-      }
-      return writer;
     }
   }
 

@@ -48,9 +48,10 @@ public class DockerBuilder {
     writer.write("    /usr/bin/git clone " + repo + "; \\\n");
     writer.write("    cd hive; \\\n");
     writer.write("    /usr/bin/git checkout " + branch + "; \\\n");
-    writer.write("    /usr/bin/mvn install -Dtest=nosuch; \\\n");
+    writer.write("    /usr/bin/mvn install -Dtest=TestMetastoreConf; \\\n"); // Need a quick test
+    // that actually runs so it downloads the surefire jar from maven
     writer.write("    cd itests; \\\n");
-    writer.write("    /usr/bin/mvn install -Dtest=nosuch -DskipSparkTests; \\\n");
+    writer.write("    /usr/bin/mvn install -DskipSparkTests; \\\n");
     writer.write("    echo This is build number " + buildNum + "; \\\n");
     writer.write("}\n");
     writer.close();

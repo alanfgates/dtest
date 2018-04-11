@@ -37,7 +37,7 @@ public class DockerClient implements ContainerClient {
   private static final String CONTAINER_BASE = "hive-dtest-";
   private static final String IMAGE_BASE = "hive-dtest-image-";
   private static final Pattern IMAGE_SUCCESS = Pattern.compile("BUILD SUCCESS");
-  private static final String BUILD_CONTAINER_NAME = "image build";
+  private static final String BUILD_CONTAINER_NAME = "image_build";
 
   private final int runNumber;
 
