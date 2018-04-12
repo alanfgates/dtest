@@ -17,6 +17,7 @@
  */
 package org.apache.hive.testutils.dtest;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.GnuParser;
@@ -47,22 +48,32 @@ public class DockerTest {
   private ContainerClient docker;
   private ContainerCommandFactory commandFactory;
   private ResultAnalyzerFactory analyzerFactory;
+  private ContainerClientFactory containerClientFactory;
+  private int numContainers;
+  private boolean runServer;
+  private PrintStream out;
+  private PrintStream err;
+  private String baseDir;
+  @VisibleForTesting
+  BuildInfo singleBuild;
+
+  public DockerTest(PrintStream out, PrintStream err) {
+    this.out = out;
+    this.err = err;
+  }
 
   /**
    * Run the test.
    * @param args Command line arguments.
-   * @param out stdout
-   * @param err stderr
-   * @return suggested return code for the calling process.
+   * @return whether command line was successfully parsed
    */
-  public int run(String[] args, PrintStream out, PrintStream err) {
+  public boolean parseArgs(String[] args) {
     CommandLineParser parser = new GnuParser();
 
     Options opts = new Options();
     opts.addOption(OptionBuilder
         .withLongOpt("branch")
         .withDescription("git branch to use")
-        .isRequired()
         .hasArg()
         .create("b"));
 
@@ -79,7 +90,7 @@ public class DockerTest {
         .create("c"));
 
     opts.addOption(OptionBuilder
-        .withLongOpt("target-directory")
+        .withLongOpt("base-directory")
         .withDescription("directory to build dockerfile in")
         .isRequired()
         .hasArg()
@@ -92,11 +103,10 @@ public class DockerTest {
         .create("F"));
 
     opts.addOption(OptionBuilder
-        .withLongOpt("build-number")
-        .withDescription("build number, changing this will force a new container to be built")
-        .isRequired()
+        .withLongOpt("build-label")
+        .withDescription("build label, changing this will force a new container to be built")
         .hasArg()
-        .create("n"));
+        .create("l"));
 
     opts.addOption(OptionBuilder
         .withLongOpt("result-analyzer-factory")
@@ -107,9 +117,13 @@ public class DockerTest {
     opts.addOption(OptionBuilder
         .withLongOpt("repo")
         .withDescription("git repository to use")
-        .isRequired()
         .hasArg()
         .create("r"));
+
+    opts.addOption(OptionBuilder
+        .withLongOpt("run-server")
+        .withDescription("indicates this should be run as a service, rather than run a single build")
+        .create("s"));
 
     CommandLine cmd;
     try {
@@ -117,33 +131,49 @@ public class DockerTest {
     } catch (ParseException e) {
       LOG.error("Failed to parse command line: ", e);
       usage(opts);
-      return 1;
+      return false;
     }
 
-    int numContainers = cmd.hasOption("c") ? Integer.parseInt(cmd.getOptionValue("c")) : 1;
-    String branch = cmd.getOptionValue("b");
-    String dir = cmd.getOptionValue("d");
-    String repo = cmd.getOptionValue("r");
-    int buildNum = Integer.parseInt(cmd.getOptionValue("n"));
+    // TODO move all these into class members, call startBuild from main unless server is set.
+    numContainers = cmd.hasOption("c") ? Integer.parseInt(cmd.getOptionValue("c")) : 1;
+    baseDir = cmd.getOptionValue("d");
+    try {
+      containerClientFactory = ContainerClientFactory.get(cmd.getOptionValue("F"));
+      commandFactory = ContainerCommandFactory.get(cmd.getOptionValue("C"));
+      analyzerFactory = ResultAnalyzerFactory.get(cmd.getOptionValue("R"));
+    } catch (IOException e) {
+      String msg = "Failed to instantiate one of the factories.";
+      err.println(msg + "  See log for details.");
+      LOG.error(msg, e);
+      return false;
+    }
+    if (cmd.hasOption("s")) {
+      runServer = true;
+    } else {
+      runServer = false;
+      if (!cmd.hasOption("b") || !cmd.hasOption("r")) {
+        String msg = "You must provide either run the system in server mode or provide a branch " +
+            "and repo.";
+        err.println(msg);
+        LOG.error(msg);
+        return false;
+      }
+      singleBuild =
+          new BuildInfo(cmd.getOptionValue("b"), cmd.getOptionValue("r"), cmd.getOptionValue("l"));
+    }
+    return true;
+  }
 
+  public int startBuild(BuildInfo info) {
+    info.setStartTime(System.currentTimeMillis());
+    docker = containerClientFactory.getClient(info.label);
     DTestLogger logger = null;
     int rc = 0;
     try {
+      String dir = info.buildDir(baseDir);
       logger = new DTestLogger(dir);
       try {
-        ContainerClientFactory containerClientFactory =
-            ContainerClientFactory.get(cmd.getOptionValue("F"));
-        docker = containerClientFactory.getClient(buildNum);
-        commandFactory = ContainerCommandFactory.get(cmd.getOptionValue("C"));
-        analyzerFactory = ResultAnalyzerFactory.get(cmd.getOptionValue("R"));
-      } catch (IOException e) {
-        String msg = "Failed to instantiate one of the factories.";
-        err.println(msg + "  See log for details.");
-        LOG.error(msg, e);
-        return 1;
-      }
-      try {
-        buildDockerImage(dir, repo, branch, buildNum);
+        buildDockerImage(dir, info.repo, info.branch, info.label, logger);
       } catch (IOException e) {
         String msg = "Failed to build docker image, might mean your code doesn't compile";
         err.println(msg + "  See log for details.");
@@ -161,7 +191,7 @@ public class DockerTest {
     } catch (IOException e) {
       String msg = "Failed to open the logger.  This often means you gave a bogus output directory.";
       err.println(msg);
-      LOG.error(msg);
+      LOG.error(msg, e);
       return 1;
     } finally {
       if (logger != null) {
@@ -174,6 +204,7 @@ public class DockerTest {
           rc = 1;
         }
       }
+      info.setCompletionTime(System.currentTimeMillis());
     }
     return rc;
   }
@@ -183,13 +214,14 @@ public class DockerTest {
     formatter.printHelp("docker-test", opts);
   }
 
-  private void buildDockerImage(String dir, String repo, String branch, int buildNumber)
+  private void buildDockerImage(String dir, String repo, String branch, String label,
+                                DTestLogger logger)
       throws IOException {
-    DockerBuilder.createDockerFile(dir, repo, branch, buildNumber);
-    docker.buildImage(dir, 30, TimeUnit.MINUTES);
+    DockerBuilder.createDockerFile(dir, repo, branch, label);
+    docker.buildImage(dir, 30, TimeUnit.MINUTES, logger);
   }
 
-  private void runContainers(DTestLogger logger, int numContainers, PrintStream out)
+  private void runContainers(final DTestLogger logger, int numContainers, PrintStream out)
       throws IOException {
     List<ContainerCommand> taskCmds = commandFactory.getContainerCommands("/root/hive");
 
@@ -200,7 +232,7 @@ public class DockerTest {
     ExecutorService executor = Executors.newFixedThreadPool(numContainers);
     for (ContainerCommand taskCmd : taskCmds) {
       tasks.add(executor.submit(() -> {
-        ContainerResult result = docker.runContainer(3, TimeUnit.HOURS, taskCmd);
+        ContainerResult result = docker.runContainer(3, TimeUnit.HOURS, taskCmd, logger);
         analyzer.analyzeLog(result);
         StringBuilder statusMsg = new StringBuilder("Task ")
             .append(result.name)
@@ -212,7 +244,7 @@ public class DockerTest {
         } else {
           statusMsg.append(" FAILED to run tom completion");
         }
-        new DTestLogger().write(result.name, statusMsg.toString());
+        logger.write(result.name, statusMsg.toString());
         logger.write(SUMMARY_LOG, statusMsg.toString());
         return 1;
       }));
@@ -261,13 +293,23 @@ public class DockerTest {
     out.println(msg.toString());
   }
 
+  private void server() {
+    // TODO
+  }
+
   /**
    * This calls System.exit, don't call it if you're using a tool.  Use
-   * {@link #run(String[], PrintStream, PrintStream)} instead.
+   * {@link #startBuild(BuildInfo)} instead.
    * @param args command line arguments.
    */
   public static void main(String[] args) {
-    DockerTest test = new DockerTest();
-    System.exit(test.run(args, System.out, System.err));
+    DockerTest test = new DockerTest(System.out, System.err);
+    if (test.parseArgs(args)) {
+      if (test.runServer) {
+        test.server();
+      } else {
+        System.exit(test.startBuild(test.singleBuild));
+      }
+    }
   }
 }

@@ -20,6 +20,7 @@ package org.apache.hive.testutils.dtest.impl;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.UUID;
 
 /**
  * Utility class to build various pieces we need like the Docker file and the commands
@@ -31,11 +32,12 @@ public class DockerBuilder {
    * @param dir Directory the docker file is in
    * @param repo git repository to pull from
    * @param branch git branch to use
-   * @param buildNum build number
+   * @param label identifying value for this build, can be null
    * @throws IOException if we fail to write the docker file
    */
-  public static void createDockerFile(String dir, String repo, String branch, int buildNum)
+  public static void createDockerFile(String dir, String repo, String branch, String label)
       throws IOException {
+    if (label == null) label = UUID.randomUUID().toString();
     FileWriter writer = new FileWriter(dir + File.separatorChar + "Dockerfile");
     writer.write("FROM centos\n");
     writer.write("\n");
@@ -52,7 +54,7 @@ public class DockerBuilder {
     // that actually runs so it downloads the surefire jar from maven
     writer.write("    cd itests; \\\n");
     writer.write("    /usr/bin/mvn install -DskipSparkTests; \\\n");
-    writer.write("    echo This is build number " + buildNum + "; \\\n");
+    writer.write("    echo This build is labeled " + label + "; \\\n");
     writer.write("}\n");
     writer.close();
   }

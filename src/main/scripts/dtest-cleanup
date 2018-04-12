@@ -22,5 +22,5 @@ if [ "x${1}" = "x" ]
 fi
 BUILD_NUM=$1
 
-docker rm `docker ps -a | grep hive-dtest-${BUILD_NUM} | awk '{print $1}'`
-docker image rm hive-dtest-image-${BUILD_NUM}
+docker rm `docker ps -a | grep dtest-${BUILD_NUM} | awk '{print $1}'`
+docker image rm dtest-image-${BUILD_NUM}

@@ -26,11 +26,14 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
 public class DTestLogger {
-  private static final String LOG_FILE = "dtest.log";
+  /**
+   * Log file name.
+   */
+  public static final String LOG_FILE = "dtest.log";
 
-  private static Writer writer;
-  private static Thread writerThread;
-  private static BlockingQueue<Message> queue;
+  private Writer writer;
+  private Thread writerThread;
+  private BlockingQueue<Message> queue;
 
   /**
    * Constructor for your main program, this one will open a new log file.
@@ -39,20 +42,11 @@ public class DTestLogger {
    * up as nothing will be logged.
    */
   public DTestLogger(String dir) throws IOException {
-    if (writerThread != null) {
-      throw new IOException("Attempt to create another writer when one already exists!");
-    }
     queue = new LinkedBlockingQueue<>();
     writer = new Writer(dir);
     writerThread = new Thread(writer);
     writerThread.setDaemon(true);
     writerThread.start();
-  }
-
-  public DTestLogger() throws IOException {
-    if (writerThread == null) {
-      throw new IOException("Attempt to create test log when it has not yet been initialized.");
-    }
   }
 
   /**
@@ -86,7 +80,7 @@ public class DTestLogger {
     }
   }
 
-  private static class Writer implements Runnable {
+  private class Writer implements Runnable {
     private FileWriter mainWriter;
 
     Writer(String dir) throws IOException {

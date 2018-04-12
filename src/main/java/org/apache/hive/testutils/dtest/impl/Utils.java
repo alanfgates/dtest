@@ -46,13 +46,13 @@ public class Utils {
     }
   }
 
-  static ProcessResults runProcess(String containerId, long secondsToWait, String... cmd)
-      throws IOException {
+  static ProcessResults runProcess(String containerId, long secondsToWait,
+                                   DTestLogger logger, String... cmd) throws IOException {
     LOG.info("Going to run: " + StringUtils.join(cmd, " "));
     Process proc = Runtime.getRuntime().exec(cmd);
     AtomicBoolean running = new AtomicBoolean(true);
-    StreamPumper stdout = new StreamPumper(running, proc.getInputStream(), containerId);
-    StreamPumper stderr = new StreamPumper(running, proc.getErrorStream(), containerId);
+    StreamPumper stdout = new StreamPumper(running, proc.getInputStream(), containerId, logger);
+    StreamPumper stderr = new StreamPumper(running, proc.getErrorStream(), containerId, logger);
     new Thread(stdout).start();
     new Thread(stderr).start();
     try {

@@ -38,9 +38,8 @@ public abstract class ContainerClientFactory {
 
   /**
    * Get the client.
-   * @param buildNum Number of this build.
+   * @param label for this build
    * @return client
-   * @throws IOException unable to instantiate the client.
    */
-  public abstract ContainerClient getClient(int buildNum);
+  public abstract ContainerClient getClient(String label);
 }

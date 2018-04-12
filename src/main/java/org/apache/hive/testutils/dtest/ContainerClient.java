@@ -18,6 +18,7 @@
 package org.apache.hive.testutils.dtest;
 
 import org.apache.hive.testutils.dtest.impl.ContainerResult;
+import org.apache.hive.testutils.dtest.impl.DTestLogger;
 
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
@@ -30,17 +31,20 @@ public interface ContainerClient {
    *            process.
    * @param toWait how long to wait for this command
    * @param unit toWait is measured in
+   * @param logger output log for tests
    * @throws IOException if the image fails to build
    */
-  void buildImage(String dir, long toWait, TimeUnit unit) throws IOException;
+  void buildImage(String dir, long toWait, TimeUnit unit, DTestLogger logger) throws IOException;
 
   /**
    * Run a container and return a string containing the logs
    * @param toWait how long to wait for this run
    * @param unit toWait is measured in
    * @param cmd command to run along with any arguments
+   * @param logger output log for tests
    * @return results from the container
    * @throws IOException if the container fails to run
    */
-  ContainerResult runContainer(long toWait, TimeUnit unit, ContainerCommand cmd) throws IOException;
+  ContainerResult runContainer(long toWait, TimeUnit unit, ContainerCommand cmd, DTestLogger logger)
+      throws IOException;
 }

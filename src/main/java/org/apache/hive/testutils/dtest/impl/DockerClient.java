@@ -34,34 +34,35 @@ import java.util.regex.Pattern;
 @VisibleForTesting
 public class DockerClient implements ContainerClient {
   private static final Logger LOG = LoggerFactory.getLogger(DockerClient.class);
-  private static final String CONTAINER_BASE = "hive-dtest-";
-  private static final String IMAGE_BASE = "hive-dtest-image-";
+  private static final String CONTAINER_BASE = "dtest-";
+  private static final String IMAGE_BASE = "dtest-image-";
   private static final Pattern IMAGE_SUCCESS = Pattern.compile("BUILD SUCCESS");
   private static final String BUILD_CONTAINER_NAME = "image_build";
 
-  private final int runNumber;
+  private final String label;
 
-  DockerClient(int runNumber) {
-    this.runNumber = runNumber;
+  DockerClient(String label) {
+    this.label = label;
   }
 
   @Override
-  public void buildImage(String dir, long toWait, TimeUnit unit) throws IOException {
+  public void buildImage(String dir, long toWait, TimeUnit unit, DTestLogger logger)
+      throws IOException {
     long seconds = TimeUnit.SECONDS.convert(toWait, unit);
     LOG.info("Building image");
-    checkBuildSucceeded(Utils.runProcess(BUILD_CONTAINER_NAME, seconds, "docker", "build",
+    checkBuildSucceeded(Utils.runProcess(BUILD_CONTAINER_NAME, seconds, logger, "docker", "build",
         "--tag", imageName(), dir));
   }
 
   @Override
-  public ContainerResult runContainer(long toWait, TimeUnit unit, ContainerCommand cmd)
-      throws IOException {
+  public ContainerResult runContainer(long toWait, TimeUnit unit, ContainerCommand cmd,
+                                      DTestLogger logger) throws IOException {
     List<String> runCmd = new ArrayList<>();
     String containerName = createContainerName(cmd.containerName());
     runCmd.addAll(Arrays.asList("docker", "run", "--name", containerName, imageName()));
     runCmd.addAll(Arrays.asList(cmd.shellCommand()));
     long seconds = TimeUnit.SECONDS.convert(toWait, unit);
-    ProcessResults res = Utils.runProcess(cmd.containerName(), seconds,
+    ProcessResults res = Utils.runProcess(cmd.containerName(), seconds, logger,
         runCmd.toArray(new String[runCmd.size()]));
     return new ContainerResult(containerName, res.rc, res.stdout);
   }
@@ -76,11 +77,11 @@ public class DockerClient implements ContainerClient {
   }
 
   private String imageName() {
-    return IMAGE_BASE + runNumber;
+    return IMAGE_BASE + label;
   }
 
   private String createContainerName(String name) {
-    return CONTAINER_BASE + runNumber + "_" + name;
+    return CONTAINER_BASE + label + "_" + name;
   }
 
 }

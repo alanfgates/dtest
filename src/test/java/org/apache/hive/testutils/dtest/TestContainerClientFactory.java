@@ -18,6 +18,7 @@
 package org.apache.hive.testutils.dtest;
 
 import org.apache.hive.testutils.dtest.impl.ContainerResult;
+import org.apache.hive.testutils.dtest.impl.DTestLogger;
 import org.apache.hive.testutils.dtest.impl.DockerClientFactory;
 import org.junit.Assert;
 import org.junit.Test;
@@ -29,16 +30,15 @@ public class TestContainerClientFactory {
 
   public static class DummyContainerClientFactory extends ContainerClientFactory {
     @Override
-    public ContainerClient getClient(int buildNum) {
+    public ContainerClient getClient(String label) {
       return new ContainerClient() {
         @Override
-        public void buildImage(String dir, long toWait, TimeUnit unit) throws IOException {
+        public void buildImage(String dir, long toWait, TimeUnit unit, DTestLogger logger) throws IOException {
 
         }
 
         @Override
-        public ContainerResult runContainer(long toWait, TimeUnit unit, ContainerCommand cmd) throws
-            IOException {
+        public ContainerResult runContainer(long toWait, TimeUnit unit, ContainerCommand cmd, DTestLogger logger) throws IOException {
           return null;
         }
       };

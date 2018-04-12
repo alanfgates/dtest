@@ -32,11 +32,14 @@ public class StreamPumper implements Runnable {
   private final BufferedReader reader;
   private final StringBuilder buffer;
   private final String containerId;
+  private final DTestLogger logger;
 
-  StreamPumper(AtomicBoolean keepGoing, InputStream input, String containerId) {
+  StreamPumper(AtomicBoolean keepGoing, InputStream input, String containerId,
+               DTestLogger logger) {
     this.keepGoing = keepGoing;
     reader = new BufferedReader(new InputStreamReader(input));
     this.containerId = containerId;
+    this.logger = logger;
     buffer = new StringBuilder();
   }
 
@@ -47,7 +50,6 @@ public class StreamPumper implements Runnable {
   @Override
   public void run() {
     try {
-      DTestLogger logger = new DTestLogger();
       while (keepGoing.get()) {
         if (reader.ready()) {
           String s = reader.readLine();

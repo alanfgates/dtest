@@ -15,15 +15,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.hive.testutils.dtest.impl;
+package org.apache.hive.testutils.dtest.server;
 
-import org.apache.hive.testutils.dtest.ContainerClient;
-import org.apache.hive.testutils.dtest.ContainerClientFactory;
+import javax.ws.rs.Path;
 
-public class DockerClientFactory extends ContainerClientFactory {
+@Path("dtest/v1")
+public class DTestResource {
 
-  @Override
-  public ContainerClient getClient(String label) {
-    return new DockerClient(label);
-  }
+  // TODO Status
+
+  // TODO submit build
+
+  // TODO fetch logs for build
+
+  // TODO get list of pending builds
+
+  // TODO kill a build
 }

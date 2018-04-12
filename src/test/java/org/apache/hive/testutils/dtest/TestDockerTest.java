@@ -19,6 +19,7 @@ package org.apache.hive.testutils.dtest;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.hive.testutils.dtest.impl.ContainerResult;
+import org.apache.hive.testutils.dtest.impl.DTestLogger;
 import org.apache.hive.testutils.dtest.impl.DockerClient;
 import org.apache.hive.testutils.dtest.impl.ProcessResults;
 import org.apache.hive.testutils.dtest.impl.SimpleResultAnalyzer;
@@ -26,6 +27,8 @@ import org.apache.hive.testutils.dtest.impl.TestSimpleResultAnalyzer;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -36,7 +39,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 public class TestDockerTest {
-
+  private static final Logger LOG = LoggerFactory.getLogger(TestDockerTest.class);
   private static boolean imageBuilt, hadTimeouts, runSucceeded;
   private static int succeeded;
   private static List<String> failures;
@@ -48,15 +51,15 @@ public class TestDockerTest {
 
   public static class MySuccessfulClientFactory extends ContainerClientFactory {
     @Override
-    public ContainerClient getClient(int buildNum) {
+    public ContainerClient getClient(String label) {
       return new ContainerClient() {
         @Override
-        public void buildImage(String dir, long toWait, TimeUnit unit) throws IOException {
+        public void buildImage(String dir, long toWait, TimeUnit unit, DTestLogger logger) throws IOException {
           imageBuilt = true;
         }
 
         @Override
-        public ContainerResult runContainer(long toWait, TimeUnit unit, ContainerCommand cmd) throws
+        public ContainerResult runContainer(long toWait, TimeUnit unit, ContainerCommand cmd, DTestLogger logger) throws
             IOException {
           String logs = "Ran: " + StringUtils.join(cmd.shellCommand(), " ") +
               TestSimpleResultAnalyzer.LOG1;
@@ -68,15 +71,15 @@ public class TestDockerTest {
 
   public static class MySuccessfulWithFailingTestsClientFactory extends ContainerClientFactory {
     @Override
-    public ContainerClient getClient(int buildNum) {
+    public ContainerClient getClient(String label) {
       return new ContainerClient() {
         @Override
-        public void buildImage(String dir, long toWait, TimeUnit unit) throws IOException {
+        public void buildImage(String dir, long toWait, TimeUnit unit, DTestLogger logger) throws IOException {
           imageBuilt = true;
         }
 
         @Override
-        public ContainerResult runContainer(long toWait, TimeUnit unit, ContainerCommand cmd) throws
+        public ContainerResult runContainer(long toWait, TimeUnit unit, ContainerCommand cmd, DTestLogger logger) throws
             IOException {
           String logs = "Ran: " + StringUtils.join(cmd.shellCommand(), " ") +
               TestSimpleResultAnalyzer.LOG2;
@@ -88,15 +91,15 @@ public class TestDockerTest {
 
   public static class MyTimingOutClientFactory extends ContainerClientFactory {
     @Override
-    public ContainerClient getClient(int buildNum) {
+    public ContainerClient getClient(String label) {
       return new ContainerClient() {
         @Override
-        public void buildImage(String dir, long toWait, TimeUnit unit) throws IOException {
+        public void buildImage(String dir, long toWait, TimeUnit unit, DTestLogger logger) throws IOException {
           imageBuilt = true;
         }
 
         @Override
-        public ContainerResult runContainer(long toWait, TimeUnit unit, ContainerCommand cmd) throws
+        public ContainerResult runContainer(long toWait, TimeUnit unit, ContainerCommand cmd, DTestLogger logger) throws
             IOException {
           String logs = "Ran: " + StringUtils.join(cmd.shellCommand(), " ") +
               TestSimpleResultAnalyzer.LOG3;
@@ -108,15 +111,15 @@ public class TestDockerTest {
 
   public static class MyFailingClientFactory extends ContainerClientFactory {
     @Override
-    public ContainerClient getClient(int buildNum) {
+    public ContainerClient getClient(String label) {
       return new ContainerClient() {
         @Override
-        public void buildImage(String dir, long toWait, TimeUnit unit) throws IOException {
+        public void buildImage(String dir, long toWait, TimeUnit unit, DTestLogger logger) throws IOException {
           imageBuilt = true;
         }
 
         @Override
-        public ContainerResult runContainer(long toWait, TimeUnit unit, ContainerCommand cmd) throws
+        public ContainerResult runContainer(long toWait, TimeUnit unit, ContainerCommand cmd, DTestLogger logger) throws
             IOException {
           String logs = "Ran: " + StringUtils.join(cmd.shellCommand(), " ") +
               TestSimpleResultAnalyzer.LOG1;
@@ -217,10 +220,15 @@ public class TestDockerTest {
 
   @Test
   public void successfulRunAllTestsPass() {
-    DockerTest test = new DockerTest();
-    test.run(new String[] {"-b", "fakebranch", "-C", MyCommandFactory.class.getName(), "-d",
-                           "/tmp", "-F", MySuccessfulClientFactory.class.getName(), "-n", "1", "-R",
-                           MyResultAnalyzerFactory.class.getName(), "-r", "fakerepo"}, out, err);
+    DockerTest test = new DockerTest(out, err);
+    test.parseArgs(new String[] {"-b", "successful",
+                                 "-C", MyCommandFactory.class.getName(),
+                                 "-d", System.getProperty("java.io.tmpdir"),
+                                 "-F", MySuccessfulClientFactory.class.getName(),
+                                 "-l", "firstTry",
+                                 "-R", MyResultAnalyzerFactory.class.getName(),
+                                 "-r", "repo"});
+    test.startBuild(test.singleBuild);
     Assert.assertTrue(imageBuilt);
     Assert.assertEquals(1, errors.size());
     Assert.assertEquals("TestAcidOnTez.testGetSplitsLocks", errors.get(0));
@@ -234,10 +242,15 @@ public class TestDockerTest {
 
   @Test
   public void successfulRunSomeTestsFail() {
-    DockerTest test = new DockerTest();
-    test.run(new String[] {"-b", "fakebranch", "-C", MyItestCommandFactory.class.getName(), "-d",
-                           "/tmp", "-F", MySuccessfulWithFailingTestsClientFactory.class.getName(),
-                           "-n", "1", "-R", MyResultAnalyzerFactory.class.getName(), "-r", "fakerepo"}, out, err);
+    DockerTest test = new DockerTest(out, err);
+    test.parseArgs(new String[] {"-b", "successful",
+                                 "-C", MyItestCommandFactory.class.getName(),
+                                 "-d", System.getProperty("java.io.tmpdir"),
+                                 "-F", MySuccessfulWithFailingTestsClientFactory.class.getName(),
+                                 "-l", "secondTry",
+                                 "-R", MyResultAnalyzerFactory.class.getName(),
+                                 "-r", "repo"});
+    test.startBuild(test.singleBuild);
     Assert.assertTrue(imageBuilt);
     Assert.assertEquals(1, errors.size());
     Assert.assertEquals("TestNegativeCliDriver.alter_notnull_constraint_violation", errors.get(0));
@@ -251,10 +264,14 @@ public class TestDockerTest {
 
   @Test
   public void timeout() {
-    DockerTest test = new DockerTest();
-    test.run(new String[] {"-b", "fakebranch", "-C", MyCommandFactory.class.getName(), "-d",
-                           "/tmp", "-F", MyTimingOutClientFactory.class.getName(), "-n", "1", "-R",
-                           MyResultAnalyzerFactory.class.getName(), "-r", "fakerepo"}, out, err);
+    DockerTest test = new DockerTest(out, err);
+    test.parseArgs(new String[] {"-b", "failure",
+                                 "-C", MyCommandFactory.class.getName(),
+                                 "-d", System.getProperty("java.io.tmpdir"),
+                                 "-F", MyTimingOutClientFactory.class.getName(),
+                                 "-R", MyResultAnalyzerFactory.class.getName(),
+                                 "-r", "repo"});
+    test.startBuild(test.singleBuild);
     Assert.assertTrue(imageBuilt);
     Assert.assertTrue(hadTimeouts);
     Assert.assertTrue(runSucceeded);
@@ -263,10 +280,15 @@ public class TestDockerTest {
 
   @Test
   public void failedRun() {
-    DockerTest test = new DockerTest();
-    test.run(new String[] {"-b", "fakebranch", "-C", MyCommandFactory.class.getName(), "-d",
-                           "/tmp", "-F", MyFailingClientFactory.class.getName(), "-n", "1", "-R",
-                           MyResultAnalyzerFactory.class.getName(), "-r", "fakerepo"}, out, err);
+    DockerTest test = new DockerTest(out, err);
+    test.parseArgs(new String[] {"-b", "failure",
+                                 "-C", MyCommandFactory.class.getName(),
+                                 "-d", System.getProperty("java.io.tmpdir"),
+                                 "-F", MyFailingClientFactory.class.getName(),
+                                 "-l", "take2",
+                                 "-R", MyResultAnalyzerFactory.class.getName(),
+                                 "-r", "repo"});
+    test.startBuild(test.singleBuild);
     Assert.assertTrue(imageBuilt);
     Assert.assertFalse(hadTimeouts);
     Assert.assertFalse(runSucceeded);
