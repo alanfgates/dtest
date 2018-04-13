@@ -29,7 +29,6 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -49,38 +48,58 @@ class DTestManager {
   private static final Logger LOG = LoggerFactory.getLogger(DTestManager.class);
   private static final int READ_BUF_SZ = 10240;
 
+  private static final String STATUS_KILLED = "killed";
+  private static final String STATUS_UNSUBMITTED = "unsubmitted";
+  private static final String STATUS_PENDING = "pending";
+  private static final String STATUS_BUILDING = "building";
+  private static final String STATUS_SUCCEEDED = "succeeded";
+  private static final String STATUS_FAILED = "failed";
+
   private final DockerTest dtest;
   private ExecutorService executor;
-  private Map<BuildInfo, Boolean> finishedBuilds;
+  private SortedSet<BuildInfo> finishedBuilds;
   private Map<BuildInfo, Future<Boolean>> pendingAndRunningBuilds;
   private BuildInfo currentBuild; // reset each time by checkBuilds, don't access directly
   private SortedSet<BuildInfo> pendingBuilds; // reset each time by checkBuilds, don't access directly
   private SortedSet<BuildInfo> killedBuilds; // builds tha were terminated
+  private Map<String, BuildInfo> allTrackedBuilds;
 
-  public DTestManager(DockerTest dtest) {
+  static String determineBuildState(BuildInfo info) {
+    if (info.isKilled()) return STATUS_KILLED;
+    else if (info.getQueueTime() == 0) return STATUS_UNSUBMITTED;
+    else if (info.getStartTime() == 0) return STATUS_PENDING;
+    else if (info.getCompletionTime() == 0) return STATUS_BUILDING;
+    else if (info.isSuccess()) return STATUS_SUCCEEDED;
+    else return STATUS_FAILED;
+  }
+
+  DTestManager(DockerTest dtest) {
     this.dtest = dtest;
   }
 
-  void run() {
+  synchronized void start() {
     LOG.info("Starting the test manager");
     BlockingQueue<Runnable> queue = new LinkedBlockingQueue<>();
     executor = new ThreadPoolExecutor(1, 1, 1, TimeUnit.SECONDS, queue);
-    finishedBuilds = new HashMap<>();
+    finishedBuilds = new TreeSet<>(Comparator.comparingLong(BuildInfo::getQueueTime));
     pendingAndRunningBuilds = new HashMap<>();
     killedBuilds = new TreeSet<>();
+    allTrackedBuilds = new HashMap<>();
   }
 
-  void submitBuild(BuildInfo info) {
+  synchronized void submitBuild(BuildInfo info) throws IOException {
+    if (allTrackedBuilds.putIfAbsent(info.getLabel(), info) != null) {
+      throw new IOException("Build with label " + info.getLabel() + " already exists.");
+    }
     LOG.debug("Submitting build " + info.toString());
     pendingAndRunningBuilds.put(info, executor.submit(
         () -> {
           info.setQueueTime(System.currentTimeMillis());
-          boolean r = dtest.startBuild(info) == 0;
-          return r;
+          return dtest.startBuild(info) == 0;
         }));
   }
 
-  private synchronized void checkBuilds() {
+  private void checkBuilds() {
     LOG.debug("checking builds to determine current state");
     List<BuildInfo> toBeRemoved = new ArrayList<>();
     currentBuild = null;
@@ -89,9 +108,11 @@ class DTestManager {
       if (entry.getValue().isDone()) {
         toBeRemoved.add(entry.getKey());
         try {
-          finishedBuilds.put(entry.getKey(), entry.getValue().get());
+          entry.getKey().setSuccess(entry.getValue().get());
+          finishedBuilds.add(entry.getKey());
         } catch (InterruptedException|ExecutionException e) {
-          finishedBuilds.put(entry.getKey(), false);
+          entry.getKey().setSuccess(false);
+          finishedBuilds.add(entry.getKey());
         } catch (CancellationException ce) {
           killedBuilds.add(entry.getKey());
         }
@@ -104,36 +125,38 @@ class DTestManager {
     for (BuildInfo tbr : toBeRemoved) pendingAndRunningBuilds.remove(tbr);
   }
 
-  /**
-   *
-   * @return all of the finished builds, along with their status
-   */
-  Map<BuildInfo, Boolean> getFinishedBuilds() {
+  @VisibleForTesting
+  synchronized List<BuildInfo> getFinishedBuilds() {
     checkBuilds();
-    return new HashMap<>(finishedBuilds);
+    return new ArrayList<>(finishedBuilds);
   }
 
-  /**
-   *
-   * @return the currently running build, may be null if no build is running
-   */
-  BuildInfo getCurrentlyRunningBuild() {
+  @VisibleForTesting
+  synchronized BuildInfo getCurrentlyRunningBuild() {
     checkBuilds();
     return currentBuild;
   }
 
-  /**
-   *
-   * @return a collection of pending builds, sorted by queue time.
-   */
-  Collection<BuildInfo> getPendingBuilds() {
+  @VisibleForTesting
+  synchronized List<BuildInfo> getPendingBuilds() {
     checkBuilds();
-    return pendingBuilds;
+    return new ArrayList<>(pendingBuilds);
   }
 
-  Collection<BuildInfo> getKilledBuilds() {
+  @VisibleForTesting
+  synchronized List<BuildInfo> getKilledBuilds() {
     checkBuilds();
-    return killedBuilds;
+    return new ArrayList<>(killedBuilds);
+  }
+
+  /**
+   * Get the current state
+   * @return A map of build labels to build states
+   */
+  Map<String, String> getFullState() {
+    final Map<String, String> buildStates = new HashMap<>(allTrackedBuilds.size());
+    allTrackedBuilds.values().forEach(bi -> buildStates.put(bi.getLabel(), determineBuildState(bi)));
+    return buildStates;
   }
 
   /**
@@ -141,10 +164,13 @@ class DTestManager {
    * @param info build identifier
    * @return whether an attempt was made to kill the build, doesn't guarantee success.
    */
-  boolean killBuild(BuildInfo info) {
+  synchronized boolean killBuild(BuildInfo info) {
     LOG.debug("Attempting to kill build " + info.toString());
     Future<Boolean> build = pendingAndRunningBuilds.get(info);
-    if (build != null) build.cancel(true);
+    if (build != null) {
+      build.cancel(true);
+      info.setKilled(true);
+    }
     return build != null;
   }
 
@@ -178,18 +204,31 @@ class DTestManager {
    * Try to clear a build.  This will remove its history from the list of finished or killed builds.
    * @param info build identifier
    */
-  synchronized void clearSingleBuildHistory(BuildInfo info) {
+  synchronized void clearSingleBuildHistory(BuildInfo info) throws IOException {
     finishedBuilds.remove(info);
     killedBuilds.remove(info);
+    allTrackedBuilds.remove(info.getLabel());
   }
 
   /**
    * Remove records of all completed and killed builds.
    */
   synchronized void clearAllHistory() {
+    List<BuildInfo> toForget = new ArrayList<>(finishedBuilds);
+    toForget.addAll(killedBuilds);
     finishedBuilds.clear();
     killedBuilds.clear();
+    for (BuildInfo info : toForget) allTrackedBuilds.remove(info.getLabel());
 
+  }
+
+  /**
+   * Find a build by the label
+   * @param label build label
+   * @return build info or null if not found
+   */
+  synchronized BuildInfo findBuild(String label) {
+    return allTrackedBuilds.get(label);
   }
 
   @VisibleForTesting

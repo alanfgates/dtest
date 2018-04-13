@@ -32,7 +32,6 @@ import org.apache.hive.testutils.dtest.impl.TestSimpleResultAnalyzer;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,6 +41,7 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -144,7 +144,7 @@ public class TestDTestManager {
                                   "-R", MyResultAnalyzerFactory.class.getName(),
                                   "-s"});
     mgr = new DTestManager(dtest);
-    mgr.run();
+    mgr.start();
   }
 
   @After
@@ -153,7 +153,7 @@ public class TestDTestManager {
   }
 
   @Test
-  public void submitOne() throws InterruptedException {
+  public void submitOne() throws InterruptedException, IOException {
     BuildInfo build = new BuildInfo("branch", "repo", "label");
     mgr.submitBuild(build);
     // Make sure we've started
@@ -167,14 +167,15 @@ public class TestDTestManager {
     untilNotZero(build::getCompletionTime, 30000);
     current = mgr.getCurrentlyRunningBuild();
     Assert.assertNull(current);
-    Map<BuildInfo, Boolean> finished = mgr.getFinishedBuilds();
+    Collection<BuildInfo> finished = mgr.getFinishedBuilds();
     Assert.assertEquals(1, finished.size());
-    Assert.assertNotNull(finished.get(build));
-    Assert.assertTrue(finished.get(build));
+    BuildInfo finishedBuild = finished.iterator().next();
+    Assert.assertEquals(build, finishedBuild);
+    Assert.assertTrue(finishedBuild.isSuccess());
   }
 
   @Test
-  public void submitTwo() throws InterruptedException {
+  public void submitTwo() throws InterruptedException, IOException {
     BuildInfo build1 = new BuildInfo("branch", "repo", "first");
     BuildInfo build2 = new BuildInfo("branch", "repo", "second");
     mgr.submitBuild(build1);
@@ -197,16 +198,21 @@ public class TestDTestManager {
     current = mgr.getCurrentlyRunningBuild();
     if (current != null) Assert.assertEquals(build2, current);
     untilNotZero(build2::getCompletionTime, 30000);
-    Map<BuildInfo, Boolean> finished = mgr.getFinishedBuilds();
+    Collection<BuildInfo> finished = mgr.getFinishedBuilds();
     Assert.assertEquals(2, finished.size());
-    Assert.assertTrue(finished.get(build1));
-    Assert.assertTrue(finished.get(build2));
+    Iterator<BuildInfo> iter = finished.iterator();
+    BuildInfo finishedBuild = iter.next();
+    Assert.assertEquals(build1, finishedBuild);
+    Assert.assertTrue(finishedBuild.isSuccess());
+    finishedBuild = iter.next();
+    Assert.assertEquals(build2, finishedBuild);
+    Assert.assertTrue(finishedBuild.isSuccess());
 
     mgr.clearSingleBuildHistory(build1);
     finished = mgr.getFinishedBuilds();
     Assert.assertEquals(1, finished.size());
-    Assert.assertNull(finished.get(build1));
-    Assert.assertTrue(finished.get(build2));
+    finishedBuild = finished.iterator().next();
+    Assert.assertEquals(build2, finishedBuild);
 
     mgr.clearAllHistory();
     finished = mgr.getFinishedBuilds();
@@ -214,7 +220,7 @@ public class TestDTestManager {
   }
 
   @Test
-  public void killPending() throws InterruptedException {
+  public void killPending() throws InterruptedException, IOException {
     BuildInfo build1 = new BuildInfo("branch", "repo", "first-r2");
     BuildInfo build2 = new BuildInfo("branch", "repo", "second-r2");
     mgr.submitBuild(build1);
@@ -224,9 +230,9 @@ public class TestDTestManager {
     mgr.killBuild(build2);
     // Wait until the build has finished
     untilNotZero(build1::getCompletionTime, 30000);
-    Map<BuildInfo, Boolean> finished = mgr.getFinishedBuilds();
+    Collection<BuildInfo> finished = mgr.getFinishedBuilds();
     Assert.assertEquals(1, finished.size());
-    Assert.assertTrue(finished.get(build1));
+    Assert.assertEquals(build1, finished.iterator().next());
     Collection<BuildInfo> killed = mgr.getKilledBuilds();
     if (killed.size() > 0) {
       Assert.assertEquals(1, killed.size());
@@ -238,7 +244,7 @@ public class TestDTestManager {
   }
 
   @Test
-  public void killRunning() throws InterruptedException {
+  public void killRunning() throws InterruptedException, IOException {
     BuildInfo build1 = new BuildInfo("branch", "repo", "first-r2");
     BuildInfo build2 = new BuildInfo("branch", "repo", "second-r2");
     mgr.submitBuild(build1);
@@ -249,8 +255,8 @@ public class TestDTestManager {
     mgr.killBuild(build1);
     // Wait until the build has finished
     untilNotZero(build2::getCompletionTime, 30000);
-    Map<BuildInfo, Boolean> finished = mgr.getFinishedBuilds();
-    if (finished.size() == 1) Assert.assertTrue(finished.get(build2));
+    Collection<BuildInfo> finished = mgr.getFinishedBuilds();
+    if (finished.size() == 1) Assert.assertTrue(finished.iterator().next().isSuccess());
     Collection<BuildInfo> killed = mgr.getKilledBuilds();
     if (killed.size() > 0) {
       Assert.assertEquals(1, killed.size());

@@ -19,26 +19,28 @@ package org.apache.hive.testutils.dtest;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class BuildInfo implements Comparable<BuildInfo> {
-  public final String branch;
-  public final String repo;
-  public final String label;
+  private final Pattern dockerable = Pattern.compile("[A-Za-z0-9_\\-]+");
+  private final String branch;
+  private final String repo;
+  private final String label;
   private long queueTime;
   private long startTime;
   private long completionTime;
   private String dir;
+  private boolean success;
+  private boolean killed;
 
-  public BuildInfo(String branch, String repo, String label) {
+  public BuildInfo(String branch, String repo, String label) throws IOException {
     this.branch = branch;
     this.repo = repo;
-    this.label = cleanseName(label);
+    this.label = checkLabelIsDockerable(label);
     startTime = queueTime = 0;
     dir = null;
-  }
-
-  public BuildInfo(String branch, String repo) {
-    this(branch, repo, null);
+    success = killed = false;
   }
 
   /**
@@ -48,15 +50,22 @@ public class BuildInfo implements Comparable<BuildInfo> {
    */
   String buildDir(String baseDir) throws IOException {
     if (dir != null) return dir;
-    StringBuilder buf = new StringBuilder(cleanseName(branch));
-    if (label != null) {
-        buf.append('-')
-            .append(label);
-    }
-    File d = new File(baseDir, buf.toString());
+    File d = new File(baseDir, label);
     d.mkdir();
     dir = d.getAbsolutePath();
     return dir;
+  }
+
+  public String getBranch() {
+    return branch;
+  }
+
+  public String getRepo() {
+    return repo;
+  }
+
+  public String getLabel() {
+    return label;
   }
 
   public String getDir() {
@@ -87,28 +96,32 @@ public class BuildInfo implements Comparable<BuildInfo> {
     this.completionTime = completionTime;
   }
 
-  private String cleanseName(String name) {
-    return name == null ? null : name.replace('/', '-').replace(' ', '-');
+  public boolean isSuccess() {
+    return success;
+  }
+
+  public void setSuccess(boolean success) {
+    this.success = success;
+  }
+
+  public boolean isKilled() {
+    return killed;
+  }
+
+  public void setKilled(boolean killed) {
+    this.killed = killed;
   }
 
   @Override
   public int hashCode() {
-    int code = branch.hashCode() * 31 + repo.hashCode();
-    if (label != null) code = code * 31 + label.hashCode();
-    return code;
+    return label.hashCode();
   }
 
   @Override
   public boolean equals(Object obj) {
     if (!(obj instanceof BuildInfo)) return false;
     BuildInfo that = (BuildInfo)obj;
-    if (branch.equals(that.branch) && repo.equals(that.repo)) {
-      if ((label == null && that.label == null) ||
-          (label != null && label.equals(that.label))) {
-        return true;
-      }
-    }
-    return false;
+    return label.equals(that.label);
   }
 
   @Override
@@ -118,16 +131,16 @@ public class BuildInfo implements Comparable<BuildInfo> {
 
   @Override
   public int compareTo(BuildInfo o) {
-    int c = repo.compareTo(o.repo);
-    if (c != 0) return c;
-    c = branch.compareTo(o.branch);
-    if (c != 0) return c;
-    if (label == null) {
-      if (o.label == null) return 0;
-      else return -1;
+    return label.compareTo(o.label);
+  }
+
+  private String checkLabelIsDockerable(String label) throws IOException {
+    Matcher m = dockerable.matcher(label);
+    if (m.matches()) {
+      return label;
     } else {
-      if (o.label == null) return 1;
-      else return label.compareTo(o.label);
+      throw new IOException("Label must be usable in docker container name, should only contain " +
+          "[A-Za-z0-9_\\-]");
     }
   }
 }

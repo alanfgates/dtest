@@ -270,6 +270,7 @@ public class TestDockerTest {
                                  "-d", System.getProperty("java.io.tmpdir"),
                                  "-F", MyTimingOutClientFactory.class.getName(),
                                  "-R", MyResultAnalyzerFactory.class.getName(),
+                                 "-l", "will-timeout",
                                  "-r", "repo"});
     test.startBuild(test.singleBuild);
     Assert.assertTrue(imageBuilt);

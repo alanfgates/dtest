@@ -28,6 +28,10 @@ import org.apache.commons.cli.ParseException;
 import org.apache.hive.testutils.dtest.impl.ContainerResult;
 import org.apache.hive.testutils.dtest.impl.DTestLogger;
 import org.apache.hive.testutils.dtest.impl.DockerBuilder;
+import org.apache.hive.testutils.dtest.server.DTestResource;
+import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.servlet.ServletContextHandler;
+import org.eclipse.jetty.servlet.ServletHolder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,6 +48,7 @@ import java.util.concurrent.TimeUnit;
 public class DockerTest {
   private static final Logger LOG = LoggerFactory.getLogger(DockerTest.class);
   private static final String SUMMARY_LOG = "summary";
+  private static final int PORT = 8080;
 
   private ContainerClient docker;
   private ContainerCommandFactory commandFactory;
@@ -134,7 +139,6 @@ public class DockerTest {
       return false;
     }
 
-    // TODO move all these into class members, call startBuild from main unless server is set.
     numContainers = cmd.hasOption("c") ? Integer.parseInt(cmd.getOptionValue("c")) : 1;
     baseDir = cmd.getOptionValue("d");
     try {
@@ -158,22 +162,28 @@ public class DockerTest {
         LOG.error(msg);
         return false;
       }
-      singleBuild =
-          new BuildInfo(cmd.getOptionValue("b"), cmd.getOptionValue("r"), cmd.getOptionValue("l"));
+      try {
+        singleBuild = new BuildInfo(cmd.getOptionValue("b"), cmd.getOptionValue("r"),
+                cmd.getOptionValue("l"));
+      } catch (IOException e) {
+        err.println(e.getMessage());
+        LOG.error("Failed to build BuildInfo", e);
+        return false;
+      }
     }
     return true;
   }
 
   public int startBuild(BuildInfo info) {
     info.setStartTime(System.currentTimeMillis());
-    docker = containerClientFactory.getClient(info.label);
+    docker = containerClientFactory.getClient(info.getLabel());
     DTestLogger logger = null;
     int rc = 0;
     try {
       String dir = info.buildDir(baseDir);
       logger = new DTestLogger(dir);
       try {
-        buildDockerImage(dir, info.repo, info.branch, info.label, logger);
+        buildDockerImage(dir, info.getRepo(), info.getBranch(), info.getLabel(), logger);
       } catch (IOException e) {
         String msg = "Failed to build docker image, might mean your code doesn't compile";
         err.println(msg + "  See log for details.");
@@ -293,8 +303,35 @@ public class DockerTest {
     out.println(msg.toString());
   }
 
-  private void server() {
-    // TODO
+  private int server() {
+    DTestResource.initialize(this);
+    ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
+    context.setContextPath("/");
+
+    Server jettyServer = new Server(PORT);
+    jettyServer.setHandler(context);
+
+    ServletHolder jerseyServlet = context.addServlet(
+        com.sun.jersey.spi.container.servlet.ServletContainer.class, "/*");
+    jerseyServlet.setInitOrder(0);
+
+    // Tells the Jersey Servlet which REST service/class to load.
+    jerseyServlet.setInitParameter(
+        "jersey.config.server.provider.classnames",
+        DTestResource.class.getCanonicalName());
+
+    try {
+      jettyServer.start();
+      jettyServer.join();
+      return 0;
+    } catch (Exception e) {
+      String msg = "Caught exception from jetty server";
+      LOG.error(msg, e);
+      System.out.println(msg + ", see log for details");
+      return 1;
+    } finally {
+      jettyServer.destroy();
+    }
   }
 
   /**
@@ -306,7 +343,7 @@ public class DockerTest {
     DockerTest test = new DockerTest(System.out, System.err);
     if (test.parseArgs(args)) {
       if (test.runServer) {
-        test.server();
+        System.exit(test.server());
       } else {
         System.exit(test.startBuild(test.singleBuild));
       }
