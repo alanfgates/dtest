@@ -112,6 +112,21 @@ public class BuildInfo implements Comparable<BuildInfo> {
     this.killed = killed;
   }
 
+  public BuildState getState() {
+    if (isKilled()) return BuildState.KILLED;
+    else if (getQueueTime() == 0) return BuildState.UNSUBMITTED;
+    else if (getStartTime() == 0) return BuildState.PENDING;
+    else if (getCompletionTime() == 0) return BuildState.BUILDING;
+    else if (isSuccess()) return BuildState.SUCCEEDED;
+    else return BuildState.FAILED;
+  }
+
+  public boolean isFinished() {
+    BuildState state = getState();
+    return state == BuildState.KILLED || state == BuildState.SUCCEEDED ||
+        state == BuildState.FAILED;
+  }
+
   @Override
   public int hashCode() {
     return label.hashCode();

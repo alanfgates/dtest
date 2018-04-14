@@ -18,6 +18,7 @@
 package org.apache.hive.testutils.dtest.server;
 
 import org.apache.hive.testutils.dtest.BuildInfo;
+import org.apache.hive.testutils.dtest.BuildState;
 import org.apache.hive.testutils.dtest.DockerTest;
 
 import javax.ws.rs.DELETE;
@@ -41,11 +42,8 @@ public class DTestResource {
         "everything's perfectly all right now. We're fine. We're all fine here, now, thank you. " +
         "How are you?";
 
-  private static DTestManager mgr;
-
   public static void initialize(DockerTest main) {
-    mgr = new DTestManager(main);
-    mgr.start();
+    DTestManager.initialize(main);
   }
 
   @GET
@@ -64,7 +62,7 @@ public class DTestResource {
       @PathParam("label") String label) {
     try {
       BuildInfo info = new BuildInfo(branch, repo, label);
-      mgr.submitBuild(info);
+      DTestManager.get().submitBuild(info);
       return buildResponse(200, "OK");
     } catch (IOException e) {
       return buildResponse(406, "Build submission failed", "Details", e.getMessage());
@@ -77,26 +75,26 @@ public class DTestResource {
   public Response fetchStatus(@PathParam("label") String label,
                               @QueryParam("logs") boolean getLogs) {
     BuildInfo info;
-    info = mgr.findBuild(label);
+    info = DTestManager.get().findBuild(label);
     if (info == null) return buildResponse(404, label + ", no such build");
     if (getLogs) {
       try {
-      String logs = mgr.getLogs(info);
+      String logs = DTestManager.get().getLogs(info);
       return buildResponse(200, "OK", "repo", info.getRepo(), "branch", info.getBranch(),
           "logs", logs);
       } catch (IOException e) {
         return buildResponse(500, "Unable to fetch logs", "Details", e.getMessage());
       }
     } else {
-      return buildResponse(200, DTestManager.determineBuildState(info));
+      return buildResponse(200, info.getState().name());
     }
   }
 
   @GET
-  @Path("/build/status")
+  @Path("/builds")
   @Produces(MediaType.APPLICATION_JSON)
   public Response fetchAllStats() {
-    Map<String, String> m = mgr.getFullState();
+    Map<String, BuildState> m = DTestManager.get().getFullState();
     return Response.status(200).entity(m).build();
   }
 
@@ -105,9 +103,9 @@ public class DTestResource {
   @Produces(MediaType.APPLICATION_JSON)
   public Response killBuild(@PathParam("label") String label) {
     BuildInfo info;
-    info = mgr.findBuild(label);
+    info = DTestManager.get().findBuild(label);
     if (info == null) return buildResponse(404, label + ", no such build");
-    boolean killed = mgr.killBuild(info);
+    boolean killed = DTestManager.get().killBuild(info);
     return buildResponse(200, "Killed the build: " + killed);
   }
 

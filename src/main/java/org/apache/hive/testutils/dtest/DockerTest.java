@@ -175,7 +175,6 @@ public class DockerTest {
   }
 
   public int startBuild(BuildInfo info) {
-    info.setStartTime(System.currentTimeMillis());
     docker = containerClientFactory.getClient(info.getLabel());
     DTestLogger logger = null;
     int rc = 0;
@@ -214,7 +213,6 @@ public class DockerTest {
           rc = 1;
         }
       }
-      info.setCompletionTime(System.currentTimeMillis());
     }
     return rc;
   }

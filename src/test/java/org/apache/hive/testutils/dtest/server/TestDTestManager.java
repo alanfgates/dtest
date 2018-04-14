@@ -19,6 +19,7 @@ package org.apache.hive.testutils.dtest.server;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.hive.testutils.dtest.BuildInfo;
+import org.apache.hive.testutils.dtest.BuildState;
 import org.apache.hive.testutils.dtest.ContainerClient;
 import org.apache.hive.testutils.dtest.ContainerClientFactory;
 import org.apache.hive.testutils.dtest.ContainerCommand;
@@ -39,9 +40,7 @@ import org.slf4j.LoggerFactory;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
-import java.util.Collection;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -143,13 +142,16 @@ public class TestDTestManager {
                                   "-F", PausingContainerFactory.class.getName(),
                                   "-R", MyResultAnalyzerFactory.class.getName(),
                                   "-s"});
-    mgr = new DTestManager(dtest);
-    mgr.start();
+    DTestManager.initialize(dtest);
+    mgr = DTestManager.get();
   }
 
   @After
   public void stopManager() {
-    mgr.close();
+    if (mgr != null) {
+      mgr.close();
+      DTestManager.resetForTesting();
+    }
   }
 
   @Test
@@ -160,18 +162,16 @@ public class TestDTestManager {
     untilNotZero(build::getStartTime, 10000);
     // We may not have been fast enough and the build may have already finished, so don't bork if
     // it comes back null
-    BuildInfo current = mgr.getCurrentlyRunningBuild();
-    if (current != null) Assert.assertEquals(build, current);
+    Map<String, BuildState> status = mgr.getFullState();
+    Assert.assertEquals(1, status.size());
+    Assert.assertTrue(status.get(build.getLabel()) == BuildState.BUILDING ||
+        status.get(build.getLabel()) == BuildState.SUCCEEDED);
 
     // Wait until the build has finished
     untilNotZero(build::getCompletionTime, 30000);
-    current = mgr.getCurrentlyRunningBuild();
-    Assert.assertNull(current);
-    Collection<BuildInfo> finished = mgr.getFinishedBuilds();
-    Assert.assertEquals(1, finished.size());
-    BuildInfo finishedBuild = finished.iterator().next();
-    Assert.assertEquals(build, finishedBuild);
-    Assert.assertTrue(finishedBuild.isSuccess());
+    status = mgr.getFullState();
+    Assert.assertEquals(1, status.size());
+    Assert.assertEquals(BuildState.SUCCEEDED, status.get(build.getLabel()));
   }
 
   @Test
@@ -184,39 +184,28 @@ public class TestDTestManager {
     untilNotZero(build1::getStartTime, 10000);
     // We may not have been fast enough and the build may have already finished, so don't bork if
     // it comes back null
-    Collection<BuildInfo> pending = mgr.getPendingBuilds();
-    if (pending.size() > 0) {
-      Assert.assertEquals(1, pending.size());
-      Assert.assertEquals(build2, pending.iterator().next());
+    Map<String, BuildState> status = mgr.getFullState();
+    Assert.assertEquals(2, status.size());
+    if (status.get(build1.getLabel()) == BuildState.BUILDING) {
+      Assert.assertEquals(BuildState.PENDING, status.get(build2.getLabel()));
     }
-    BuildInfo current = mgr.getCurrentlyRunningBuild();
-    if (current != null) Assert.assertEquals(build1, current);
 
     // Wait until the build has finished
     untilNotZero(build1::getCompletionTime, 30000);
     untilNotZero(build2::getStartTime, 10000);
-    current = mgr.getCurrentlyRunningBuild();
-    if (current != null) Assert.assertEquals(build2, current);
+    status = mgr.getFullState();
+    Assert.assertEquals(2, status.size());
+    Assert.assertEquals(BuildState.SUCCEEDED, status.get(build1.getLabel()));
     untilNotZero(build2::getCompletionTime, 30000);
-    Collection<BuildInfo> finished = mgr.getFinishedBuilds();
-    Assert.assertEquals(2, finished.size());
-    Iterator<BuildInfo> iter = finished.iterator();
-    BuildInfo finishedBuild = iter.next();
-    Assert.assertEquals(build1, finishedBuild);
-    Assert.assertTrue(finishedBuild.isSuccess());
-    finishedBuild = iter.next();
-    Assert.assertEquals(build2, finishedBuild);
-    Assert.assertTrue(finishedBuild.isSuccess());
 
     mgr.clearSingleBuildHistory(build1);
-    finished = mgr.getFinishedBuilds();
-    Assert.assertEquals(1, finished.size());
-    finishedBuild = finished.iterator().next();
-    Assert.assertEquals(build2, finishedBuild);
+    status = mgr.getFullState();
+    Assert.assertEquals(1, status.size());
+    Assert.assertNotNull(status.get(build2.getLabel()));
 
     mgr.clearAllHistory();
-    finished = mgr.getFinishedBuilds();
-    Assert.assertEquals(0, finished.size());
+    status = mgr.getFullState();
+    Assert.assertEquals(0, status.size());
   }
 
   @Test
@@ -230,16 +219,10 @@ public class TestDTestManager {
     mgr.killBuild(build2);
     // Wait until the build has finished
     untilNotZero(build1::getCompletionTime, 30000);
-    Collection<BuildInfo> finished = mgr.getFinishedBuilds();
-    Assert.assertEquals(1, finished.size());
-    Assert.assertEquals(build1, finished.iterator().next());
-    Collection<BuildInfo> killed = mgr.getKilledBuilds();
-    if (killed.size() > 0) {
-      Assert.assertEquals(1, killed.size());
-      Assert.assertEquals(build2, killed.iterator().next());
-      mgr.clearSingleBuildHistory(build2);
-      killed = mgr.getKilledBuilds();
-      Assert.assertEquals(0, killed.size());
+    Map<String, BuildState> buildStates = mgr.getFullState();
+    // We might have kill build2
+    if (build2.isKilled()) {
+      Assert.assertEquals(BuildState.KILLED, buildStates.get(build2.getLabel()));
     }
   }
 
@@ -255,15 +238,10 @@ public class TestDTestManager {
     mgr.killBuild(build1);
     // Wait until the build has finished
     untilNotZero(build2::getCompletionTime, 30000);
-    Collection<BuildInfo> finished = mgr.getFinishedBuilds();
-    if (finished.size() == 1) Assert.assertTrue(finished.iterator().next().isSuccess());
-    Collection<BuildInfo> killed = mgr.getKilledBuilds();
-    if (killed.size() > 0) {
-      Assert.assertEquals(1, killed.size());
-      Assert.assertEquals(build1, killed.iterator().next());
-      mgr.clearAllHistory();
-      killed = mgr.getKilledBuilds();
-      Assert.assertEquals(0, killed.size());
+    Map<String, BuildState> buildStates = mgr.getFullState();
+    // We might have kill build1
+    if (build1.isKilled()) {
+      Assert.assertEquals(BuildState.KILLED, buildStates.get(build1.getLabel()));
     }
   }
 
