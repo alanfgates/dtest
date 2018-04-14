@@ -28,8 +28,13 @@ import java.util.List;
  * an instance of this that returns that type of command
  */
 public abstract class ContainerCommandFactory {
-  static ContainerCommandFactory get(String factoryClassName) throws IOException {
-    if (factoryClassName == null) factoryClassName = MvnCommandFactory.class.getName();
+  public static final String PROPERTY = "dtest.container.command.factory";
+
+  static ContainerCommandFactory get() throws IOException {
+    String factoryClassName = System.getProperty(PROPERTY);
+    if (factoryClassName == null || factoryClassName.isEmpty()) {
+      factoryClassName = MvnCommandFactory.class.getName();
+    }
 
     Class<? extends ContainerCommandFactory> clazz = Utils.getClass(factoryClassName,
         ContainerCommandFactory.class);

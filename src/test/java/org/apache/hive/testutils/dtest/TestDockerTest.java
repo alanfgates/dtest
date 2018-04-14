@@ -49,7 +49,7 @@ public class TestDockerTest {
   private PrintStream out;
   private PrintStream err;
 
-  public static class MySuccessfulClientFactory extends ContainerClientFactory {
+  public static class SuccessfulClientFactory extends ContainerClientFactory {
     @Override
     public ContainerClient getClient(String label) {
       return new ContainerClient() {
@@ -69,7 +69,7 @@ public class TestDockerTest {
     }
   }
 
-  public static class MySuccessfulWithFailingTestsClientFactory extends ContainerClientFactory {
+  public static class SuccessfulWithFailingTestsClientFactory extends ContainerClientFactory {
     @Override
     public ContainerClient getClient(String label) {
       return new ContainerClient() {
@@ -89,7 +89,7 @@ public class TestDockerTest {
     }
   }
 
-  public static class MyTimingOutClientFactory extends ContainerClientFactory {
+  public static class TimingOutClientFactory extends ContainerClientFactory {
     @Override
     public ContainerClient getClient(String label) {
       return new ContainerClient() {
@@ -109,7 +109,7 @@ public class TestDockerTest {
     }
   }
 
-  public static class MyFailingClientFactory extends ContainerClientFactory {
+  public static class FailingClientFactory extends ContainerClientFactory {
     @Override
     public ContainerClient getClient(String label) {
       return new ContainerClient() {
@@ -130,7 +130,7 @@ public class TestDockerTest {
   }
 
 
-  public static class MyCommandFactory extends ContainerCommandFactory {
+  public static class HelloWorldCommandFactory extends ContainerCommandFactory {
     @Override
     public List<ContainerCommand> getContainerCommands(String baseDir) throws IOException {
       return Collections.singletonList(new ContainerCommand() {
@@ -147,7 +147,7 @@ public class TestDockerTest {
     }
   }
 
-  public static class MyItestCommandFactory extends ContainerCommandFactory {
+  public static class ItestCommandFactory extends ContainerCommandFactory {
     @Override
     public List<ContainerCommand> getContainerCommands(String baseDir) throws IOException {
       return Collections.singletonList(new ContainerCommand() {
@@ -164,7 +164,7 @@ public class TestDockerTest {
     }
   }
 
-  public static class MyResultAnalyzerFactory extends ResultAnalyzerFactory {
+  public static class SpyingResultAnalyzerFactory extends ResultAnalyzerFactory {
     @Override
     public ResultAnalyzer getAnalyzer() {
       final SimpleResultAnalyzer contained = new SimpleResultAnalyzer();
@@ -220,13 +220,13 @@ public class TestDockerTest {
 
   @Test
   public void successfulRunAllTestsPass() {
+    System.setProperty(ContainerClientFactory.PROPERTY, SuccessfulClientFactory.class.getName());
+    System.setProperty(ContainerCommandFactory.PROPERTY, HelloWorldCommandFactory.class.getName());
+    System.setProperty(ResultAnalyzerFactory.PROPERTY, SpyingResultAnalyzerFactory.class.getName());
     DockerTest test = new DockerTest(out, err);
     test.parseArgs(new String[] {"-b", "successful",
-                                 "-C", MyCommandFactory.class.getName(),
                                  "-d", System.getProperty("java.io.tmpdir"),
-                                 "-F", MySuccessfulClientFactory.class.getName(),
                                  "-l", "firstTry",
-                                 "-R", MyResultAnalyzerFactory.class.getName(),
                                  "-r", "repo"});
     test.startBuild(test.singleBuild);
     Assert.assertTrue(imageBuilt);
@@ -242,13 +242,13 @@ public class TestDockerTest {
 
   @Test
   public void successfulRunSomeTestsFail() {
+    System.setProperty(ContainerClientFactory.PROPERTY, SuccessfulWithFailingTestsClientFactory.class.getName());
+    System.setProperty(ContainerCommandFactory.PROPERTY, ItestCommandFactory.class.getName());
+    System.setProperty(ResultAnalyzerFactory.PROPERTY, SpyingResultAnalyzerFactory.class.getName());
     DockerTest test = new DockerTest(out, err);
     test.parseArgs(new String[] {"-b", "successful",
-                                 "-C", MyItestCommandFactory.class.getName(),
                                  "-d", System.getProperty("java.io.tmpdir"),
-                                 "-F", MySuccessfulWithFailingTestsClientFactory.class.getName(),
                                  "-l", "secondTry",
-                                 "-R", MyResultAnalyzerFactory.class.getName(),
                                  "-r", "repo"});
     test.startBuild(test.singleBuild);
     Assert.assertTrue(imageBuilt);
@@ -264,12 +264,12 @@ public class TestDockerTest {
 
   @Test
   public void timeout() {
+    System.setProperty(ContainerClientFactory.PROPERTY, TimingOutClientFactory.class.getName());
+    System.setProperty(ContainerCommandFactory.PROPERTY, HelloWorldCommandFactory.class.getName());
+    System.setProperty(ResultAnalyzerFactory.PROPERTY, SpyingResultAnalyzerFactory.class.getName());
     DockerTest test = new DockerTest(out, err);
     test.parseArgs(new String[] {"-b", "failure",
-                                 "-C", MyCommandFactory.class.getName(),
                                  "-d", System.getProperty("java.io.tmpdir"),
-                                 "-F", MyTimingOutClientFactory.class.getName(),
-                                 "-R", MyResultAnalyzerFactory.class.getName(),
                                  "-l", "will-timeout",
                                  "-r", "repo"});
     test.startBuild(test.singleBuild);
@@ -281,13 +281,13 @@ public class TestDockerTest {
 
   @Test
   public void failedRun() {
+    System.setProperty(ContainerClientFactory.PROPERTY, FailingClientFactory.class.getName());
+    System.setProperty(ContainerCommandFactory.PROPERTY, HelloWorldCommandFactory.class.getName());
+    System.setProperty(ResultAnalyzerFactory.PROPERTY, SpyingResultAnalyzerFactory.class.getName());
     DockerTest test = new DockerTest(out, err);
     test.parseArgs(new String[] {"-b", "failure",
-                                 "-C", MyCommandFactory.class.getName(),
                                  "-d", System.getProperty("java.io.tmpdir"),
-                                 "-F", MyFailingClientFactory.class.getName(),
                                  "-l", "take2",
-                                 "-R", MyResultAnalyzerFactory.class.getName(),
                                  "-r", "repo"});
     test.startBuild(test.singleBuild);
     Assert.assertTrue(imageBuilt);

@@ -83,12 +83,6 @@ public class DockerTest {
         .create("b"));
 
     opts.addOption(OptionBuilder
-        .withLongOpt("command-factory")
-        .withDescription("Class to build ContainerCommands, defaults to MvnCommandFactory")
-        .hasArg()
-        .create("C"));
-
-    opts.addOption(OptionBuilder
         .withLongOpt("num-containers")
         .withDescription("number of simultaneous containers to run, defaults to 1")
         .hasArg()
@@ -102,22 +96,10 @@ public class DockerTest {
         .create("d"));
 
     opts.addOption(OptionBuilder
-        .withLongOpt("container-factory")
-        .withDescription("Class to build ContainerClients, defaults to ContainerClientFactory")
-        .hasArg()
-        .create("F"));
-
-    opts.addOption(OptionBuilder
         .withLongOpt("build-label")
         .withDescription("build label, changing this will force a new container to be built")
         .hasArg()
         .create("l"));
-
-    opts.addOption(OptionBuilder
-        .withLongOpt("result-analyzer-factory")
-        .withDescription("Class to build ResultAnalyzer, default to SimpleResultAnalyzer")
-        .hasArg()
-        .create("R"));
 
     opts.addOption(OptionBuilder
         .withLongOpt("repo")
@@ -142,9 +124,9 @@ public class DockerTest {
     numContainers = cmd.hasOption("c") ? Integer.parseInt(cmd.getOptionValue("c")) : 1;
     baseDir = cmd.getOptionValue("d");
     try {
-      containerClientFactory = ContainerClientFactory.get(cmd.getOptionValue("F"));
-      commandFactory = ContainerCommandFactory.get(cmd.getOptionValue("C"));
-      analyzerFactory = ResultAnalyzerFactory.get(cmd.getOptionValue("R"));
+      containerClientFactory = ContainerClientFactory.get();
+      commandFactory = ContainerCommandFactory.get();
+      analyzerFactory = ResultAnalyzerFactory.get();
     } catch (IOException e) {
       String msg = "Failed to instantiate one of the factories.";
       err.println(msg + "  See log for details.");

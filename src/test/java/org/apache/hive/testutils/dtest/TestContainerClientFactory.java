@@ -47,14 +47,15 @@ public class TestContainerClientFactory {
 
   @Test
   public void defaultFactory() throws IOException {
-    ContainerClientFactory factory = ContainerClientFactory.get(null);
+    System.setProperty(ContainerClientFactory.PROPERTY, "");
+    ContainerClientFactory factory = ContainerClientFactory.get();
     Assert.assertEquals(DockerClientFactory.class, factory.getClass());
   }
 
   @Test
   public void specifiedFactory() throws IOException {
-    ContainerClientFactory factory =
-        ContainerClientFactory.get(DummyContainerClientFactory.class.getName());
+    System.setProperty(ContainerClientFactory.PROPERTY, DummyContainerClientFactory.class.getName());
+    ContainerClientFactory factory = ContainerClientFactory.get();
     Assert.assertEquals(DummyContainerClientFactory.class, factory.getClass());
   }
 }

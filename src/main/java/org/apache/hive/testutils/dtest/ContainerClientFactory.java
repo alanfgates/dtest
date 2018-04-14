@@ -28,8 +28,13 @@ import java.io.IOException;
  */
 public abstract class ContainerClientFactory {
 
-  public static ContainerClientFactory get(String factoryClassName) throws IOException {
-    if (factoryClassName == null) factoryClassName = DockerClientFactory.class.getName();
+  public static final String PROPERTY = "dtest.container.client.factory";
+
+  public static ContainerClientFactory get() throws IOException {
+    String factoryClassName = System.getProperty(PROPERTY);
+    if (factoryClassName == null || factoryClassName.isEmpty()) {
+      factoryClassName = DockerClientFactory.class.getName();
+    }
 
     Class<? extends ContainerClientFactory> clazz = Utils.getClass(factoryClassName,
         ContainerClientFactory.class);

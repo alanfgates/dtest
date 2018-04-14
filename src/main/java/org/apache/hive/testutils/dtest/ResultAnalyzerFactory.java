@@ -23,8 +23,10 @@ import org.apache.hive.testutils.dtest.impl.Utils;
 import java.io.IOException;
 
 public abstract class ResultAnalyzerFactory {
+  public static final String PROPERTY = "dtest.result.analyzer.factory";
 
-  static ResultAnalyzerFactory get(String factoryClassName) throws IOException {
+  static ResultAnalyzerFactory get() throws IOException {
+    String factoryClassName = System.getProperty(PROPERTY);
     if (factoryClassName == null) factoryClassName = SimpleAnalyzerFactory.class.getName();
 
     Class<? extends ResultAnalyzerFactory> clazz = Utils.getClass(factoryClassName,

@@ -78,7 +78,7 @@ public class TestDTestManager {
     }
   }
 
-  public static class MyCommandFactory extends ContainerCommandFactory {
+  public static class FriendlyCommandFactory extends ContainerCommandFactory {
     @Override
     public List<ContainerCommand> getContainerCommands(String baseDir) throws IOException {
       return Collections.singletonList(new ContainerCommand() {
@@ -95,7 +95,7 @@ public class TestDTestManager {
     }
   }
 
-  public static class MyResultAnalyzerFactory extends ResultAnalyzerFactory {
+  public static class SpyingResultAnalyzerFactory extends ResultAnalyzerFactory {
     @Override
     public ResultAnalyzer getAnalyzer() {
       return new ResultAnalyzer() {
@@ -133,14 +133,14 @@ public class TestDTestManager {
 
   @Before
   public void createDTest() {
+    System.setProperty(ContainerClientFactory.PROPERTY, PausingContainerFactory.class.getName());
+    System.setProperty(ContainerCommandFactory.PROPERTY, FriendlyCommandFactory.class.getName());
+    System.setProperty(ResultAnalyzerFactory.PROPERTY, SpyingResultAnalyzerFactory.class.getName());
     outBuffer = new ByteArrayOutputStream();
     out = new PrintStream(outBuffer);
     err = new PrintStream(new ByteArrayOutputStream());
     dtest = new DockerTest(out, err);
-    dtest.parseArgs(new String[] {"-C", MyCommandFactory.class.getName(),
-                                  "-d", System.getProperty("java.io.tmpdir"),
-                                  "-F", PausingContainerFactory.class.getName(),
-                                  "-R", MyResultAnalyzerFactory.class.getName(),
+    dtest.parseArgs(new String[] {"-d", System.getProperty("java.io.tmpdir"),
                                   "-s"});
     DTestManager.initialize(dtest);
     mgr = DTestManager.get();
