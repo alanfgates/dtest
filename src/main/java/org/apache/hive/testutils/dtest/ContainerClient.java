@@ -26,6 +26,16 @@ import java.util.concurrent.TimeUnit;
 public interface ContainerClient {
 
   /**
+   * Define the container.  Usually this will mean writing a Dockerfile.
+   * @param dir Directory for the build.
+   * @param repo git repository to pull from
+   * @param branch git branch to use
+   * @param label identifying value for this build
+   * @throws IOException if we fail to write the docker file
+   */
+  void defineImage(String dir, String repo, String branch, String label) throws IOException;
+
+  /**
    * Build an image
    * @param dir directory to build in, must either be absolute path or relative to CWD of the
    *            process.

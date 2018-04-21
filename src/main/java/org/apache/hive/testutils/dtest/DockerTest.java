@@ -26,7 +26,6 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.hive.testutils.dtest.impl.ContainerResult;
 import org.apache.hive.testutils.dtest.impl.DTestLogger;
-import org.apache.hive.testutils.dtest.impl.DockerBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -185,7 +184,7 @@ public class DockerTest {
     int timeout = Integer.valueOf(System.getProperty(Config.IMAGE_BUILD_TIME, "30"));
     TimeUnit timeUnit = TimeUnit.valueOf(System.getProperty(Config.IMAGE_BUILD_TIME_UNIT,
         TimeUnit.MINUTES.name()));
-    DockerBuilder.createDockerFile(dir, repo, branch, label);
+    docker.defineImage(dir, repo, branch, label);
     docker.buildImage(dir, timeout, timeUnit, logger);
   }
 

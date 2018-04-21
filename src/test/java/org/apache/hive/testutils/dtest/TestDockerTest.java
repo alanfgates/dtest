@@ -54,6 +54,11 @@ public class TestDockerTest {
     public ContainerClient getClient(String label) {
       return new ContainerClient() {
         @Override
+        public void defineImage(String dir, String repo, String branch, String label) throws IOException {
+
+        }
+
+        @Override
         public void buildImage(String dir, long toWait, TimeUnit unit, DTestLogger logger) throws IOException {
           imageBuilt = true;
         }
@@ -73,6 +78,11 @@ public class TestDockerTest {
     @Override
     public ContainerClient getClient(String label) {
       return new ContainerClient() {
+        @Override
+        public void defineImage(String dir, String repo, String branch, String label) throws IOException {
+
+        }
+
         @Override
         public void buildImage(String dir, long toWait, TimeUnit unit, DTestLogger logger) throws IOException {
           imageBuilt = true;
@@ -94,6 +104,11 @@ public class TestDockerTest {
     public ContainerClient getClient(String label) {
       return new ContainerClient() {
         @Override
+        public void defineImage(String dir, String repo, String branch, String label) throws IOException {
+
+        }
+
+        @Override
         public void buildImage(String dir, long toWait, TimeUnit unit, DTestLogger logger) throws IOException {
           imageBuilt = true;
         }
@@ -113,6 +128,11 @@ public class TestDockerTest {
     @Override
     public ContainerClient getClient(String label) {
       return new ContainerClient() {
+        @Override
+        public void defineImage(String dir, String repo, String branch, String label) throws IOException {
+
+        }
+
         @Override
         public void buildImage(String dir, long toWait, TimeUnit unit, DTestLogger logger) throws IOException {
           imageBuilt = true;

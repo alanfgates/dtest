@@ -23,10 +23,13 @@ import org.apache.hive.testutils.dtest.ContainerCommand;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -43,6 +46,31 @@ public class DockerClient implements ContainerClient {
 
   DockerClient(String label) {
     this.label = label;
+  }
+
+  @Override
+  public void defineImage(String dir, String repo, String branch, String label) throws IOException {
+    if (label == null) label = UUID.randomUUID().toString();
+    FileWriter writer = new FileWriter(dir + File.separatorChar + "Dockerfile");
+    writer.write("FROM centos\n");
+    writer.write("\n");
+    writer.write("RUN yum upgrade -y && \\\n");
+    writer.write("    yum update -y && \\\n");
+    writer.write("    yum install -y java-1.8.0-openjdk-devel unzip git maven\n");
+    writer.write("\n");
+    writer.write("RUN { \\\n");
+    writer.write("    cd /root; \\\n");
+    writer.write("    /usr/bin/git clone " + repo + "; \\\n");
+    writer.write("    cd hive; \\\n");
+    writer.write("    /usr/bin/git checkout " + branch + "; \\\n");
+    writer.write("    /usr/bin/mvn install -Dtest=TestMetastoreConf; \\\n"); // Need a quick test
+    // that actually runs so it downloads the surefire jar from maven
+    writer.write("    cd itests; \\\n");
+    writer.write("    /usr/bin/mvn install -DskipSparkTests; \\\n");
+    writer.write("    echo This build is labeled " + label + "; \\\n");
+    writer.write("}\n");
+    writer.close();
+
   }
 
   @Override
