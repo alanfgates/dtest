@@ -46,7 +46,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-class DTestManager {
+public class DTestManager {
   private static final Logger LOG = LoggerFactory.getLogger(DTestManager.class);
   private static final int READ_BUF_SZ = 10240;
 
@@ -81,7 +81,7 @@ class DTestManager {
     self = new DTestManager(dtest);
   }
 
-  static DTestManager get() {
+  public static DTestManager get() {
     assert self != null;
     return self;
   }
@@ -239,7 +239,7 @@ class DTestManager {
   }
 
   @VisibleForTesting
-  void close() {
+  public void close() {
     LOG.info("Shutting down the test manager");
     executor.shutdownNow();
     buildCheckerPool.shutdownNow();

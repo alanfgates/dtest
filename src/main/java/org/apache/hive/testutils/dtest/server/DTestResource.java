@@ -17,6 +17,7 @@
  */
 package org.apache.hive.testutils.dtest.server;
 
+import com.sun.org.apache.regexp.internal.RE;
 import org.apache.hive.testutils.dtest.BuildInfo;
 import org.apache.hive.testutils.dtest.BuildState;
 import org.apache.hive.testutils.dtest.DockerTest;
@@ -36,11 +37,12 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-@Path("dtest/v1")
+@Path("/v1")
 public class DTestResource {
   private static final String STATUS_MSG = "Uh... had a slight weapons malfunction. But, uh, " +
         "everything's perfectly all right now. We're fine. We're all fine here, now, thank you. " +
         "How are you?";
+  public static final String SERVLET_PATH = "dtest";
 
   public static void initialize(DockerTest main) {
     DTestManager.initialize(main);
@@ -48,9 +50,9 @@ public class DTestResource {
 
   @GET
   @Path("/status")
-  @Produces(MediaType.APPLICATION_JSON)
+  @Produces(MediaType.TEXT_HTML)
   public Response getStatus() {
-    return buildResponse(200, STATUS_MSG);
+    return buildHtmlResponse(200, "Status", STATUS_MSG);
   }
 
   @POST
@@ -124,6 +126,17 @@ public class DTestResource {
     return Response
         .status(statusCode)
         .entity(entity)
+        .build();
+  }
+
+  private Response buildHtmlResponse(int statusCode, String title, String statusMsg) {
+    StringBuilder buf = new StringBuilder("<html><title>")
+        .append(title)
+        .append("</title><body><p>")
+        .append(statusMsg)
+        .append("</p></body></html>");
+    return Response.status(statusCode)
+        .entity(buf.toString())
         .build();
   }
 

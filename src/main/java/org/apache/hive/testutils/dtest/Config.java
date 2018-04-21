@@ -17,23 +17,12 @@
  */
 package org.apache.hive.testutils.dtest;
 
-import org.apache.hive.testutils.dtest.impl.SimpleAnalyzerFactory;
-import org.apache.hive.testutils.dtest.impl.Utils;
-
-import java.io.IOException;
-
-public abstract class ResultAnalyzerFactory {
-
-  static ResultAnalyzerFactory get() throws IOException {
-    String factoryClassName = System.getProperty(Config.RESULT_ANALYZER_FACTORY);
-    if (factoryClassName == null) factoryClassName = SimpleAnalyzerFactory.class.getName();
-
-    Class<? extends ResultAnalyzerFactory> clazz = Utils.getClass(factoryClassName,
-        ResultAnalyzerFactory.class);
-    return Utils.newInstance(clazz);
-  }
-
-  public abstract ResultAnalyzer getAnalyzer();
-
-
+public class Config {
+  public static final String CONTAINER_CLIENT_FACTORY = "dtest.container.client.factory";
+  public static final String CONTAINER_COMMAND_FACTORY = "dtest.container.command.factory";
+  public static final String RESULT_ANALYZER_FACTORY = "dtest.result.analyzer.factory";
+  public static final String IMAGE_BUILD_TIME = "dtest.image.build.time";
+  public static final String IMAGE_BUILD_TIME_UNIT = "dtest.image.build.time.unit";
+  public static final String CONTAINER_RUN_TIME = "dtest.container.run.time";
+  public static final String CONTAINER_RUN_TIME_UNIT = "dtest.container.run.time.unit";
 }

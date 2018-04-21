@@ -18,6 +18,8 @@
 package org.apache.hive.testutils.dtest;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.sun.jersey.api.core.PackagesResourceConfig;
+import com.sun.jersey.spi.container.servlet.ServletContainer;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.GnuParser;
@@ -28,6 +30,7 @@ import org.apache.commons.cli.ParseException;
 import org.apache.hive.testutils.dtest.impl.ContainerResult;
 import org.apache.hive.testutils.dtest.impl.DTestLogger;
 import org.apache.hive.testutils.dtest.impl.DockerBuilder;
+import org.apache.hive.testutils.dtest.server.DTestManager;
 import org.apache.hive.testutils.dtest.server.DTestResource;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletContextHandler;
@@ -38,7 +41,9 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -207,13 +212,20 @@ public class DockerTest {
   private void buildDockerImage(String dir, String repo, String branch, String label,
                                 DTestLogger logger)
       throws IOException {
+    int timeout = Integer.valueOf(System.getProperty(Config.IMAGE_BUILD_TIME, "30"));
+    TimeUnit timeUnit = TimeUnit.valueOf(System.getProperty(Config.IMAGE_BUILD_TIME_UNIT,
+        TimeUnit.MINUTES.name()));
     DockerBuilder.createDockerFile(dir, repo, branch, label);
-    docker.buildImage(dir, 30, TimeUnit.MINUTES, logger);
+    docker.buildImage(dir, timeout, timeUnit, logger);
   }
 
   private void runContainers(final DTestLogger logger, int numContainers, PrintStream out)
       throws IOException {
     List<ContainerCommand> taskCmds = commandFactory.getContainerCommands("/root/hive");
+
+    final int timeout = Integer.valueOf(System.getProperty(Config.CONTAINER_RUN_TIME, "3"));
+    final TimeUnit timeUnit = TimeUnit.valueOf(System.getProperty(Config.CONTAINER_RUN_TIME_UNIT,
+        TimeUnit.HOURS.name()));
 
     final ResultAnalyzer analyzer = analyzerFactory.getAnalyzer();
     // I don't need the return value, but by having one I can use the Callable interface instead
@@ -222,7 +234,7 @@ public class DockerTest {
     ExecutorService executor = Executors.newFixedThreadPool(numContainers);
     for (ContainerCommand taskCmd : taskCmds) {
       tasks.add(executor.submit(() -> {
-        ContainerResult result = docker.runContainer(3, TimeUnit.HOURS, taskCmd, logger);
+        ContainerResult result = docker.runContainer(timeout, timeUnit, taskCmd, logger);
         analyzer.analyzeLog(result);
         StringBuilder statusMsg = new StringBuilder("Task ")
             .append(result.name)
@@ -285,33 +297,36 @@ public class DockerTest {
 
   private int server() {
     DTestResource.initialize(this);
-    ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
-    context.setContextPath("/");
-
     Server jettyServer = new Server(PORT);
-    jettyServer.setHandler(context);
-
-    ServletHolder jerseyServlet = context.addServlet(
-        com.sun.jersey.spi.container.servlet.ServletContainer.class, "/*");
-    jerseyServlet.setInitOrder(0);
-
-    // Tells the Jersey Servlet which REST service/class to load.
-    jerseyServlet.setInitParameter(
-        "jersey.config.server.provider.classnames",
-        DTestResource.class.getCanonicalName());
-
+    ServletContextHandler root = new ServletContextHandler(jettyServer, "/");
+    PackagesResourceConfig rc = new PackagesResourceConfig("org.apache.hive.testutils.dtest.server");
+    Map<String, Object> props = new HashMap<>();
+    props.put("com.sun.jersey.api.json.POJOMappingFeature", "true");
+    rc.setPropertiesAndFeatures(props);
+    ServletHolder holder = new ServletHolder(new ServletContainer(rc));
+    root.addServlet(holder, "/" + DTestResource.SERVLET_PATH + "/*");
+    int returnCode = 0;
     try {
       jettyServer.start();
       jettyServer.join();
-      return 0;
     } catch (Exception e) {
       String msg = "Caught exception from jetty server";
       LOG.error(msg, e);
       System.out.println(msg + ", see log for details");
-      return 1;
+      returnCode = 1;
     } finally {
-      jettyServer.destroy();
+      try {
+        jettyServer.stop();
+        jettyServer.destroy();
+        DTestManager.get().close();
+      } catch (Exception e) {
+        String msg = "Caught exception trying to close down, likely to hang...";
+        LOG.error(msg, e);
+        System.out.println(msg + ", see log for details");
+        returnCode = 1;
+      }
     }
+    return returnCode;
   }
 
   /**

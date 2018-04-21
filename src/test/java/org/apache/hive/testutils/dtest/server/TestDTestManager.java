@@ -20,6 +20,7 @@ package org.apache.hive.testutils.dtest.server;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.hive.testutils.dtest.BuildInfo;
 import org.apache.hive.testutils.dtest.BuildState;
+import org.apache.hive.testutils.dtest.Config;
 import org.apache.hive.testutils.dtest.ContainerClient;
 import org.apache.hive.testutils.dtest.ContainerClientFactory;
 import org.apache.hive.testutils.dtest.ContainerCommand;
@@ -133,9 +134,9 @@ public class TestDTestManager {
 
   @Before
   public void createDTest() {
-    System.setProperty(ContainerClientFactory.PROPERTY, PausingContainerFactory.class.getName());
-    System.setProperty(ContainerCommandFactory.PROPERTY, FriendlyCommandFactory.class.getName());
-    System.setProperty(ResultAnalyzerFactory.PROPERTY, SpyingResultAnalyzerFactory.class.getName());
+    System.setProperty(Config.CONTAINER_CLIENT_FACTORY, PausingContainerFactory.class.getName());
+    System.setProperty(Config.CONTAINER_COMMAND_FACTORY, FriendlyCommandFactory.class.getName());
+    System.setProperty(Config.RESULT_ANALYZER_FACTORY, SpyingResultAnalyzerFactory.class.getName());
     outBuffer = new ByteArrayOutputStream();
     out = new PrintStream(outBuffer);
     err = new PrintStream(new ByteArrayOutputStream());

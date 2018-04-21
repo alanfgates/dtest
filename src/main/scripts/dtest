@@ -31,4 +31,19 @@ for f in ${DTEST_HOME}/lib/*.jar; do
   CLASSPATH=${CLASSPATH}:$f;
 done
 
-$JAVA_HOME/bin/java -cp $CLASSPATH -Dlog4j.configurationFile=${DTEST_HOME}/conf/dtest-log4j2.properties org.apache.hive.testutils.dtest.DockerTest $@
+ARGS=()
+PROPERTIES=()
+while [ $# -gt 0 ]; do
+  IS_PROP=`echo $1 | egrep "^-Ddtest\."`
+  if [[ "x${IS_PROP}" != "x" ]]
+  then
+    PROPERTIES=("${PROPERTIES[@]}" "$1")
+  else
+    ARGS=("${ARGS[@]}" "$1")
+  fi
+  shift
+done
+
+$JAVA_HOME/bin/java -cp $CLASSPATH "${PROPERTIES[@]}" \
+    -Dlog4j.configurationFile=${DTEST_HOME}/conf/dtest-log4j2.properties \
+    org.apache.hive.testutils.dtest.DockerTest "${ARGS[@]}"

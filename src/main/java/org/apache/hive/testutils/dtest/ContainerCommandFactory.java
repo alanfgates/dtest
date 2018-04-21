@@ -28,10 +28,9 @@ import java.util.List;
  * an instance of this that returns that type of command
  */
 public abstract class ContainerCommandFactory {
-  public static final String PROPERTY = "dtest.container.command.factory";
 
   static ContainerCommandFactory get() throws IOException {
-    String factoryClassName = System.getProperty(PROPERTY);
+    String factoryClassName = System.getProperty(Config.CONTAINER_COMMAND_FACTORY);
     if (factoryClassName == null || factoryClassName.isEmpty()) {
       factoryClassName = MvnCommandFactory.class.getName();
     }
