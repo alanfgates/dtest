@@ -224,11 +224,11 @@ public class TestDockerTest {
     System.setProperty(Config.CONTAINER_COMMAND_FACTORY, HelloWorldCommandFactory.class.getName());
     System.setProperty(Config.RESULT_ANALYZER_FACTORY, SpyingResultAnalyzerFactory.class.getName());
     DockerTest test = new DockerTest(out, err);
-    test.parseArgs(new String[] {"-b", "successful",
-                                 "-d", System.getProperty("java.io.tmpdir"),
-                                 "-l", "firstTry",
-                                 "-r", "repo"});
-    test.startBuild(test.singleBuild);
+    BuildInfo build = test.parseArgs(new String[] {"-b", "successful",
+                                                   "-d", System.getProperty("java.io.tmpdir"),
+                                                   "-l", "firstTry",
+                                                   "-r", "repo"});
+    test.startBuild(build);
     Assert.assertTrue(imageBuilt);
     Assert.assertEquals(1, errors.size());
     Assert.assertEquals("TestAcidOnTez.testGetSplitsLocks", errors.get(0));
@@ -246,11 +246,11 @@ public class TestDockerTest {
     System.setProperty(Config.CONTAINER_COMMAND_FACTORY, ItestCommandFactory.class.getName());
     System.setProperty(Config.RESULT_ANALYZER_FACTORY, SpyingResultAnalyzerFactory.class.getName());
     DockerTest test = new DockerTest(out, err);
-    test.parseArgs(new String[] {"-b", "successful",
-                                 "-d", System.getProperty("java.io.tmpdir"),
-                                 "-l", "secondTry",
-                                 "-r", "repo"});
-    test.startBuild(test.singleBuild);
+    BuildInfo build = test.parseArgs(new String[] {"-b", "successful",
+                                                   "-d", System.getProperty("java.io.tmpdir"),
+                                                   "-l", "secondTry",
+                                                   "-r", "repo"});
+    test.startBuild(build);
     Assert.assertTrue(imageBuilt);
     Assert.assertEquals(1, errors.size());
     Assert.assertEquals("TestNegativeCliDriver.alter_notnull_constraint_violation", errors.get(0));
@@ -268,11 +268,11 @@ public class TestDockerTest {
     System.setProperty(Config.CONTAINER_COMMAND_FACTORY, HelloWorldCommandFactory.class.getName());
     System.setProperty(Config.RESULT_ANALYZER_FACTORY, SpyingResultAnalyzerFactory.class.getName());
     DockerTest test = new DockerTest(out, err);
-    test.parseArgs(new String[] {"-b", "failure",
-                                 "-d", System.getProperty("java.io.tmpdir"),
-                                 "-l", "will-timeout",
-                                 "-r", "repo"});
-    test.startBuild(test.singleBuild);
+    BuildInfo build = test.parseArgs(new String[] {"-b", "failure",
+                                                   "-d", System.getProperty("java.io.tmpdir"),
+                                                   "-l", "will-time-out",
+                                                   "-r", "repo"});
+    test.startBuild(build);
     Assert.assertTrue(imageBuilt);
     Assert.assertTrue(hadTimeouts);
     Assert.assertTrue(runSucceeded);
@@ -285,11 +285,11 @@ public class TestDockerTest {
     System.setProperty(Config.CONTAINER_COMMAND_FACTORY, HelloWorldCommandFactory.class.getName());
     System.setProperty(Config.RESULT_ANALYZER_FACTORY, SpyingResultAnalyzerFactory.class.getName());
     DockerTest test = new DockerTest(out, err);
-    test.parseArgs(new String[] {"-b", "failure",
-                                 "-d", System.getProperty("java.io.tmpdir"),
-                                 "-l", "take2",
-                                 "-r", "repo"});
-    test.startBuild(test.singleBuild);
+    BuildInfo build = test.parseArgs(new String[] {"-b", "failure",
+                                                   "-d", System.getProperty("java.io.tmpdir"),
+                                                   "-l", "take2",
+                                                   "-r", "repo"});
+    test.startBuild(build);
     Assert.assertTrue(imageBuilt);
     Assert.assertFalse(hadTimeouts);
     Assert.assertFalse(runSucceeded);

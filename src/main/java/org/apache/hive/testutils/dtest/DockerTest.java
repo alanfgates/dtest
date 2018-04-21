@@ -17,9 +17,6 @@
  */
 package org.apache.hive.testutils.dtest;
 
-import com.google.common.annotations.VisibleForTesting;
-import com.sun.jersey.api.core.PackagesResourceConfig;
-import com.sun.jersey.spi.container.servlet.ServletContainer;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.GnuParser;
@@ -30,20 +27,13 @@ import org.apache.commons.cli.ParseException;
 import org.apache.hive.testutils.dtest.impl.ContainerResult;
 import org.apache.hive.testutils.dtest.impl.DTestLogger;
 import org.apache.hive.testutils.dtest.impl.DockerBuilder;
-import org.apache.hive.testutils.dtest.server.DTestManager;
-import org.apache.hive.testutils.dtest.server.DTestResource;
-import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.servlet.ServletContextHandler;
-import org.eclipse.jetty.servlet.ServletHolder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -53,19 +43,15 @@ import java.util.concurrent.TimeUnit;
 public class DockerTest {
   private static final Logger LOG = LoggerFactory.getLogger(DockerTest.class);
   private static final String SUMMARY_LOG = "summary";
-  private static final int PORT = 8080;
 
   private ContainerClient docker;
   private ContainerCommandFactory commandFactory;
   private ResultAnalyzerFactory analyzerFactory;
   private ContainerClientFactory containerClientFactory;
   private int numContainers;
-  private boolean runServer;
   private PrintStream out;
   private PrintStream err;
   private String baseDir;
-  @VisibleForTesting
-  BuildInfo singleBuild;
 
   public DockerTest(PrintStream out, PrintStream err) {
     this.out = out;
@@ -73,11 +59,11 @@ public class DockerTest {
   }
 
   /**
-   * Run the test.
+   * Parse the arguments.
    * @param args Command line arguments.
-   * @return whether command line was successfully parsed
+   * @return A description of the build, or null if the parsing failed.
    */
-  public boolean parseArgs(String[] args) {
+  public BuildInfo parseArgs(String[] args) {
     CommandLineParser parser = new GnuParser();
 
     Options opts = new Options();
@@ -85,6 +71,7 @@ public class DockerTest {
         .withLongOpt("branch")
         .withDescription("git branch to use")
         .hasArg()
+        .isRequired()
         .create("b"));
 
     opts.addOption(OptionBuilder
@@ -110,12 +97,8 @@ public class DockerTest {
         .withLongOpt("repo")
         .withDescription("git repository to use")
         .hasArg()
+        .isRequired()
         .create("r"));
-
-    opts.addOption(OptionBuilder
-        .withLongOpt("run-server")
-        .withDescription("indicates this should be run as a service, rather than run a single build")
-        .create("s"));
 
     CommandLine cmd;
     try {
@@ -123,7 +106,7 @@ public class DockerTest {
     } catch (ParseException e) {
       LOG.error("Failed to parse command line: ", e);
       usage(opts);
-      return false;
+      return null;
     }
 
     numContainers = cmd.hasOption("c") ? Integer.parseInt(cmd.getOptionValue("c")) : 1;
@@ -136,29 +119,16 @@ public class DockerTest {
       String msg = "Failed to instantiate one of the factories.";
       err.println(msg + "  See log for details.");
       LOG.error(msg, e);
-      return false;
+      return null;
     }
-    if (cmd.hasOption("s")) {
-      runServer = true;
-    } else {
-      runServer = false;
-      if (!cmd.hasOption("b") || !cmd.hasOption("r")) {
-        String msg = "You must provide either run the system in server mode or provide a branch " +
-            "and repo.";
-        err.println(msg);
-        LOG.error(msg);
-        return false;
-      }
-      try {
-        singleBuild = new BuildInfo(cmd.getOptionValue("b"), cmd.getOptionValue("r"),
-                cmd.getOptionValue("l"));
-      } catch (IOException e) {
-        err.println(e.getMessage());
-        LOG.error("Failed to build BuildInfo", e);
-        return false;
-      }
+    try {
+      return new BuildInfo(cmd.getOptionValue("b"), cmd.getOptionValue("r"),
+          cmd.getOptionValue("l"));
+    } catch (IOException e) {
+      err.println(e.getMessage());
+      LOG.error("Failed to build BuildInfo", e);
+      return null;
     }
-    return true;
   }
 
   public int startBuild(BuildInfo info) {
@@ -295,40 +265,6 @@ public class DockerTest {
     out.println(msg.toString());
   }
 
-  private int server() {
-    DTestResource.initialize(this);
-    Server jettyServer = new Server(PORT);
-    ServletContextHandler root = new ServletContextHandler(jettyServer, "/");
-    PackagesResourceConfig rc = new PackagesResourceConfig("org.apache.hive.testutils.dtest.server");
-    Map<String, Object> props = new HashMap<>();
-    props.put("com.sun.jersey.api.json.POJOMappingFeature", "true");
-    rc.setPropertiesAndFeatures(props);
-    ServletHolder holder = new ServletHolder(new ServletContainer(rc));
-    root.addServlet(holder, "/" + DTestResource.SERVLET_PATH + "/*");
-    int returnCode = 0;
-    try {
-      jettyServer.start();
-      jettyServer.join();
-    } catch (Exception e) {
-      String msg = "Caught exception from jetty server";
-      LOG.error(msg, e);
-      System.out.println(msg + ", see log for details");
-      returnCode = 1;
-    } finally {
-      try {
-        jettyServer.stop();
-        jettyServer.destroy();
-        DTestManager.get().close();
-      } catch (Exception e) {
-        String msg = "Caught exception trying to close down, likely to hang...";
-        LOG.error(msg, e);
-        System.out.println(msg + ", see log for details");
-        returnCode = 1;
-      }
-    }
-    return returnCode;
-  }
-
   /**
    * This calls System.exit, don't call it if you're using a tool.  Use
    * {@link #startBuild(BuildInfo)} instead.
@@ -336,12 +272,8 @@ public class DockerTest {
    */
   public static void main(String[] args) {
     DockerTest test = new DockerTest(System.out, System.err);
-    if (test.parseArgs(args)) {
-      if (test.runServer) {
-        System.exit(test.server());
-      } else {
-        System.exit(test.startBuild(test.singleBuild));
-      }
-    }
+    BuildInfo build = test.parseArgs(args);
+    int rc = (build == null) ? 1 : test.startBuild(build);
+    System.exit(rc);
   }
 }
