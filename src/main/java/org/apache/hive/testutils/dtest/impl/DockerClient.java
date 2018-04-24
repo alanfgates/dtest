@@ -37,15 +37,20 @@ import java.util.regex.Pattern;
 @VisibleForTesting
 public class DockerClient implements ContainerClient {
   private static final Logger LOG = LoggerFactory.getLogger(DockerClient.class);
-  private static final String CONTAINER_BASE = "dtest-";
   private static final String IMAGE_BASE = "dtest-image-";
   private static final Pattern IMAGE_SUCCESS = Pattern.compile("BUILD SUCCESS");
+  private static final Pattern USING_CACHE = Pattern.compile("Using cache");
   private static final String BUILD_CONTAINER_NAME = "image_build";
 
   private final String label;
 
   DockerClient(String label) {
     this.label = label;
+  }
+
+  @Override
+  public String getContainerBaseDir() {
+    return "/root/hive";
   }
 
   @Override
@@ -66,7 +71,7 @@ public class DockerClient implements ContainerClient {
     writer.write("    /usr/bin/mvn install -Dtest=TestMetastoreConf; \\\n"); // Need a quick test
     // that actually runs so it downloads the surefire jar from maven
     writer.write("    cd itests; \\\n");
-    writer.write("    /usr/bin/mvn install -DskipSparkTests; \\\n");
+    writer.write("    /usr/bin/mvn install -DskipSparkTests -DskipTests; \\\n");
     writer.write("    echo This build is labeled " + label + "; \\\n");
     writer.write("}\n");
     writer.close();
@@ -86,7 +91,7 @@ public class DockerClient implements ContainerClient {
   public ContainerResult runContainer(long toWait, TimeUnit unit, ContainerCommand cmd,
                                       DTestLogger logger) throws IOException {
     List<String> runCmd = new ArrayList<>();
-    String containerName = createContainerName(cmd.containerName());
+    String containerName = Utils.buildContainerName(label, cmd.containerName());
     runCmd.addAll(Arrays.asList("docker", "run", "--name", containerName, imageName()));
     runCmd.addAll(Arrays.asList(cmd.shellCommand()));
     long seconds = TimeUnit.SECONDS.convert(toWait, unit);
@@ -100,16 +105,17 @@ public class DockerClient implements ContainerClient {
     Matcher m = IMAGE_SUCCESS.matcher(res.stdout);
     // We should see "BUILD SUCCESS" twice, once for the main build and once for itests
     if (res.rc != 0 || !(m.find() && m.find())) {
-      throw new IOException("Failed to build image, see logs for error message: " + res.stderr);
+      // We might have read some from cache, check that before bailing
+      m = USING_CACHE.matcher(res.stdout);
+      if (res.rc != 0 || !(m.find() && m.find())) {
+        // We might have read some from cache, check that before bailing
+        throw new IOException("Failed to build image, see logs for error message: " + res.stderr);
+      }
     }
   }
 
   private String imageName() {
     return IMAGE_BASE + label;
-  }
-
-  private String createContainerName(String name) {
-    return CONTAINER_BASE + label + "_" + name;
   }
 
 }

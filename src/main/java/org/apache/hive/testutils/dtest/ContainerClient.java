@@ -36,6 +36,12 @@ public interface ContainerClient {
   void defineImage(String dir, String repo, String branch, String label) throws IOException;
 
   /**
+   * Return the directory in the container that commands should operate in.
+   * @return container directory.
+   */
+  String getContainerBaseDir();
+
+  /**
    * Build an image
    * @param dir directory to build in, must either be absolute path or relative to CWD of the
    *            process.

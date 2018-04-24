@@ -17,6 +17,7 @@
  */
 package org.apache.hive.testutils.dtest;
 
+import org.apache.hive.testutils.dtest.impl.DTestLogger;
 import org.apache.hive.testutils.dtest.impl.MvnCommandFactory;
 import org.apache.hive.testutils.dtest.impl.Utils;
 
@@ -43,9 +44,15 @@ public abstract class ContainerCommandFactory {
   /**
    * Return the set of commands that should be run in containers.  One container will be spawned
    * for each container.
-   * @param baseDir base directory for operations in the container
+   * @param containerClient container client, in case any containers are needed for determining
+   *                        commands to run.
+   * @param label label for this build.
+   * @param logger logger
    * @return list of commands
    * @throws IOException unable to generate command list.
    */
-  public abstract List<ContainerCommand> getContainerCommands(String baseDir) throws IOException;
+  public abstract List<ContainerCommand> getContainerCommands(ContainerClient containerClient,
+                                                              String label,
+                                                              DTestLogger logger)
+      throws IOException;
 }

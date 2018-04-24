@@ -17,97 +17,81 @@
  */
 package org.apache.hive.testutils.dtest.impl;
 
+import org.apache.hive.testutils.dtest.Config;
 import org.apache.hive.testutils.dtest.ContainerCommand;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
 
 class MvnCommand implements ContainerCommand {
 
   private final String baseDir; // base directory for all commands
-  private final String dir; // directory for this particular command
-  private String test; // lone test to run
-  private List<String> excludes; // tests to exclude
-  private String qFilePattern; // qfilePattern to pass
-  private Map<String, String> properties; // properties to pass with -D on the command line
+  private final int cmdNumber;
+  private boolean isITest;
+  private List<String> tests; // set of tests to run
+  private List<String> qfiles; // set of qfiles to run
+  private long testTimeout;
 
-  MvnCommand(String baseDir, String dir) {
+  MvnCommand(String baseDir, int cmdNumber) {
     this.baseDir = baseDir;
-    this.dir = dir;
-    this.excludes = new ArrayList<>();
-    this.properties = new HashMap<>();
+    this.cmdNumber = cmdNumber;
+    tests = new ArrayList<>();
+    qfiles = new ArrayList<>();
+    int testTimeProperty = Integer.valueOf(System.getProperty(Config.TEST_RUN_TIME, "1"));
+    TimeUnit testTimeUnit = TimeUnit.valueOf(System.getProperty(Config.TEST_RUN_TIME_UNIT, "HOURS"));
+    testTimeout = TimeUnit.SECONDS.convert(testTimeProperty, testTimeUnit);
+    isITest = false;
   }
 
-  MvnCommand setTest(String test) {
-    this.test = test;
+  MvnCommand addTest(String test) {
+    tests.add(test);
     return this;
   }
 
-  MvnCommand addExclude(String exclude) {
-    this.excludes.add(exclude);
-    return this;
-  }
-
-  MvnCommand setqFilePattern(String qFilePattern) {
-    this.qFilePattern = qFilePattern;
-    return this;
-  }
-
-  MvnCommand addProperty(String key, String value) {
-    this.properties.put(key, value);
+  MvnCommand addQfile(String qfile) {
+    qfiles.add(qfile);
+    isITest = true;
     return this;
   }
 
   @Override
   public String containerName() {
-    StringBuilder buf = new StringBuilder(dir.replace("/", "-"));
-    if (test != null) buf.append("_").append(test);
-    if (qFilePattern != null) {
-      buf.append("_")
-          .append(qFilePattern.replace("[", "_LF_")
-              .replace("]", "_RT_")
-              .replace("\\", "")
-              .replace("*", "_S_"));
-    }
-    return buf.toString();
+    return (isITest ? "itest" : "unittest") + "-" + cmdNumber;
   }
 
   @Override
   public String[] shellCommand() {
-    String[] cmd = new String[3];
-    cmd[0] = "/bin/bash";
-    cmd[1] = "-c";
-    StringBuilder buf = new StringBuilder("( cd ")
-        .append(baseDir + File.separatorChar + dir)
-        .append("; /usr/bin/mvn test -Dsurefire.timeout=3600");
-    if (test != null) {
-      buf.append(" -Dtest=")
-          .append(test);
-    }
-    if (!excludes.isEmpty()) {
-      buf.append(" -Dtest=!");
-      boolean first = true;
-      for (String exclude : excludes) {
+    if (isITest) assert tests.size() == 1;
+    String dir = baseDir + (isITest ? File.separator + "/itests" : "");
+    return Utils.shellCmdInRoot(dir, new MvnCommandSupplier());
+  }
+
+  private class MvnCommandSupplier implements Supplier<String> {
+    public String get() {
+      StringBuilder buf = new StringBuilder("/usr/bin/mvn test -Dsurefire.timeout=")
+          .append(testTimeout)
+          .append(" -Dtest=");
+      boolean first = false;
+      for (String test : tests) {
         if (first) first = false;
-        else buf.append(",");
-        buf.append(exclude);
+        else buf.append(',');
+        buf.append(test);
       }
+      if (isITest) {
+        buf.append(" -Dqfile=");
+        first = false;
+        for (String qfile : qfiles) {
+          if (first) first = false;
+          else buf.append(',');
+          buf.append(qfile);
+        }
+      }
+      buf.append(" -Dtest.groups=\"\" -DskipSparkTests");
+      return buf.toString();
     }
-    if (qFilePattern != null) {
-      buf.append(" -Dqfile_regex=")
-          .append(qFilePattern);
-    }
-    for (Map.Entry<String, String> e : properties.entrySet()) {
-      buf.append(" -D")
-          .append(e.getKey())
-          .append("=")
-          .append(e.getValue());
-    }
-    buf.append(" -DskipSparkTests)");
-    cmd[2] = buf.toString();
-    return cmd;
   }
 }

@@ -37,6 +37,11 @@ public class StallingContainerClientFactory extends ContainerClientFactory {
       }
 
       @Override
+      public String getContainerBaseDir() {
+        return null;
+      }
+
+      @Override
       public void buildImage(String dir, long toWait, TimeUnit unit, DTestLogger logger) throws
           IOException {
         LOG.debug("Would build an image, but think I'll sleep instead");

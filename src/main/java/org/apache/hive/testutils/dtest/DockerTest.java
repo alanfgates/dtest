@@ -146,7 +146,7 @@ public class DockerTest {
         return 1;
       }
       try {
-        runContainers(logger, numContainers, out);
+        runContainers(logger, numContainers, info.getLabel(), out);
       } catch (IOException e) {
         String msg = "Failed to run one or more of the containers.";
         err.println(msg + "  See log for details.");
@@ -188,9 +188,9 @@ public class DockerTest {
     docker.buildImage(dir, timeout, timeUnit, logger);
   }
 
-  private void runContainers(final DTestLogger logger, int numContainers, PrintStream out)
-      throws IOException {
-    List<ContainerCommand> taskCmds = commandFactory.getContainerCommands("/root/hive");
+  private void runContainers(final DTestLogger logger, int numContainers, String label,
+                             PrintStream out) throws IOException {
+    List<ContainerCommand> taskCmds = commandFactory.getContainerCommands(docker, label, logger);
 
     final int timeout = Integer.valueOf(System.getProperty(Config.CONTAINER_RUN_TIME, "3"));
     final TimeUnit timeUnit = TimeUnit.valueOf(System.getProperty(Config.CONTAINER_RUN_TIME_UNIT,

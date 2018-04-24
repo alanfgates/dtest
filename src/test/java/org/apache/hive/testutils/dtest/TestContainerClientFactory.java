@@ -38,6 +38,11 @@ public class TestContainerClientFactory {
         }
 
         @Override
+        public String getContainerBaseDir() {
+          return null;
+        }
+
+        @Override
         public void buildImage(String dir, long toWait, TimeUnit unit, DTestLogger logger) throws IOException {
 
         }

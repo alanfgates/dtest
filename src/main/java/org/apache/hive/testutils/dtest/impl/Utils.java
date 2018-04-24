@@ -24,9 +24,11 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Supplier;
 
 public class Utils {
   private static final Logger LOG = LoggerFactory.getLogger(Utils.class);
+  private static final String CONTAINER_BASE = "dtest-";
 
   @SuppressWarnings(value = "unchecked")
   public static <T> Class<? extends T> getClass(String className, Class<T> clazz)
@@ -64,7 +66,29 @@ public class Utils {
       throw new IOException(e);
     } finally {
       running.set(false);
+      stdout.finalPump();
+      stderr.finalPump();
     }
     return new ProcessResults(stdout.getOutput(), stderr.getOutput(), proc.exitValue());
   }
+
+  /**
+   * Does the generic work for a shell command to be executed in the container root directory.
+   * @param dir directory in the container
+   * @param cmdGenerator A function that generates the command.  This should not change
+   *                     directories and should assume that it runs in the container root.
+   * @return arguments for an exec call.
+   */
+  static String[] shellCmdInRoot(String dir, Supplier<String> cmdGenerator) {
+    String[] cmd = new String[3];
+    cmd[0] = "/bin/bash";
+    cmd[1] = "-c";
+    cmd[2] = "( cd " + dir + "; " + cmdGenerator.get() + ")";
+    return cmd;
+  }
+
+  static String buildContainerName(String label, String name) {
+    return CONTAINER_BASE + label + "_" + name;
+  }
+
 }

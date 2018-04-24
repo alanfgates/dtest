@@ -59,6 +59,11 @@ public class TestDockerTest {
         }
 
         @Override
+        public String getContainerBaseDir() {
+          return null;
+        }
+
+        @Override
         public void buildImage(String dir, long toWait, TimeUnit unit, DTestLogger logger) throws IOException {
           imageBuilt = true;
         }
@@ -81,6 +86,11 @@ public class TestDockerTest {
         @Override
         public void defineImage(String dir, String repo, String branch, String label) throws IOException {
 
+        }
+
+        @Override
+        public String getContainerBaseDir() {
+          return null;
         }
 
         @Override
@@ -109,6 +119,11 @@ public class TestDockerTest {
         }
 
         @Override
+        public String getContainerBaseDir() {
+          return null;
+        }
+
+        @Override
         public void buildImage(String dir, long toWait, TimeUnit unit, DTestLogger logger) throws IOException {
           imageBuilt = true;
         }
@@ -134,6 +149,11 @@ public class TestDockerTest {
         }
 
         @Override
+        public String getContainerBaseDir() {
+          return null;
+        }
+
+        @Override
         public void buildImage(String dir, long toWait, TimeUnit unit, DTestLogger logger) throws IOException {
           imageBuilt = true;
         }
@@ -152,7 +172,9 @@ public class TestDockerTest {
 
   public static class HelloWorldCommandFactory extends ContainerCommandFactory {
     @Override
-    public List<ContainerCommand> getContainerCommands(String baseDir) throws IOException {
+    public List<ContainerCommand> getContainerCommands(ContainerClient containerClient,
+                                                       String label,
+                                                       DTestLogger logger) throws IOException {
       return Collections.singletonList(new ContainerCommand() {
         @Override
         public String containerName() {
@@ -169,7 +191,9 @@ public class TestDockerTest {
 
   public static class ItestCommandFactory extends ContainerCommandFactory {
     @Override
-    public List<ContainerCommand> getContainerCommands(String baseDir) throws IOException {
+    public List<ContainerCommand> getContainerCommands(ContainerClient containerClient,
+                                                       String label,
+                                                       DTestLogger logger) throws IOException {
       return Collections.singletonList(new ContainerCommand() {
         @Override
         public String containerName() {

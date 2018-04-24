@@ -17,6 +17,7 @@
  */
 package org.apache.hive.testutils.dtest;
 
+import org.apache.hive.testutils.dtest.impl.DTestLogger;
 import org.apache.hive.testutils.dtest.impl.MvnCommandFactory;
 import org.junit.Assert;
 import org.junit.Test;
@@ -29,7 +30,10 @@ public class TestContainerCommandFactory {
 
   public static class DummyContainerCommandFactory extends ContainerCommandFactory {
     @Override
-    public List<ContainerCommand> getContainerCommands(String baseDir) throws IOException {
+    public List<ContainerCommand> getContainerCommands(ContainerClient containerClient,
+                                                       String label,
+                                                       DTestLogger logger)
+        throws IOException {
       return Collections.emptyList();
     }
   }

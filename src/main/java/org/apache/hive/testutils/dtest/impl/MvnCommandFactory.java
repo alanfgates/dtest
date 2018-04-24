@@ -17,22 +17,83 @@
  */
 package org.apache.hive.testutils.dtest.impl;
 
+import org.apache.hive.testutils.dtest.Config;
+import org.apache.hive.testutils.dtest.ContainerClient;
 import org.apache.hive.testutils.dtest.ContainerCommand;
 import org.apache.hive.testutils.dtest.ContainerCommandFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.io.IOException;
+import java.io.StringReader;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Deque;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class MvnCommandFactory extends ContainerCommandFactory {
+  private static final Logger LOG = LoggerFactory.getLogger(MvnCommandFactory.class);
+  // Tests that we want to split out and run only parts of at a time
+  private static final String[] SPECIALLY_HANDLED_TESTS = { "TestCliDriver",
+      "TestMinimrCliDriver", "TestEncryptedHDFSCliDriver", "TestNegativeMinimrCliDriver",
+      "TestNegativeCliDriver", "TestHBaseCliDriver", "TestMiniTezCliDriver",
+      "TestMiniLlapCliDriver", "TestMiniLlapLocalCliDriver"};
+  private static final Pattern DRIVER_PATTERN = Pattern.compile("Test.*Driver\\.java");
+
+  private static final String[] TEST_DIRS = {
+      "accumulo-handler", "beeline", "cli", "common", "hplsql", "jdbc", "jdbc-handler",
+      "serde", "shims", "storage-api", "llap-client", "llap-common", "llap-server",
+      "standalone-metastore", "druid-handler", "service", "spark-client", "hbase-handler",
+      "hcatalog/core", "hcatalog/hcatalog-pig-adapter", "hcatalog/server-extensions",
+      "hcatalog/streaming", "hcatalog/webhcat/java-client", "hcatalog/webhcat/svr", "ql",
+      "itests/hcatalog-unit", "itests/hive-blobstore", "itests/hive-minikdc", "itests/hive-unit",
+      "itests/hive-unit-hadoop2",
+  };
+
+  private static Pattern[] TEST_DIR_PATTERNS = new Pattern[TEST_DIRS.length];
+
+  static {
+    for (int i = 0; i < TEST_DIRS.length; i++) {
+      TEST_DIR_PATTERNS[i] = Pattern.compile(TEST_DIRS[i] + "/src/test");
+    }
+  }
 
   @Override
-  public List<ContainerCommand> getContainerCommands(String baseDir) throws IOException {
+  public List<ContainerCommand> getContainerCommands(final ContainerClient containerClient,
+                                                     final String label,
+                                                     DTestLogger logger) throws IOException {
     List<ContainerCommand> cmds = new ArrayList<>();
+    String baseDir = containerClient.getContainerBaseDir();
+    int testsPerContainer = Integer.valueOf(System.getProperty(Config.TESTS_PER_CONTAINER, "20"));
+
+    // Read master-mr2.properties
+    String masterPropertiesString = runContainer(containerClient, label, "read-master-m2",
+        "cat testutils/ptest2/conf/deployed/master-mr2.properties", logger);
+    Properties masterProperties = new Properties();
+    masterProperties.load(new StringReader(masterPropertiesString));
+
+    addUnitTests(containerClient, label, logger, baseDir, masterProperties, testsPerContainer,
+        cmds);
+
+    addIUnitTests(containerClient, label, logger, baseDir, masterProperties, testsPerContainer,
+        cmds);
+
+
     // TODO This is turbo brittle.  It should be scanning the source for pom files and adding a
     // command for each, and then counting qfiles and dividing them up.
 
     // Unit tests
+    /*
     cmds.add(new MvnCommand(baseDir, "itests/hive-unit"));
     cmds.add(new MvnCommand(baseDir, "accumulo-handler"));
     cmds.add(new MvnCommand(baseDir, "beeline"));
@@ -124,7 +185,198 @@ public class MvnCommandFactory extends ContainerCommandFactory {
     cmds.add(new MvnCommand(baseDir, "itests/qtest").setTest("TestNegativeCliDriver").setqFilePattern("[p-rtv-z].\\*"));
     cmds.add(new MvnCommand(baseDir, "itests/qtest").setTest("TestNegativeCliDriver").setqFilePattern("s.\\*"));
     cmds.add(new MvnCommand(baseDir, "itests/qtest").setTest("TestNegativeCliDriver").setqFilePattern("u.\\*"));
+    */
 
     return cmds;
+  }
+
+  private String runContainer(ContainerClient containerClient, final String label,
+                              final String containerName,
+                              final String cmd, DTestLogger logger) throws IOException {
+    ContainerResult result = containerClient.runContainer(1, TimeUnit.MINUTES,
+        new ContainerCommand() {
+          @Override
+          public String containerName() {
+            return Utils.buildContainerName(label, containerName);
+          }
+
+          @Override
+          public String[] shellCommand() {
+            return Utils.shellCmdInRoot(containerClient.getContainerBaseDir(), () -> cmd);
+          }
+        }, logger);
+    if (result.rc != 0) {
+      String msg = "Failed to run cmd " + cmd + " as part of determining tests to run";
+      LOG.error(msg);
+      throw new IOException(msg);
+    }
+    return result.logs;
+  }
+
+  private void addUnitTests(ContainerClient containerClient, String label, DTestLogger logger,
+                            String baseDir, Properties masterProperties, int testsPerContainer,
+                            List<ContainerCommand> cmds) throws IOException {
+    // Find all of the unit tests
+    String allUnitTests = runContainer(containerClient, label, "find-all-unit-tests",
+        "find . -name Test\\*\\.java", logger);
+
+    // Determine all the unit tests.  Strain out anything that requires special handling and the
+    // excludes from masterProperties
+    Set<String> excludedTests = new HashSet<>();
+    Collections.addAll(excludedTests, SPECIALLY_HANDLED_TESTS);
+    String excludedTestsStr = masterProperties.getProperty("unitTests.exclude");
+    if (excludedTestsStr != null && excludedTestsStr.length() > 0) {
+      String[] excludedTestsArray = excludedTestsStr.trim().split(" ");
+      Collections.addAll(excludedTests, excludedTestsArray);
+    }
+
+    int containerNumber = 1;
+    //Map<String, Deque<String>> unitTestsToRun = new HashMap<>();
+
+
+    Deque<String> unitTestsToRun = new ArrayDeque<>();
+    List<String> driverUnitTestsToRun = new ArrayList<>();
+    for (String line : allUnitTests.split("\n")) {
+      String testPath = line.trim();
+      String[] pathElements = testPath.split(File.separator);
+      String testName = pathElements[pathElements.length - 1];
+      if (excludedTests.contains(testName)) continue;
+      // If this is one of the Driver unit tests and not specially handled, then run it in a
+      // separate container.
+      Matcher m = DRIVER_PATTERN.matcher(testName);
+      if (m.matches()) {
+        LOG.debug("Adding driver test " + testName + " to container " + (containerNumber));
+        cmds.add(new MvnCommand(baseDir, containerNumber++).addTest(testName));
+        driverUnitTestsToRun.add(testName);
+      } else {
+        unitTestsToRun.add(testName);
+      }
+    }
+
+    for (String driver : driverUnitTestsToRun) {
+      MvnCommand mvn = new MvnCommand(baseDir, containerNumber++);
+      LOG.debug("Adding test " + driver + " to container " + (containerNumber - 1));
+      mvn.addTest(driver);
+      cmds.add(mvn);
+    }
+
+    while (unitTestsToRun.size() > 0) {
+      MvnCommand mvn = new MvnCommand(baseDir, containerNumber++);
+      for (int i = 0; i < testsPerContainer && unitTestsToRun.size() > 0; i++) {
+        String oneTest = unitTestsToRun.pop();
+        LOG.debug("Adding test " + oneTest + " to container " + (containerNumber - 1));
+        mvn.addTest(oneTest);
+      }
+      cmds.add(mvn);
+    }
+  }
+
+  private void addIUnitTests(ContainerClient containerClient, String label, DTestLogger logger,
+                             String baseDir, Properties masterProperties, int testsPerContainer,
+                             List<ContainerCommand> cmds) throws IOException {
+    // Read testconfiguration.properties
+    String testPropertiesString = runContainer(containerClient, label, "read-testconfiguration",
+        "cat " + masterProperties.getProperty("qFileTests.propertyFiles.mainProperties"), logger);
+    Properties testProperties = new Properties();
+    testProperties.load(new StringReader(testPropertiesString));
+
+    // Determine the itests to run
+    int containerNumber = 1;
+    String[] qFileTests = masterProperties.getProperty("qFileTests").trim().split(" ");
+    for (String qFileTest : qFileTests) {
+      if (qFileTest.toLowerCase().contains("spark")) continue;
+      MvnCommand mvn = new MvnCommand(baseDir, containerNumber++);
+      mvn.addTest(masterProperties.getProperty("qFileTest." + qFileTest + ".driver"));
+
+      List<String> qFilesToRun;
+      switch (qFileTest) {
+      case "clientPositive":
+        qFilesToRun = findRunnableQFiles(containerClient, label, "find-positive-qfiles", logger,
+            testProperties, "ql/src/test/queries/clientpositive");
+        break;
+      case "miniMr":
+        qFilesToRun = new ArrayList<>();
+        Collections.addAll(qFilesToRun,
+            testProperties.getProperty("minimr.query.files").trim().split(","));
+        break;
+      case "clientNegative":
+        qFilesToRun = findRunnableQFiles(containerClient, label, "find-negative-qfiles", logger,
+            testProperties, "ql/src/test/queries/clientnegative");
+        break;
+      case "miniMrNegative":
+        qFilesToRun = new ArrayList<>();
+        Collections.addAll(qFilesToRun,
+            testProperties.getProperty("minimr.query.negative.files").trim().split(","));
+        break;
+      case "encryptedCli":
+        qFilesToRun = new ArrayList<>();
+        Collections.addAll(qFilesToRun,
+            testProperties.getProperty("encrypted.query.files").trim().split(","));
+        break;
+      case "hbasePositive":
+        qFilesToRun = findRunnableQFiles(containerClient, label, "find-hbase-qfiles",
+            logger, testProperties, "hbase-handler/src/test/queries/positive");
+        break;
+      case "miniTez":
+        qFilesToRun = new ArrayList<>();
+        Collections.addAll(qFilesToRun,
+            testProperties.getProperty("minitez.query.files").trim().split(","));
+        Collections.addAll(qFilesToRun,
+            testProperties.getProperty("minitez.query.files.shared").trim().split(","));
+        break;
+      case "miniLlap":
+        qFilesToRun = new ArrayList<>();
+        Collections.addAll(qFilesToRun,
+            testProperties.getProperty("minillap.query.files").trim().split(","));
+        Collections.addAll(qFilesToRun,
+            testProperties.getProperty("minillap.shared.query.files").trim().split(","));
+        break;
+      case "miniLlapLocal":
+        qFilesToRun = new ArrayList<>();
+        Collections.addAll(qFilesToRun,
+            testProperties.getProperty("minillaplocal.query.files").trim().split(","));
+        Collections.addAll(qFilesToRun,
+            testProperties.getProperty("minillaplocal.shared.query.files").trim().split(","));
+        break;
+      default:
+        throw new RuntimeException("Oops, forgot " + qFileTest);
+      }
+
+      Deque<String> qFiles = new ArrayDeque<>(qFilesToRun);
+      while (qFiles.size() > 0) {
+        for (int i = 0; i < testsPerContainer && qFiles.size() > 0; i++) {
+          String oneTest = qFiles.pop();
+          LOG.debug("Adding qfile " + oneTest + " to container " + (containerNumber - 1));
+          mvn.addQfile(oneTest);
+        }
+        cmds.add(mvn);
+      }
+    }
+
+
+  }
+
+  private List<String> findRunnableQFiles(
+      ContainerClient containerClient, String label, String containerName, DTestLogger logger,
+      Properties testProperties, String qfileDir) throws IOException {
+    // Find all of the positive qfile tests
+    String allPositiveQfiles = runContainer(containerClient, label, containerName,
+        "find " + qfileDir + " -name \\*.q", logger);
+
+    Set<String> excludedQfiles = new HashSet<>();
+    String excludedQfilesStr = testProperties.getProperty("disabled.query.files");
+    if (excludedQfilesStr != null && excludedQfilesStr.length() > 0) {
+      String[] excludedQfilessArray = excludedQfilesStr.trim().split(",");
+      Collections.addAll(excludedQfiles, excludedQfilessArray);
+    }
+
+    List<String> runnableQfiles = new ArrayList<>();
+    for (String line : allPositiveQfiles.split("\n")) {
+      String testPath = line.trim();
+      String[] pathElements = testPath.split(File.separator);
+      String testName = pathElements[pathElements.length - 1];
+      if (!excludedQfiles.contains(testName)) runnableQfiles.add(testName);
+    }
+    return runnableQfiles;
   }
 }
