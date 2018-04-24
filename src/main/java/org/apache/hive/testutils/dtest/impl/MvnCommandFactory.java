@@ -264,6 +264,7 @@ public class MvnCommandFactory extends ContainerCommandFactory {
           LOG.debug("Adding test " + oneTest + " to container " + (containerNumber - 1));
           mvn.addTest(oneTest);
         }
+        cmds.add(mvn);
       }
     }
   }
@@ -339,7 +340,7 @@ public class MvnCommandFactory extends ContainerCommandFactory {
 
       Deque<String> qFiles = new ArrayDeque<>(qFilesToRun);
       while (qFiles.size() > 0) {
-        MvnCommand mvn = new MvnCommand(baseDir, containerNumber++);
+        MvnCommand mvn = new MvnCommand(baseDir + File.separator + "itests/qtest", containerNumber++);
         mvn.addTest(masterProperties.getProperty("qFileTest." + qFileTest + ".driver"));
         for (int i = 0; i < testsPerContainer && qFiles.size() > 0; i++) {
           String oneTest = qFiles.pop();

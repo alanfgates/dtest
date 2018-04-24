@@ -44,7 +44,7 @@ public class BuildInfo implements Comparable<BuildInfo> {
   }
 
   /**
-   * Determine a create a directory for this Build.
+   * Create a directory for this build.
    * @return directory name
    * @throws IOException if the directory can't be built.
    */

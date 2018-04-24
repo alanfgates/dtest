@@ -20,10 +20,8 @@ package org.apache.hive.testutils.dtest.impl;
 import org.apache.hive.testutils.dtest.Config;
 import org.apache.hive.testutils.dtest.ContainerCommand;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
@@ -66,8 +64,7 @@ class MvnCommand implements ContainerCommand {
   @Override
   public String[] shellCommand() {
     if (isITest) assert tests.size() == 1;
-    String dir = baseDir + (isITest ? File.separator + "/itests" : "");
-    return Utils.shellCmdInRoot(dir, new MvnCommandSupplier());
+    return Utils.shellCmdInRoot(baseDir, new MvnCommandSupplier());
   }
 
   private class MvnCommandSupplier implements Supplier<String> {
