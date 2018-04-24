@@ -31,10 +31,8 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Deque;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -49,24 +47,109 @@ public class MvnCommandFactory extends ContainerCommandFactory {
       "TestNegativeCliDriver", "TestHBaseCliDriver", "TestMiniTezCliDriver",
       "TestMiniLlapCliDriver", "TestMiniLlapLocalCliDriver"};
   private static final Pattern DRIVER_PATTERN = Pattern.compile("Test.*Driver\\.java");
-
-  private static final String[] TEST_DIRS = {
-      "accumulo-handler", "beeline", "cli", "common", "hplsql", "jdbc", "jdbc-handler",
-      "serde", "shims", "storage-api", "llap-client", "llap-common", "llap-server",
-      "standalone-metastore", "druid-handler", "service", "spark-client", "hbase-handler",
-      "hcatalog/core", "hcatalog/hcatalog-pig-adapter", "hcatalog/server-extensions",
-      "hcatalog/streaming", "hcatalog/webhcat/java-client", "hcatalog/webhcat/svr", "ql",
-      "itests/hcatalog-unit", "itests/hive-blobstore", "itests/hive-minikdc", "itests/hive-unit",
-      "itests/hive-unit-hadoop2",
+  private static final Pattern[] DIRS_TO_SKIP = {
+      Pattern.compile("testutils")
   };
 
-  private static Pattern[] TEST_DIR_PATTERNS = new Pattern[TEST_DIRS.length];
+  private static class TestDirInfo {
+    final String dir;
+    final Pattern pattern;
+    final Deque<String> testsToRun;
+    final boolean lookForTests;
 
-  static {
-    for (int i = 0; i < TEST_DIRS.length; i++) {
-      TEST_DIR_PATTERNS[i] = Pattern.compile(TEST_DIRS[i] + "/src/test");
+    TestDirInfo(String dir, String pattern, boolean lookForTests) {
+      this.dir = dir;
+      this.pattern = Pattern.compile(pattern);
+      testsToRun = new ArrayDeque<>();
+      this.lookForTests = lookForTests;
+
     }
+
+    TestDirInfo(String dir, boolean lookForTests) {
+      this(dir, dir + "/src/test", lookForTests);
+    }
+
+    TestDirInfo(String dir) {
+      this(dir, true);
+    }
+
+
   }
+
+  // Set up the testing configuration
+  private static final List<TestDirInfo> TEST_INFOS = new ArrayList<>();
+  static {
+    TEST_INFOS.add(new TestDirInfo("accumulo-handler"));
+    TEST_INFOS.add(new TestDirInfo("beeline"));
+    TEST_INFOS.add(new TestDirInfo("cli"));
+    TEST_INFOS.add(new TestDirInfo("common"));
+    TEST_INFOS.add(new TestDirInfo("contrib"));
+    TEST_INFOS.add(new TestDirInfo("hplsql"));
+    TEST_INFOS.add(new TestDirInfo("jdbc"));
+    TEST_INFOS.add(new TestDirInfo("jdbc-handler"));
+    TEST_INFOS.add(new TestDirInfo("serde"));
+    TEST_INFOS.add(new TestDirInfo("shims/0.23", "shims/0.23/src/main/test", true));
+    TEST_INFOS.add(new TestDirInfo("shims/common", "shims/common/src/main/test", true));
+    TEST_INFOS.add(new TestDirInfo("storage-api"));
+    TEST_INFOS.add(new TestDirInfo("llap-client"));
+    TEST_INFOS.add(new TestDirInfo("llap-common"));
+    TEST_INFOS.add(new TestDirInfo("llap-server"));
+    TEST_INFOS.add(new TestDirInfo("llap-tez"));
+    TEST_INFOS.add(new TestDirInfo("standalone-metastore"));
+    TEST_INFOS.add(new TestDirInfo("druid-handler"));
+    TEST_INFOS.add(new TestDirInfo("service"));
+    TEST_INFOS.add(new TestDirInfo("spark-client"));
+    TEST_INFOS.add(new TestDirInfo("streaming"));
+    TEST_INFOS.add(new TestDirInfo("hbase-handler"));
+    TEST_INFOS.add(new TestDirInfo("hcatalog/core"));
+    TEST_INFOS.add(new TestDirInfo("hcatalog/hcatalog-pig-adapter"));
+    TEST_INFOS.add(new TestDirInfo("hcatalog/server-extensions"));
+    TEST_INFOS.add(new TestDirInfo("hcatalog/streaming"));
+    TEST_INFOS.add(new TestDirInfo("hcatalog/webhcat/java-client"));
+    TEST_INFOS.add(new TestDirInfo("hcatalog/webhcat/svr"));
+    TEST_INFOS.add(new TestDirInfo("ql"));
+    TEST_INFOS.add(new TestDirInfo("ql", "ql/target/generated-test-sources", true));
+    TEST_INFOS.add(new TestDirInfo("itests/hcatalog-unit"));
+    TEST_INFOS.add(new TestDirInfo("itests/hive-blobstore"));
+    TEST_INFOS.add(new TestDirInfo("itests/hive-minikdc"));
+    TEST_INFOS.add(new TestDirInfo("itests/hive-unit"));
+    TEST_INFOS.add(new TestDirInfo("itests/hive-unit-hadoop2"));
+    TEST_INFOS.add(new TestDirInfo("itests/test-serde", "src/main/java", true));
+    TEST_INFOS.add(new TestDirInfo("itests/util"));
+    TestDirInfo tid = new TestDirInfo("itests/hive-blobstore", false);
+    tid.testsToRun.add("TestBlobstoreCliDriver");
+    TEST_INFOS.add(tid);
+    tid = new TestDirInfo("itests/hive-blobstore", false);
+    tid.testsToRun.add("TestBlobstoreNegativeCliDriver");
+    TEST_INFOS.add(tid);
+    tid = new TestDirInfo("itests/qtest", false);
+    tid.testsToRun.add("TestBeeLineDriver");
+    TEST_INFOS.add(tid);
+    tid = new TestDirInfo("itests/qtest", false);
+    tid.testsToRun.add("TestContribCliDriver");
+    TEST_INFOS.add(tid);
+    tid = new TestDirInfo("itests/qtest", false);
+    tid.testsToRun.add("TestContribNegativeCliDriver");
+    TEST_INFOS.add(tid);
+    tid = new TestDirInfo("itests/qtest", false);
+    tid.testsToRun.add("TestHBaseNegativeCliDriver");
+    TEST_INFOS.add(tid);
+    tid = new TestDirInfo("itests/qtest", false);
+    tid.testsToRun.add("TestMiniDruidCliDriver");
+    TEST_INFOS.add(tid);
+    tid = new TestDirInfo("itests/qtest", false);
+    tid.testsToRun.add("TestMiniDruidKafkaCliDriver");
+    TEST_INFOS.add(tid);
+    tid = new TestDirInfo("itests/qtest", false);
+    tid.testsToRun.add("TestTezPerfCliDriver");
+    TEST_INFOS.add(tid);
+    tid = new TestDirInfo("itests/qtest", false);
+    tid.testsToRun.add("TestParseNegativeDriver");
+    TEST_INFOS.add(tid);
+    tid = new TestDirInfo("itests/qtest-accumulo", false);
+    tid.testsToRun.add("TestAccumuloCliDriver");
+    TEST_INFOS.add(tid);
+  };
 
   @Override
   public List<ContainerCommand> getContainerCommands(final ContainerClient containerClient,
@@ -85,107 +168,8 @@ public class MvnCommandFactory extends ContainerCommandFactory {
     addUnitTests(containerClient, label, logger, baseDir, masterProperties, testsPerContainer,
         cmds);
 
-    addIUnitTests(containerClient, label, logger, baseDir, masterProperties, testsPerContainer,
+    addSeparatedQfileTests(containerClient, label, logger, baseDir, masterProperties, testsPerContainer,
         cmds);
-
-
-    // TODO This is turbo brittle.  It should be scanning the source for pom files and adding a
-    // command for each, and then counting qfiles and dividing them up.
-
-    // Unit tests
-    /*
-    cmds.add(new MvnCommand(baseDir, "itests/hive-unit"));
-    cmds.add(new MvnCommand(baseDir, "accumulo-handler"));
-    cmds.add(new MvnCommand(baseDir, "beeline"));
-    cmds.add(new MvnCommand(baseDir, "cli"));
-    cmds.add(new MvnCommand(baseDir, "common"));
-    cmds.add(new MvnCommand(baseDir, "hplsql"));
-    cmds.add(new MvnCommand(baseDir, "jdbc"));
-    cmds.add(new MvnCommand(baseDir, "jdbc-handler"));
-    cmds.add(new MvnCommand(baseDir, "serde"));
-    cmds.add(new MvnCommand(baseDir, "shims"));
-    cmds.add(new MvnCommand(baseDir, "storage-api"));
-    cmds.add(new MvnCommand(baseDir, "llap-client"));
-    cmds.add(new MvnCommand(baseDir, "llap-common"));
-    cmds.add(new MvnCommand(baseDir, "llap-server"));
-    cmds.add(new MvnCommand(baseDir, "standalone-metastore").addProperty("test.groups", ""));
-    cmds.add(new MvnCommand(baseDir, "druid-handler"));
-    cmds.add(new MvnCommand(baseDir, "service"));
-    cmds.add(new MvnCommand(baseDir, "spark-client"));
-    cmds.add(new MvnCommand(baseDir, "hbase-handler"));
-    cmds.add(new MvnCommand(baseDir, "hcatalog/core"));
-    cmds.add(new MvnCommand(baseDir, "hcatalog/hcatalog-pig-adapter"));
-    cmds.add(new MvnCommand(baseDir, "hcatalog/server-extensions"));
-    cmds.add(new MvnCommand(baseDir, "hcatalog/streaming"));
-    cmds.add(new MvnCommand(baseDir, "hcatalog/webhcat/java-client"));
-    cmds.add(new MvnCommand(baseDir, "hcatalog/webhcat/svr"));
-    cmds.add(new MvnCommand(baseDir, "ql"));
-
-    // itests junit tests
-    cmds.add(new MvnCommand(baseDir, "itests/hcatalog-unit").addExclude("TestSequenceFileReadWrite"));
-    cmds.add(new MvnCommand(baseDir, "itests/hive-blobstore"));
-    cmds.add(new MvnCommand(baseDir, "itests/hive-minikdc"));
-    cmds.add(new MvnCommand(baseDir, "itests/hive-unit-hadoop2"));
-    cmds.add(new MvnCommand(baseDir, "itests/qtest-accumulo"));
-
-    // qfile tests
-    cmds.add(new MvnCommand(baseDir, "itests/qtest").setTest("TestBeeLineDriver"));
-    cmds.add(new MvnCommand(baseDir, "itests/qtest").setTest("TestCompareCliDriver"));
-    cmds.add(new MvnCommand(baseDir, "itests/qtest").setTest("TestContribCliDriver"));
-    cmds.add(new MvnCommand(baseDir, "itests/qtest").setTest("TestContribNegativeCliDriver"));
-    cmds.add(new MvnCommand(baseDir, "itests/qtest").setTest("TestEncryptedHDFSCliDriver"));
-    cmds.add(new MvnCommand(baseDir, "itests/qtest").setTest("TestHBaseCliDriver"));
-    cmds.add(new MvnCommand(baseDir, "itests/qtest").setTest("TestHBaseNegativeCliDriver"));
-    cmds.add(new MvnCommand(baseDir, "itests/qtest").setTest("TestMiniDruidCliDriver"));
-    cmds.add(new MvnCommand(baseDir, "itests/qtest").setTest("TestMiniLlapCliDriver"));
-    cmds.add(new MvnCommand(baseDir, "itests/qtest").setTest("TestMiniLlapLocalCliDriver"));
-    cmds.add(new MvnCommand(baseDir, "itests/qtest").setTest("TestNegativeMinimrCliDriver"));
-    cmds.add(new MvnCommand(baseDir, "itests/qtest").setTest("TestParseNegativeDriver"));
-    cmds.add(new MvnCommand(baseDir, "itests/qtest").setTest("TestMinimrCliDriver"));
-    cmds.add(new MvnCommand(baseDir, "itests/qtest").setTest("TestMiniTezCliDriver"));
-
-    // Super big qfile tests broken out
-    cmds.add(new MvnCommand(baseDir, "itests/qtest").setTest("TestCliDriver").setqFilePattern("v.\\*"));
-    cmds.add(new MvnCommand(baseDir, "itests/qtest").setTest("TestCliDriver").setqFilePattern("a[a-t].\\*"));
-    cmds.add(new MvnCommand(baseDir, "itests/qtest").setTest("TestCliDriver").setqFilePattern("au.\\*"));
-    cmds.add(new MvnCommand(baseDir, "itests/qtest").setTest("TestCliDriver").setqFilePattern("a[v-z].\\*"));
-    cmds.add(new MvnCommand(baseDir, "itests/qtest").setTest("TestCliDriver").setqFilePattern("b.\\*"));
-    cmds.add(new MvnCommand(baseDir, "itests/qtest").setTest("TestCliDriver").setqFilePattern("c[a-n].\\*"));
-    cmds.add(new MvnCommand(baseDir, "itests/qtest").setTest("TestCliDriver").setqFilePattern("co.\\*"));
-    cmds.add(new MvnCommand(baseDir, "itests/qtest").setTest("TestCliDriver").setqFilePattern("c[p-z].\\*"));
-    cmds.add(new MvnCommand(baseDir, "itests/qtest").setTest("TestCliDriver").setqFilePattern("d[a-l].\\*"));
-    cmds.add(new MvnCommand(baseDir, "itests/qtest").setTest("TestCliDriver").setqFilePattern("d[m-z].\\*"));
-    cmds.add(new MvnCommand(baseDir, "itests/qtest").setTest("TestCliDriver").setqFilePattern("e.\\*"));
-    cmds.add(new MvnCommand(baseDir, "itests/qtest").setTest("TestCliDriver").setqFilePattern("[fhkn].\\*"));
-    cmds.add(new MvnCommand(baseDir, "itests/qtest").setTest("TestCliDriver").setqFilePattern("g.\\*"));
-    cmds.add(new MvnCommand(baseDir, "itests/qtest").setTest("TestCliDriver").setqFilePattern("i.\\*"));
-    cmds.add(new MvnCommand(baseDir, "itests/qtest").setTest("TestCliDriver").setqFilePattern("j.\\*"));
-    cmds.add(new MvnCommand(baseDir, "itests/qtest").setTest("TestCliDriver").setqFilePattern("l.\\*"));
-    cmds.add(new MvnCommand(baseDir, "itests/qtest").setTest("TestCliDriver").setqFilePattern("m.\\*"));
-    cmds.add(new MvnCommand(baseDir, "itests/qtest").setTest("TestCliDriver").setqFilePattern("[oq].\\*"));
-    cmds.add(new MvnCommand(baseDir, "itests/qtest").setTest("TestCliDriver").setqFilePattern("pa.\\*"));
-    cmds.add(new MvnCommand(baseDir, "itests/qtest").setTest("TestCliDriver").setqFilePattern("p[b-e].\\*"));
-    cmds.add(new MvnCommand(baseDir, "itests/qtest").setTest("TestCliDriver").setqFilePattern("p[f-z].\\*"));
-    cmds.add(new MvnCommand(baseDir, "itests/qtest").setTest("TestCliDriver").setqFilePattern("[rw-z].\\*"));
-    cmds.add(new MvnCommand(baseDir, "itests/qtest").setTest("TestCliDriver").setqFilePattern("s[a-d].\\*"));
-    cmds.add(new MvnCommand(baseDir, "itests/qtest").setTest("TestCliDriver").setqFilePattern("s[e-l].\\*"));
-    cmds.add(new MvnCommand(baseDir, "itests/qtest").setTest("TestCliDriver").setqFilePattern("s[m-s].\\*"));
-    cmds.add(new MvnCommand(baseDir, "itests/qtest").setTest("TestCliDriver").setqFilePattern("s[t-z].\\*"));
-    cmds.add(new MvnCommand(baseDir, "itests/qtest").setTest("TestCliDriver").setqFilePattern("t.\\*"));
-    cmds.add(new MvnCommand(baseDir, "itests/qtest").setTest("TestCliDriver").setqFilePattern("u[a-d].\\*"));
-    cmds.add(new MvnCommand(baseDir, "itests/qtest").setTest("TestCliDriver").setqFilePattern("u[e-z].\\*"));
-
-    cmds.add(new MvnCommand(baseDir, "itests/qtest").setTest("TestNegativeCliDriver").setqFilePattern("a[a-t].\\*"));
-    cmds.add(new MvnCommand(baseDir, "itests/qtest").setTest("TestNegativeCliDriver").setqFilePattern("a[u-z].\\*"));
-    cmds.add(new MvnCommand(baseDir, "itests/qtest").setTest("TestNegativeCliDriver").setqFilePattern("[bd].\\*"));
-    cmds.add(new MvnCommand(baseDir, "itests/qtest").setTest("TestNegativeCliDriver").setqFilePattern("c.\\*"));
-    cmds.add(new MvnCommand(baseDir, "itests/qtest").setTest("TestNegativeCliDriver").setqFilePattern("[e-h].\\*"));
-    cmds.add(new MvnCommand(baseDir, "itests/qtest").setTest("TestNegativeCliDriver").setqFilePattern("i.\\*"));
-    cmds.add(new MvnCommand(baseDir, "itests/qtest").setTest("TestNegativeCliDriver").setqFilePattern("[j-o].\\*"));
-    cmds.add(new MvnCommand(baseDir, "itests/qtest").setTest("TestNegativeCliDriver").setqFilePattern("[p-rtv-z].\\*"));
-    cmds.add(new MvnCommand(baseDir, "itests/qtest").setTest("TestNegativeCliDriver").setqFilePattern("s.\\*"));
-    cmds.add(new MvnCommand(baseDir, "itests/qtest").setTest("TestNegativeCliDriver").setqFilePattern("u.\\*"));
-    */
 
     return cmds;
   }
@@ -231,49 +215,62 @@ public class MvnCommandFactory extends ContainerCommandFactory {
     }
 
     int containerNumber = 1;
-    //Map<String, Deque<String>> unitTestsToRun = new HashMap<>();
-
-
-    Deque<String> unitTestsToRun = new ArrayDeque<>();
-    List<String> driverUnitTestsToRun = new ArrayList<>();
     for (String line : allUnitTests.split("\n")) {
       String testPath = line.trim();
+
+      // Isolate the test name
       String[] pathElements = testPath.split(File.separator);
       String testName = pathElements[pathElements.length - 1];
+      // Make sure we should be running this test
       if (excludedTests.contains(testName)) continue;
-      // If this is one of the Driver unit tests and not specially handled, then run it in a
-      // separate container.
+
+      // Strain out the Driver tests, as I've already handled them separately
       Matcher m = DRIVER_PATTERN.matcher(testName);
-      if (m.matches()) {
-        LOG.debug("Adding driver test " + testName + " to container " + (containerNumber));
-        cmds.add(new MvnCommand(baseDir, containerNumber++).addTest(testName));
-        driverUnitTestsToRun.add(testName);
-      } else {
-        unitTestsToRun.add(testName);
+      if (m.matches()) continue;
+
+      // Strain out any directories we want to skip
+      boolean skip = false;
+      for (Pattern p : DIRS_TO_SKIP) {
+        m = p.matcher(testPath);
+        if (m.find()) {
+          LOG.debug("Skipping test " + testPath);
+          skip = true;
+        }
+      }
+      if (skip) continue;
+
+      // Figure out which directory this belongs in
+      boolean foundAHome = false;
+      for (TestDirInfo tid : TEST_INFOS) {
+        m = tid.pattern.matcher(testPath);
+        if (m.find()) {
+          LOG.debug("Placing test " + testPath + " into group for " + tid.dir);
+          tid.testsToRun.add(testName);
+          foundAHome = true;
+          break;
+        }
+      }
+      if (!foundAHome) {
+        // If we got here we don't know what to do with this test
+        throw new RuntimeException("Can't figure out how to handle test " + testPath);
       }
     }
 
-    for (String driver : driverUnitTestsToRun) {
-      MvnCommand mvn = new MvnCommand(baseDir, containerNumber++);
-      LOG.debug("Adding test " + driver + " to container " + (containerNumber - 1));
-      mvn.addTest(driver);
-      cmds.add(mvn);
-    }
-
-    while (unitTestsToRun.size() > 0) {
-      MvnCommand mvn = new MvnCommand(baseDir, containerNumber++);
-      for (int i = 0; i < testsPerContainer && unitTestsToRun.size() > 0; i++) {
-        String oneTest = unitTestsToRun.pop();
-        LOG.debug("Adding test " + oneTest + " to container " + (containerNumber - 1));
-        mvn.addTest(oneTest);
+    for (TestDirInfo tid : TEST_INFOS) {
+      while (tid.testsToRun.size() > 0) {
+        MvnCommand mvn = new MvnCommand(baseDir + File.separator + tid.dir, containerNumber++);
+        for (int i = 0; i < testsPerContainer && tid.testsToRun.size() > 0; i++) {
+          String oneTest = tid.testsToRun.pop();
+          LOG.debug("Adding test " + oneTest + " to container " + (containerNumber - 1));
+          mvn.addTest(oneTest);
+        }
       }
-      cmds.add(mvn);
     }
   }
 
-  private void addIUnitTests(ContainerClient containerClient, String label, DTestLogger logger,
-                             String baseDir, Properties masterProperties, int testsPerContainer,
-                             List<ContainerCommand> cmds) throws IOException {
+  private void addSeparatedQfileTests(ContainerClient containerClient, String label, DTestLogger logger,
+                                      String baseDir, Properties masterProperties, int testsPerContainer,
+                                      List<ContainerCommand> cmds) throws IOException {
     // Read testconfiguration.properties
     String testPropertiesString = runContainer(containerClient, label, "read-testconfiguration",
         "cat " + masterProperties.getProperty("qFileTests.propertyFiles.mainProperties"), logger);
@@ -285,8 +282,6 @@ public class MvnCommandFactory extends ContainerCommandFactory {
     String[] qFileTests = masterProperties.getProperty("qFileTests").trim().split(" ");
     for (String qFileTest : qFileTests) {
       if (qFileTest.toLowerCase().contains("spark")) continue;
-      MvnCommand mvn = new MvnCommand(baseDir, containerNumber++);
-      mvn.addTest(masterProperties.getProperty("qFileTest." + qFileTest + ".driver"));
 
       List<String> qFilesToRun;
       switch (qFileTest) {
@@ -344,6 +339,8 @@ public class MvnCommandFactory extends ContainerCommandFactory {
 
       Deque<String> qFiles = new ArrayDeque<>(qFilesToRun);
       while (qFiles.size() > 0) {
+        MvnCommand mvn = new MvnCommand(baseDir, containerNumber++);
+        mvn.addTest(masterProperties.getProperty("qFileTest." + qFileTest + ".driver"));
         for (int i = 0; i < testsPerContainer && qFiles.size() > 0; i++) {
           String oneTest = qFiles.pop();
           LOG.debug("Adding qfile " + oneTest + " to container " + (containerNumber - 1));

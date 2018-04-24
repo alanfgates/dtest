@@ -75,7 +75,7 @@ class MvnCommand implements ContainerCommand {
       StringBuilder buf = new StringBuilder("/usr/bin/mvn test -Dsurefire.timeout=")
           .append(testTimeout)
           .append(" -Dtest=");
-      boolean first = false;
+      boolean first = true;
       for (String test : tests) {
         if (first) first = false;
         else buf.append(',');
@@ -83,7 +83,7 @@ class MvnCommand implements ContainerCommand {
       }
       if (isITest) {
         buf.append(" -Dqfile=");
-        first = false;
+        first = true;
         for (String qfile : qfiles) {
           if (first) first = false;
           else buf.append(',');
