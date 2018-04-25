@@ -157,7 +157,7 @@ public class MvnCommandFactory extends ContainerCommandFactory {
                                                      DTestLogger logger) throws IOException {
     List<ContainerCommand> cmds = new ArrayList<>();
     String baseDir = containerClient.getContainerBaseDir();
-    int testsPerContainer = Integer.valueOf(System.getProperty(Config.TESTS_PER_CONTAINER, "20"));
+    int testsPerContainer = Integer.valueOf(System.getProperty(Config.TESTS_PER_CONTAINER, "50"));
 
     // Read master-mr2.properties
     String masterPropertiesString = runContainer(containerClient, label, "read-master-m2",

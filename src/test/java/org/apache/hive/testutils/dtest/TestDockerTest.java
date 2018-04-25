@@ -214,8 +214,8 @@ public class TestDockerTest {
       final SimpleResultAnalyzer contained = new SimpleResultAnalyzer();
       return new ResultAnalyzer() {
         @Override
-        public void analyzeLog(ContainerResult result) {
-          contained.analyzeLog(result);
+        public ContainerStatus analyzeLog(ContainerResult result) {
+          return contained.analyzeLog(result);
         }
 
         @Override
@@ -257,6 +257,7 @@ public class TestDockerTest {
     succeeded = 0;
     failures = new ArrayList<>();
     errors = new ArrayList<>();
+    hadTimeouts = false;
     outBuffer = new ByteArrayOutputStream();
     out = new PrintStream(outBuffer);
     err = new PrintStream(new ByteArrayOutputStream());

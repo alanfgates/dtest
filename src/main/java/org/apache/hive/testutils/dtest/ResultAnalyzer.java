@@ -23,12 +23,15 @@ import java.util.List;
 
 public interface ResultAnalyzer {
 
+  enum ContainerStatus { SUCCEEDED, FAILED, TIMED_OUT }
+
   /**
-   * Analyze a log
+   * Analyze a log.
    * @param containerResult the result from the container run.  It is ok for this method to make
    *                        changes in the result.
+   * @return status of the container operation.
    */
-  void analyzeLog(ContainerResult containerResult);
+  ContainerStatus analyzeLog(ContainerResult containerResult);
 
   /**
    * Get count of succeeded tests.

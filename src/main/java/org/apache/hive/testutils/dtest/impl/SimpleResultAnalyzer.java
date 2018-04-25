@@ -19,7 +19,6 @@ package org.apache.hive.testutils.dtest.impl;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.hive.testutils.dtest.ResultAnalyzer;
-import org.apache.hive.testutils.dtest.impl.ContainerResult;
 
 import java.util.Collections;
 import java.util.List;
@@ -88,10 +87,18 @@ public class SimpleResultAnalyzer implements ResultAnalyzer {
   }
 
   @Override
-  public void analyzeLog(ContainerResult result) {
+  public ContainerStatus analyzeLog(ContainerResult result) {
     String[] lines = result.logs.split("\n");
-    for (String line : lines) analyzeLogLine(result, line);
-    if (result.rc < 0 ||result.rc > 1) runSucceeded = false;
+    boolean sawTimeout = false;
+    for (String line : lines) sawTimeout |= analyzeLogLine(result, line);
+    if (sawTimeout) {
+      return ContainerStatus.TIMED_OUT;
+    } else if (result.rc < 0 ||result.rc > 1) {
+      runSucceeded = false;
+      return ContainerStatus.FAILED;
+    } else {
+      return ContainerStatus.SUCCEEDED;
+    }
   }
 
   @Override
@@ -104,16 +111,21 @@ public class SimpleResultAnalyzer implements ResultAnalyzer {
     return runSucceeded;
   }
 
-  private void analyzeLogLine(ContainerResult result, String line) {
+  // Returns true if it sees a timeout
+  private boolean analyzeLogLine(ContainerResult result, String line) {
     count(line, successLine);
     count(line, errorLine);
-    if (result.name.contains("itests-qtest")) {
+    if (result.name.contains("itests-")) {
       findErrorsAndFailures(line, qTestError, qTestFailure);
     } else {
       findErrorsAndFailures(line, unitTestError, unitTestFailure);
     }
     Matcher m = timeout.matcher(line);
-    if (m.matches()) hadTimeouts = true;
+    if (m.matches()) {
+      hadTimeouts = true;
+      return true;
+    }
+    return false;
   }
 
   private void count(String line, Pattern pattern) {

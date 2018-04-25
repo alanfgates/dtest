@@ -25,7 +25,7 @@ public class TestSimpleResultAnalyzer {
   @Test
   public void unitTestLog() {
     SimpleResultAnalyzer analyzer = new SimpleResultAnalyzer();
-    analyzer.analyzeLog(new ContainerResult("hive-dtest-1_itests-hive-unit", 0, LOG1));
+    analyzer.analyzeLog(new ContainerResult("hive-dtest-1_unittests-hive-unit", 0, LOG1));
     Assert.assertEquals(1, analyzer.getErrors().size());
     Assert.assertEquals("TestAcidOnTez.testGetSplitsLocks", analyzer.getErrors().get(0));
     Assert.assertEquals(1, analyzer.getFailed().size());

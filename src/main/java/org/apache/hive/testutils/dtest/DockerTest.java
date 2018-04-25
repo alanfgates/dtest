@@ -204,16 +204,25 @@ public class DockerTest {
     for (ContainerCommand taskCmd : taskCmds) {
       tasks.add(executor.submit(() -> {
         ContainerResult result = docker.runContainer(timeout, timeUnit, taskCmd, logger);
-        analyzer.analyzeLog(result);
+        ResultAnalyzer.ContainerStatus status = analyzer.analyzeLog(result);
         StringBuilder statusMsg = new StringBuilder("Task ")
             .append(result.name)
             .append(' ');
-        if (analyzer.hadTimeouts()) {
+        switch (status) {
+        case TIMED_OUT:
           statusMsg.append(" had TIMEOUTS");
-        } else if (analyzer.runSucceeded()) {
+          break;
+
+        case FAILED:
+          statusMsg.append(" FAILED to run to completion");
+          break;
+
+        case SUCCEEDED:
           statusMsg.append(" SUCCEEDED (does not mean all tests passed)");
-        } else {
-          statusMsg.append(" FAILED to run tom completion");
+          break;
+
+        default:
+          throw new RuntimeException("Unexpected state");
         }
         logger.write(result.name, statusMsg.toString());
         logger.write(SUMMARY_LOG, statusMsg.toString());
