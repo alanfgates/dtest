@@ -90,7 +90,7 @@ public class SimpleResultAnalyzer implements ResultAnalyzer {
   public ContainerStatus analyzeLog(ContainerResult result) {
     String[] lines = result.logs.split("\n");
     boolean sawTimeout = false;
-    for (String line : lines) sawTimeout |= analyzeLogLine(result, line);
+    for (String line : lines) sawTimeout |= analyzeLogLine(line);
     if (sawTimeout) {
       return ContainerStatus.TIMED_OUT;
     } else if (result.rc < 0 ||result.rc > 1) {
@@ -112,18 +112,20 @@ public class SimpleResultAnalyzer implements ResultAnalyzer {
   }
 
   // Returns true if it sees a timeout
-  private boolean analyzeLogLine(ContainerResult result, String line) {
+  private boolean analyzeLogLine(String line) {
     count(line, successLine);
     count(line, errorLine);
-    if (result.name.contains("itests-")) {
-      findErrorsAndFailures(line, qTestError, qTestFailure);
-    } else {
-      findErrorsAndFailures(line, unitTestError, unitTestFailure);
-    }
-    Matcher m = timeout.matcher(line);
-    if (m.matches()) {
-      hadTimeouts = true;
-      return true;
+    // Look first to see if it matches the qtest pattern, if not use the more general pattern.
+    if (!findErrorsAndFailures(line, qTestError, qTestFailure)) {
+      // Ok, now see if it matches the unit test pattern
+      if (!findErrorsAndFailures(line, unitTestError, unitTestFailure)) {
+        // Finally, look for timeouts
+        Matcher m = timeout.matcher(line);
+        if (m.matches()) {
+          hadTimeouts = true;
+          return true;
+        }
+      }
     }
     return false;
   }
@@ -138,15 +140,18 @@ public class SimpleResultAnalyzer implements ResultAnalyzer {
     }
   }
 
-  private void findErrorsAndFailures(String line, Pattern error, Pattern failure) {
+  private boolean findErrorsAndFailures(String line, Pattern error, Pattern failure) {
     Matcher errorLine = error.matcher(line);
     if (errorLine.matches()) {
       errors.add(errorLine.group(2) + "." + errorLine.group(1));
+      return true;
     } else {
       Matcher failureLine = failure.matcher(line);
       if (failureLine.matches()) {
         failed.add(failureLine.group(2) + "." + failureLine.group(1));
+        return true;
       }
     }
+    return false;
   }
 }
