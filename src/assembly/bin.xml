@@ -49,6 +49,7 @@
       <includes>
         <include>dtest</include>
         <include>dtest-cleanup</include>
+        <include>dtest-jenkins.sh</include>
       </includes>
       <outputDirectory>bin</outputDirectory>
     </fileSet>

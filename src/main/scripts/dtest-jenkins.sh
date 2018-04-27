@@ -21,19 +21,17 @@ then
     exit 1
 fi
 
-BASE_DIR=${DTEST_HOME}/logs
 NUM_CONTAINERS=${DTEST_NUM_CONTAINERS:-10}
 
 build_branch=$1
 build_label=$2
 build_repository=$3
 
-mkdir -p $BASE_DIR
-$DTEST_HOME/bin/dtest -b $build_branch -c $NUM_CONTAINERS -d $BASE_DIR -l $build_label -r $build_repository
+$DTEST_HOME/bin/dtest -b $build_branch -c $NUM_CONTAINERS -d $WORKSPACE -l $build_label -r $build_repository
 echo
 echo SUMMARY:
-grep "\[summary\]" $BASE_DIR/$build_label/dtest.log
-echo
-echo FULL DETAILS:
-cat $BASE_DIR/$build_label/dtest.log
+grep "\[summary\]" $WORKSPACE/$build_label/dtest.log
+
+# gzip the logs so they aren't so big
+gzip $WORKSPACE/$build_label/dtest.log
 
