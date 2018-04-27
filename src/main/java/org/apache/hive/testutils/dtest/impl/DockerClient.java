@@ -41,6 +41,8 @@ public class DockerClient implements ContainerClient {
   private static final Pattern IMAGE_SUCCESS = Pattern.compile("BUILD SUCCESS");
   private static final Pattern USING_CACHE = Pattern.compile("Using cache");
   private static final String BUILD_CONTAINER_NAME = "image_build";
+  public static final String USER = "dtest_user";
+  private static final String HOME_DIR = File.separator + "home" + File.separator + USER;
 
   private final String label;
 
@@ -50,7 +52,7 @@ public class DockerClient implements ContainerClient {
 
   @Override
   public String getContainerBaseDir() {
-    return "/root/hive";
+    return HOME_DIR + File.separator + "hive";
   }
 
   @Override
@@ -63,8 +65,12 @@ public class DockerClient implements ContainerClient {
     writer.write("    yum update -y && \\\n");
     writer.write("    yum install -y java-1.8.0-openjdk-devel unzip git maven\n");
     writer.write("\n");
+    writer.write("RUN useradd -m " + USER + "\n");
+    writer.write("\n");
+    writer.write("USER " + USER + "\n");
+    writer.write("\n");
     writer.write("RUN { \\\n");
-    writer.write("    cd /root; \\\n");
+    writer.write("    cd " + HOME_DIR + "; \\\n");
     writer.write("    /usr/bin/git clone " + repo + "; \\\n");
     writer.write("    cd hive; \\\n");
     writer.write("    /usr/bin/git checkout " + branch + "; \\\n");

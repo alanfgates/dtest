@@ -342,6 +342,7 @@ public class MvnCommandFactory extends ContainerCommandFactory {
       while (qFiles.size() > 0) {
         MvnCommand mvn = new MvnCommand(baseDir + File.separator + "itests/qtest", containerNumber++);
         mvn.addTest(masterProperties.getProperty("qFileTest." + qFileTest + ".driver"));
+        mvn.setEnv("USER", DockerClient.USER);
         for (int i = 0; i < testsPerContainer && qFiles.size() > 0; i++) {
           String oneTest = qFiles.pop();
           LOG.debug("Adding qfile " + oneTest + " to container " + (containerNumber - 1));
@@ -359,7 +360,7 @@ public class MvnCommandFactory extends ContainerCommandFactory {
       Properties testProperties, String qfileDir) throws IOException {
     // Find all of the positive qfile tests
     String allPositiveQfiles = runContainer(containerClient, label, containerName,
-        "find " + qfileDir + " -name \\*.q", logger);
+        "find " + qfileDir + " -name \\*.q -maxdepth 1", logger);
 
     Set<String> excludedQfiles = new HashSet<>();
     String excludedQfilesStr = testProperties.getProperty("disabled.query.files");

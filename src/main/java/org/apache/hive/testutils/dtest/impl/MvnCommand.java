@@ -21,7 +21,9 @@ import org.apache.hive.testutils.dtest.Config;
 import org.apache.hive.testutils.dtest.ContainerCommand;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
@@ -32,6 +34,7 @@ class MvnCommand implements ContainerCommand {
   private boolean isITest;
   private List<String> tests; // set of tests to run
   private List<String> qfiles; // set of qfiles to run
+  private Map<String, String> envs;
   private long testTimeout;
 
   MvnCommand(String baseDir, int cmdNumber) {
@@ -39,6 +42,7 @@ class MvnCommand implements ContainerCommand {
     this.cmdNumber = cmdNumber;
     tests = new ArrayList<>();
     qfiles = new ArrayList<>();
+    envs = new HashMap<>();
     int testTimeProperty = Integer.valueOf(System.getProperty(Config.TEST_RUN_TIME, "1"));
     TimeUnit testTimeUnit = TimeUnit.valueOf(System.getProperty(Config.TEST_RUN_TIME_UNIT, "HOURS"));
     testTimeout = TimeUnit.SECONDS.convert(testTimeProperty, testTimeUnit);
@@ -56,6 +60,11 @@ class MvnCommand implements ContainerCommand {
     return this;
   }
 
+  MvnCommand setEnv(String envVar, String value) {
+    envs.put(envVar, value);
+    return this;
+  }
+
   @Override
   public String containerName() {
     return (isITest ? "itest" : "unittest") + "-" + cmdNumber;
@@ -69,7 +78,15 @@ class MvnCommand implements ContainerCommand {
 
   private class MvnCommandSupplier implements Supplier<String> {
     public String get() {
-      StringBuilder buf = new StringBuilder("/usr/bin/mvn test -Dsurefire.timeout=")
+      StringBuilder buf = new StringBuilder();
+      for (Map.Entry<String, String> e : envs.entrySet()) {
+        buf.append(e.getKey())
+            .append('=')
+            .append(e.getValue())
+            .append(' ');
+      }
+
+      buf.append("/usr/bin/mvn test -Dsurefire.timeout=")
           .append(testTimeout)
           .append(" -Dtest=");
       boolean first = true;

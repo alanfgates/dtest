@@ -225,7 +225,6 @@ public class DockerTest {
           throw new RuntimeException("Unexpected state");
         }
         logger.write(result.name, statusMsg.toString());
-        logger.write(SUMMARY_LOG, statusMsg.toString());
         return 1;
       }));
     }
@@ -262,7 +261,7 @@ public class DockerTest {
     StringBuilder msg = new StringBuilder("Test run ");
     if (!runSucceeded) msg.append("FAILED.  Following numbers are probably meaningless.\n");
     else if (analyzer.hadTimeouts()) msg.append("HAD TIMEOUTS.  Following numbers are incomplete.\n");
-    else msg.append("RAN ALL TESTS\n");
+    else msg.append("RAN ALL TESTS ");
     msg.append("Final counts: Succeeded: ")
         .append(analyzer.getSucceeded())
         .append(", Errors: ")
