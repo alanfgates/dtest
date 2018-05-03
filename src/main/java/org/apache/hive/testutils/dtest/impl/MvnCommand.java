@@ -43,8 +43,8 @@ class MvnCommand implements ContainerCommand {
     tests = new ArrayList<>();
     qfiles = new ArrayList<>();
     envs = new HashMap<>();
-    int testTimeProperty = Integer.valueOf(System.getProperty(Config.TEST_RUN_TIME, "1"));
-    TimeUnit testTimeUnit = TimeUnit.valueOf(System.getProperty(Config.TEST_RUN_TIME_UNIT, "HOURS"));
+    int testTimeProperty = Integer.valueOf(System.getProperty(Config.TEST_RUN_TIME, "60"));
+    TimeUnit testTimeUnit = TimeUnit.valueOf(System.getProperty(Config.TEST_RUN_TIME_UNIT, "MINUTES"));
     testTimeout = TimeUnit.SECONDS.convert(testTimeProperty, testTimeUnit);
     isITest = false;
   }
