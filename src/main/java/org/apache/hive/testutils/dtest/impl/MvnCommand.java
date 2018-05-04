@@ -87,21 +87,24 @@ class MvnCommand implements ContainerCommand {
       }
 
       buf.append("/usr/bin/mvn test -Dsurefire.timeout=")
-          .append(testTimeout)
-          .append(" -Dtest=");
-      boolean first = true;
-      for (String test : tests) {
-        if (first) first = false;
-        else buf.append(',');
-        buf.append(test);
-      }
-      if (isITest) {
-        buf.append(" -Dqfile=");
-        first = true;
-        for (String qfile : qfiles) {
+          .append(testTimeout);
+
+      if (!tests.isEmpty()) {
+        buf.append(" -Dtest=");
+        boolean first = true;
+        for (String test : tests) {
           if (first) first = false;
           else buf.append(',');
-          buf.append(qfile);
+          buf.append(test);
+        }
+        if (isITest) {
+          buf.append(" -Dqfile=");
+          first = true;
+          for (String qfile : qfiles) {
+            if (first) first = false;
+            else buf.append(',');
+            buf.append(qfile);
+          }
         }
       }
       buf.append(" -Dtest.groups=\"\" -DskipSparkTests");
