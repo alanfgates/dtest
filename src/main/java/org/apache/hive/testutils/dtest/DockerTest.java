@@ -133,7 +133,7 @@ public class DockerTest {
   public int startBuild(BuildInfo info) {
     docker = containerClientFactory.getClient(info.getLabel());
     DTestLogger logger = null;
-    int rc = 0;
+    int rc = 1;
     try {
       String dir = info.buildDir(baseDir);
       logger = new DTestLogger(dir);
@@ -147,6 +147,7 @@ public class DockerTest {
       }
       try {
         runContainers(logger, numContainers, info.getLabel(), out);
+        rc = 0;
       } catch (IOException e) {
         String msg = "Failed to run one or more of the containers.";
         err.println(msg + "  See log for details.");

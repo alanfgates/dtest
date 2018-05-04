@@ -219,7 +219,7 @@ public class SimplerCommandFactory extends ContainerCommandFactory {
     testInfos.add(new SingleTestDirInfo("itests/qtest", "TestContribNegativeCliDriver"));
     testInfos.add(new SingleTestDirInfo("itests/qtest", "TestHBaseNegativeCliDriver"));
     testInfos.add(new SplittingSingleTestDirInfo("itests/qtest", "TestMiniDruidCliDriver", findQFilesFromProperties("druid.query.files")));
-    testInfos.add(new SplittingSingleTestDirInfo("itests/qtest", "TestMiniDruidKafkaCliDriver", findQFilesFromProperties("druid.kafka.query.files")));
+    //testInfos.add(new SplittingSingleTestDirInfo("itests/qtest", "TestMiniDruidKafkaCliDriver", findQFilesFromProperties("druid.kafka.query.files")));
     testInfos.add(new SingleTestDirInfo("itests/qtest", "TestTezPerfCliDriver"));
     testInfos.add(new SingleTestDirInfo("itests/qtest", "TestParseNegativeDriver"));
     testInfos.add(new SingleTestDirInfo("itests/qtest-accumulo", "TestAccumuloCliDriver"));
