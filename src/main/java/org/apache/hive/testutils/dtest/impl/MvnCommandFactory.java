@@ -24,11 +24,11 @@ import org.apache.hive.testutils.dtest.ContainerCommandFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Deque;
 import java.util.HashSet;
@@ -36,148 +36,218 @@ import java.util.List;
 import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class MvnCommandFactory extends ContainerCommandFactory {
   private static final Logger LOG = LoggerFactory.getLogger(MvnCommandFactory.class);
-  // Tests that we want to split out and run only parts of at a time
-  private static final String[] SPECIALLY_HANDLED_TESTS = { "TestCliDriver",
-      "TestMinimrCliDriver", "TestEncryptedHDFSCliDriver", "TestNegativeMinimrCliDriver",
-      "TestNegativeCliDriver", "TestHBaseCliDriver", "TestMiniTezCliDriver",
-      "TestMiniLlapCliDriver", "TestMiniLlapLocalCliDriver"};
-  private static final Pattern DRIVER_PATTERN = Pattern.compile("Test.*Driver\\.java");
-  private static final Pattern[] DIRS_TO_SKIP = {
-      Pattern.compile("testutils")
-  };
 
-  private static class TestDirInfo {
+  private final Set<String> excludedTests;
+  private int containerNumber;
+  private Properties testProperties;
+  private Set<String> excludedQfiles;
+
+  private abstract class TestDirInfo {
     final String dir;
-    final Pattern pattern;
-    final Deque<String> testsToRun;
-    final boolean lookForTests;
-
-    TestDirInfo(String dir, String pattern, boolean lookForTests) {
-      this.dir = dir;
-      this.pattern = Pattern.compile(pattern);
-      testsToRun = new ArrayDeque<>();
-      this.lookForTests = lookForTests;
-
-    }
-
-    TestDirInfo(String dir, boolean lookForTests) {
-      this(dir, dir + "/src/test", lookForTests);
-    }
 
     TestDirInfo(String dir) {
-      this(dir, true);
+      this.dir = dir;
     }
 
+    abstract void addMvnCommands(ContainerClient containerClient, String label,
+                                 DTestLogger logger, int testsPerContainer, List<ContainerCommand> cmds)
+        throws IOException;
 
   }
 
-  // Set up the testing configuration
-  private static final List<TestDirInfo> TEST_INFOS = new ArrayList<>();
-  static {
-    TEST_INFOS.add(new TestDirInfo("accumulo-handler"));
-    TEST_INFOS.add(new TestDirInfo("beeline"));
-    TEST_INFOS.add(new TestDirInfo("cli"));
-    TEST_INFOS.add(new TestDirInfo("common"));
-    TEST_INFOS.add(new TestDirInfo("contrib"));
-    TEST_INFOS.add(new TestDirInfo("hplsql"));
-    TEST_INFOS.add(new TestDirInfo("jdbc"));
-    TEST_INFOS.add(new TestDirInfo("jdbc-handler"));
-    TEST_INFOS.add(new TestDirInfo("serde"));
-    TEST_INFOS.add(new TestDirInfo("shims/0.23", "shims/0.23/src/main/test", true));
-    TEST_INFOS.add(new TestDirInfo("shims/common", "shims/common/src/main/test", true));
-    TEST_INFOS.add(new TestDirInfo("storage-api"));
-    TEST_INFOS.add(new TestDirInfo("llap-client"));
-    TEST_INFOS.add(new TestDirInfo("llap-common"));
-    TEST_INFOS.add(new TestDirInfo("llap-server"));
-    TEST_INFOS.add(new TestDirInfo("llap-tez"));
-    TEST_INFOS.add(new TestDirInfo("standalone-metastore"));
-    TEST_INFOS.add(new TestDirInfo("druid-handler"));
-    TEST_INFOS.add(new TestDirInfo("service"));
-    TEST_INFOS.add(new TestDirInfo("spark-client"));
-    TEST_INFOS.add(new TestDirInfo("streaming"));
-    TEST_INFOS.add(new TestDirInfo("hbase-handler"));
-    TEST_INFOS.add(new TestDirInfo("hcatalog/core"));
-    TEST_INFOS.add(new TestDirInfo("hcatalog/hcatalog-pig-adapter"));
-    TEST_INFOS.add(new TestDirInfo("hcatalog/server-extensions"));
-    TEST_INFOS.add(new TestDirInfo("hcatalog/streaming"));
-    TEST_INFOS.add(new TestDirInfo("hcatalog/webhcat/java-client"));
-    TEST_INFOS.add(new TestDirInfo("hcatalog/webhcat/svr"));
-    TEST_INFOS.add(new TestDirInfo("ql"));
-    TEST_INFOS.add(new TestDirInfo("ql", "ql/target/generated-test-sources", true));
-    TEST_INFOS.add(new TestDirInfo("itests/hcatalog-unit"));
-    TEST_INFOS.add(new TestDirInfo("itests/hive-blobstore"));
-    TEST_INFOS.add(new TestDirInfo("itests/hive-minikdc"));
-    TEST_INFOS.add(new TestDirInfo("itests/hive-unit"));
-    TEST_INFOS.add(new TestDirInfo("itests/hive-unit-hadoop2"));
-    TEST_INFOS.add(new TestDirInfo("itests/test-serde", "src/main/java", true));
-    TEST_INFOS.add(new TestDirInfo("itests/util"));
-    TestDirInfo tid = new TestDirInfo("itests/hive-blobstore", false);
-    tid.testsToRun.add("TestBlobstoreCliDriver");
-    TEST_INFOS.add(tid);
-    tid = new TestDirInfo("itests/hive-blobstore", false);
-    tid.testsToRun.add("TestBlobstoreNegativeCliDriver");
-    TEST_INFOS.add(tid);
-    tid = new TestDirInfo("itests/qtest", false);
-    tid.testsToRun.add("TestBeeLineDriver");
-    TEST_INFOS.add(tid);
-    tid = new TestDirInfo("itests/qtest", false);
-    tid.testsToRun.add("TestContribCliDriver");
-    TEST_INFOS.add(tid);
-    tid = new TestDirInfo("itests/qtest", false);
-    tid.testsToRun.add("TestContribNegativeCliDriver");
-    TEST_INFOS.add(tid);
-    tid = new TestDirInfo("itests/qtest", false);
-    tid.testsToRun.add("TestHBaseNegativeCliDriver");
-    TEST_INFOS.add(tid);
-    tid = new TestDirInfo("itests/qtest", false);
-    tid.testsToRun.add("TestMiniDruidCliDriver");
-    TEST_INFOS.add(tid);
-    tid = new TestDirInfo("itests/qtest", false);
-    tid.testsToRun.add("TestMiniDruidKafkaCliDriver");
-    TEST_INFOS.add(tid);
-    tid = new TestDirInfo("itests/qtest", false);
-    tid.testsToRun.add("TestTezPerfCliDriver");
-    TEST_INFOS.add(tid);
-    tid = new TestDirInfo("itests/qtest", false);
-    tid.testsToRun.add("TestParseNegativeDriver");
-    TEST_INFOS.add(tid);
-    tid = new TestDirInfo("itests/qtest-accumulo", false);
-    tid.testsToRun.add("TestAccumuloCliDriver");
-    TEST_INFOS.add(tid);
-  };
+  // Adds tests for unit tests that run the whole directory
+  private class SimpleDirInfo extends TestDirInfo {
+    SimpleDirInfo(String dir) {
+      super(dir);
+    }
+
+    @Override
+    void addMvnCommands(ContainerClient containerClient, String label,
+                        DTestLogger logger, int testsPerContainer, List<ContainerCommand> cmds) {
+      cmds.add(new MvnCommand(containerClient.getContainerBaseDir() + "/" + dir, containerNumber++));
+
+    }
+  }
+
+  // Unit tests for directories that are too big and need to be split
+  private class SplittingDirInfo extends TestDirInfo {
+    SplittingDirInfo(String dir) {
+      super(dir);
+    }
+
+    @Override
+    void addMvnCommands(ContainerClient containerClient, String label,
+                        DTestLogger logger, int testsPerContainer, List<ContainerCommand> cmds) throws
+        IOException {
+      String unitTests = runContainer(containerClient, dir, label,
+          "find-tests-" + containerNumber++, "find . -name Test\\*\\*.java", logger);
+      Deque<String> tests = new ArrayDeque<>();
+      for (String line : unitTests.split("\n")) {
+        String testPath = line.trim();
+
+        // Isolate the test name
+        String[] pathElements = testPath.split("/");
+        String testName = pathElements[pathElements.length - 1];
+        if (!excludedTests.contains(testName)) tests.add(testName);
+      }
+
+      while (!tests.isEmpty()) {
+        MvnCommand mvn = new MvnCommand(containerClient.getContainerBaseDir() + "/" + dir, containerNumber++);
+        for (int i = 0; i < testsPerContainer && !tests.isEmpty(); i++) {
+          String single = tests.pop();
+          LOG.debug("Adding test " + single + " to container " + (containerNumber - 1));
+          mvn.addTest(single);
+        }
+        cmds.add(mvn);
+      }
+    }
+  }
+
+  // For tests that need to be run alone
+  private class SingleTestDirInfo extends TestDirInfo {
+    final protected String test;
+
+    SingleTestDirInfo(String dir, String test) {
+      super(dir);
+      this.test = test;
+    }
+
+    @Override
+    void addMvnCommands(ContainerClient containerClient, String label,
+                        DTestLogger logger, int testsPerContainer, List<ContainerCommand> cmds)
+        throws IOException {
+      MvnCommand mvn = new MvnCommand(containerClient.getContainerBaseDir() + "/" + dir, containerNumber++);
+      mvn.addTest(test);
+      mvn.setEnv("USER", DockerClient.USER);
+      cmds.add(mvn);
+    }
+  }
+
+  // For qfile tests that need split
+  private class SplittingSingleTestDirInfo extends SingleTestDirInfo {
+    final private Deque<String> qFiles;
+
+    SplittingSingleTestDirInfo(String dir, String test,
+                                      Deque<String> qFiles) {
+      super(dir, test);
+      this.qFiles = qFiles;
+    }
+
+    @Override
+    void addMvnCommands(ContainerClient containerClient, String label,
+                        DTestLogger logger, int testsPerContainer, List<ContainerCommand> cmds) throws
+        IOException {
+      while (!qFiles.isEmpty()) {
+        MvnCommand mvn = new MvnCommand(containerClient.getContainerBaseDir() + "/" + dir, containerNumber++);
+        mvn.setEnv("USER", DockerClient.USER);
+        mvn.addTest(test);
+        for (int i = 0; i < testsPerContainer && !qFiles.isEmpty(); i++) {
+          String single = qFiles.pop();
+          LOG.debug("Adding qfile " + single + " to container " + (containerNumber - 1));
+          mvn.addQfile(single);
+        }
+        cmds.add(mvn);
+      }
+    }
+  }
+
+  public MvnCommandFactory() {
+    excludedTests = new HashSet<>(Arrays.asList("TestHiveMetaStore", "TestSerDe"));
+  }
 
   @Override
-  public List<ContainerCommand> getContainerCommands(final ContainerClient containerClient,
-                                                     final String label,
+  public List<ContainerCommand> getContainerCommands(ContainerClient containerClient, String label,
                                                      DTestLogger logger) throws IOException {
+
+    // Read the test properties file as a number of things need info in there
+    String testPropertiesString = runContainer(containerClient, ".", label, "read-testconfiguration",
+        "cat itests/src/test/resources/testconfiguration.properties", logger);
+    testProperties = new Properties();
+    testProperties.load(new StringReader(testPropertiesString));
+
+    // Figure out which qfiles are excluded
+    excludedQfiles = new HashSet<>();
+    String excludedQfilesStr = testProperties.getProperty("disabled.query.files");
+    if (excludedQfilesStr != null && excludedQfilesStr.length() > 0) {
+      String[] excludedQfilessArray = excludedQfilesStr.trim().split(",");
+      Collections.addAll(excludedQfiles, excludedQfilessArray);
+    }
+
+    containerNumber = 0;
+    List<TestDirInfo> testInfos = new ArrayList<>();
+    testInfos.add(new SimpleDirInfo("accumulo-handler"));
+    testInfos.add(new SimpleDirInfo("beeline"));
+    testInfos.add(new SimpleDirInfo("cli"));
+    testInfos.add(new SimpleDirInfo("common"));
+    testInfos.add(new SimpleDirInfo("contrib"));
+    testInfos.add(new SimpleDirInfo("hplsql"));
+    testInfos.add(new SimpleDirInfo("jdbc"));
+    testInfos.add(new SimpleDirInfo("jdbc-handler"));
+    testInfos.add(new SimpleDirInfo("serde"));
+    testInfos.add(new SimpleDirInfo("shims/0.23"));
+    testInfos.add(new SimpleDirInfo("shims/common"));
+    testInfos.add(new SimpleDirInfo("storage-api"));
+    testInfos.add(new SimpleDirInfo("llap-client"));
+    testInfos.add(new SimpleDirInfo("llap-common"));
+    testInfos.add(new SimpleDirInfo("llap-server"));
+    testInfos.add(new SimpleDirInfo("llap-tez"));
+    testInfos.add(new SplittingDirInfo("standalone-metastore"));
+    testInfos.add(new SimpleDirInfo("druid-handler"));
+    testInfos.add(new SimpleDirInfo("service"));
+    testInfos.add(new SimpleDirInfo("spark-client"));
+    testInfos.add(new SimpleDirInfo("streaming"));
+    testInfos.add(new SimpleDirInfo("hbase-handler"));
+    testInfos.add(new SimpleDirInfo("hcatalog/core"));
+    testInfos.add(new SimpleDirInfo("hcatalog/hcatalog-pig-adapter"));
+    testInfos.add(new SimpleDirInfo("hcatalog/server-extensions"));
+    testInfos.add(new SimpleDirInfo("hcatalog/streaming"));
+    testInfos.add(new SimpleDirInfo("hcatalog/webhcat/java-client"));
+    testInfos.add(new SimpleDirInfo("hcatalog/webhcat/svr"));
+    testInfos.add(new SplittingDirInfo("ql"));
+    testInfos.add(new SimpleDirInfo("itests/hcatalog-unit"));
+    testInfos.add(new SimpleDirInfo("itests/hive-blobstore"));
+    testInfos.add(new SimpleDirInfo("itests/hive-minikdc"));
+    testInfos.add(new SplittingDirInfo("itests/hive-unit"));
+    testInfos.add(new SimpleDirInfo("itests/hive-unit-hadoop2"));
+    testInfos.add(new SimpleDirInfo("itests/test-serde"));
+    testInfos.add(new SimpleDirInfo("itests/util"));
+    testInfos.add(new SingleTestDirInfo("itests/hive-blobstore", "TestBlobstoreCliDriver"));
+    testInfos.add(new SingleTestDirInfo("itests/hive-blobstore", "TestBlobstoreNegativeCliDriver"));
+    testInfos.add(new SplittingSingleTestDirInfo("itests/qtest", "TestBeeLineDriver", findQFilesFromProperties("beeline.positive.include")));
+    testInfos.add(new SingleTestDirInfo("itests/qtest", "TestContribCliDriver"));
+    testInfos.add(new SingleTestDirInfo("itests/qtest", "TestContribNegativeCliDriver"));
+    testInfos.add(new SingleTestDirInfo("itests/qtest", "TestHBaseNegativeCliDriver"));
+    testInfos.add(new SplittingSingleTestDirInfo("itests/qtest", "TestMiniDruidCliDriver", findQFilesFromProperties("druid.query.files")));
+    //testInfos.add(new SplittingSingleTestDirInfo("itests/qtest", "TestMiniDruidKafkaCliDriver", findQFilesFromProperties("druid.kafka.query.files")));
+    testInfos.add(new SingleTestDirInfo("itests/qtest", "TestTezPerfCliDriver"));
+    testInfos.add(new SingleTestDirInfo("itests/qtest", "TestParseNegativeDriver"));
+    testInfos.add(new SingleTestDirInfo("itests/qtest-accumulo", "TestAccumuloCliDriver"));
+    testInfos.add(new SplittingSingleTestDirInfo("itests/qtest", "TestCliDriver", findQFilesInDir(containerClient, label, logger, "ql/src/test/queries/clientpositive")));
+    testInfos.add(new SplittingSingleTestDirInfo("itests/qtest", "TestMinimrCliDriver", findQFilesFromProperties("minimr.query.files")));
+    testInfos.add(new SplittingSingleTestDirInfo("itests/qtest", "TestEncryptedHDFSCliDriver", findQFilesFromProperties("encrypted.query.files")));
+    testInfos.add(new SplittingSingleTestDirInfo("itests/qtest", "TestNegativeMinimrCliDriver", findQFilesFromProperties("minimr.query.negative.files")));
+    testInfos.add(new SplittingSingleTestDirInfo("itests/qtest", "TestNegativeCliDriver", findQFilesInDir(containerClient, label, logger, "ql/src/test/queries/clientnegative")));
+    testInfos.add(new SplittingSingleTestDirInfo("itests/qtest", "TestHBaseCliDriver", findQFilesInDir(containerClient, label, logger, "hbase-handler/src/test/queries/positive")));
+    testInfos.add(new SplittingSingleTestDirInfo("itests/qtest", "TestMiniTezCliDriver", findQFilesFromProperties("minitez.query.files", "minitez.query.files.shared")));
+    testInfos.add(new SplittingSingleTestDirInfo("itests/qtest", "TestMiniLlapCliDriver", findQFilesFromProperties("minillap.query.files", "minillap.shared.query.files")));
+    testInfos.add(new SplittingSingleTestDirInfo("itests/qtest", "TestMiniLlapLocalCliDriver", findQFilesFromProperties("minillaplocal.query.files", "minillaplocal.shared.query.files")));
+
     List<ContainerCommand> cmds = new ArrayList<>();
-    String baseDir = containerClient.getContainerBaseDir();
     int testsPerContainer = Integer.valueOf(System.getProperty(Config.TESTS_PER_CONTAINER, "50"));
-
-    // Read master-mr2.properties
-    String masterPropertiesString = runContainer(containerClient, label, "read-master-m2",
-        "cat testutils/ptest2/conf/deployed/master-mr2.properties", logger);
-    Properties masterProperties = new Properties();
-    masterProperties.load(new StringReader(masterPropertiesString));
-
-    addUnitTests(containerClient, label, logger, baseDir, masterProperties, testsPerContainer,
-        cmds);
-
-    addSeparatedQfileTests(containerClient, label, logger, baseDir, masterProperties, testsPerContainer,
-        cmds);
-
+    for (TestDirInfo tdi : testInfos) {
+      tdi.addMvnCommands(containerClient, label, logger, testsPerContainer, cmds);
+    }
     return cmds;
   }
 
-  private String runContainer(ContainerClient containerClient, final String label,
+  private String runContainer(ContainerClient containerClient, final String dir,
+                              final String label,
                               final String containerName,
                               final String cmd, DTestLogger logger) throws IOException {
-    ContainerResult result = containerClient.runContainer(1, TimeUnit.MINUTES,
+    ContainerResult result = containerClient.runContainer(5, TimeUnit.MINUTES,
         new ContainerCommand() {
           @Override
           public String containerName() {
@@ -186,7 +256,9 @@ public class MvnCommandFactory extends ContainerCommandFactory {
 
           @Override
           public String[] shellCommand() {
-            return Utils.shellCmdInRoot(containerClient.getContainerBaseDir(), () -> cmd);
+            String localDir = containerClient.getContainerBaseDir();
+            return Utils.shellCmdInRoot(
+                containerClient.getContainerBaseDir() + (dir == null ? "" : "/" + dir), ()-> cmd);
           }
         }, logger);
     if (result.rc != 0) {
@@ -197,182 +269,25 @@ public class MvnCommandFactory extends ContainerCommandFactory {
     return result.logs;
   }
 
-  private void addUnitTests(ContainerClient containerClient, String label, DTestLogger logger,
-                            String baseDir, Properties masterProperties, int testsPerContainer,
-                            List<ContainerCommand> cmds) throws IOException {
-    // Find all of the unit tests
-    String allUnitTests = runContainer(containerClient, label, "find-all-unit-tests",
-        "find . -name Test\\*\\.java", logger);
-
-    // Determine all the unit tests.  Strain out anything that requires special handling and the
-    // excludes from masterProperties
-    Set<String> excludedTests = new HashSet<>();
-    Collections.addAll(excludedTests, SPECIALLY_HANDLED_TESTS);
-    String excludedTestsStr = masterProperties.getProperty("unitTests.exclude");
-    if (excludedTestsStr != null && excludedTestsStr.length() > 0) {
-      String[] excludedTestsArray = excludedTestsStr.trim().split(" ");
-      Collections.addAll(excludedTests, excludedTestsArray);
+  private Deque<String> findQFilesFromProperties(String... properties) {
+    Deque<String> qfiles = new ArrayDeque<>();
+    for (String property : properties) {
+      Collections.addAll(qfiles, testProperties.getProperty(property).trim().split(","));
     }
-
-    int containerNumber = 1;
-    for (String line : allUnitTests.split("\n")) {
-      String testPath = line.trim();
-
-      // Isolate the test name
-      String[] pathElements = testPath.split(File.separator);
-      String testName = pathElements[pathElements.length - 1];
-      // Make sure we should be running this test
-      if (excludedTests.contains(testName)) continue;
-
-      // Strain out the Driver tests, as I've already handled them separately
-      Matcher m = DRIVER_PATTERN.matcher(testName);
-      if (m.matches()) continue;
-
-      // Strain out any directories we want to skip
-      boolean skip = false;
-      for (Pattern p : DIRS_TO_SKIP) {
-        m = p.matcher(testPath);
-        if (m.find()) {
-          LOG.debug("Skipping test " + testPath);
-          skip = true;
-        }
-      }
-      if (skip) continue;
-
-      // Figure out which directory this belongs in
-      boolean foundAHome = false;
-      for (TestDirInfo tid : TEST_INFOS) {
-        m = tid.pattern.matcher(testPath);
-        if (m.find()) {
-          LOG.debug("Placing test " + testPath + " into group for " + tid.dir);
-          tid.testsToRun.add(testName);
-          foundAHome = true;
-          break;
-        }
-      }
-      if (!foundAHome) {
-        // If we got here we don't know what to do with this test
-        throw new RuntimeException("Can't figure out how to handle test " + testPath);
-      }
-    }
-
-    for (TestDirInfo tid : TEST_INFOS) {
-      while (tid.testsToRun.size() > 0) {
-        MvnCommand mvn = new MvnCommand(baseDir + File.separator + tid.dir, containerNumber++);
-        for (int i = 0; i < testsPerContainer && tid.testsToRun.size() > 0; i++) {
-          String oneTest = tid.testsToRun.pop();
-          LOG.debug("Adding test " + oneTest + " to container " + (containerNumber - 1));
-          mvn.addTest(oneTest);
-        }
-        cmds.add(mvn);
-      }
-    }
+    return qfiles;
   }
 
-  private void addSeparatedQfileTests(ContainerClient containerClient, String label, DTestLogger logger,
-                                      String baseDir, Properties masterProperties, int testsPerContainer,
-                                      List<ContainerCommand> cmds) throws IOException {
-    // Read testconfiguration.properties
-    String testPropertiesString = runContainer(containerClient, label, "read-testconfiguration",
-        "cat " + masterProperties.getProperty("qFileTests.propertyFiles.mainProperties"), logger);
-    Properties testProperties = new Properties();
-    testProperties.load(new StringReader(testPropertiesString));
-
-    // Determine the itests to run
-    int containerNumber = 1;
-    String[] qFileTests = masterProperties.getProperty("qFileTests").trim().split(" ");
-    for (String qFileTest : qFileTests) {
-      if (qFileTest.toLowerCase().contains("spark")) continue;
-
-      List<String> qFilesToRun;
-      switch (qFileTest) {
-      case "clientPositive":
-        qFilesToRun = findRunnableQFiles(containerClient, label, "find-positive-qfiles", logger,
-            testProperties, "ql/src/test/queries/clientpositive");
-        break;
-      case "miniMr":
-        qFilesToRun = new ArrayList<>();
-        Collections.addAll(qFilesToRun,
-            testProperties.getProperty("minimr.query.files").trim().split(","));
-        break;
-      case "clientNegative":
-        qFilesToRun = findRunnableQFiles(containerClient, label, "find-negative-qfiles", logger,
-            testProperties, "ql/src/test/queries/clientnegative");
-        break;
-      case "miniMrNegative":
-        qFilesToRun = new ArrayList<>();
-        Collections.addAll(qFilesToRun,
-            testProperties.getProperty("minimr.query.negative.files").trim().split(","));
-        break;
-      case "encryptedCli":
-        qFilesToRun = new ArrayList<>();
-        Collections.addAll(qFilesToRun,
-            testProperties.getProperty("encrypted.query.files").trim().split(","));
-        break;
-      case "hbasePositive":
-        qFilesToRun = findRunnableQFiles(containerClient, label, "find-hbase-qfiles",
-            logger, testProperties, "hbase-handler/src/test/queries/positive");
-        break;
-      case "miniTez":
-        qFilesToRun = new ArrayList<>();
-        Collections.addAll(qFilesToRun,
-            testProperties.getProperty("minitez.query.files").trim().split(","));
-        Collections.addAll(qFilesToRun,
-            testProperties.getProperty("minitez.query.files.shared").trim().split(","));
-        break;
-      case "miniLlap":
-        qFilesToRun = new ArrayList<>();
-        Collections.addAll(qFilesToRun,
-            testProperties.getProperty("minillap.query.files").trim().split(","));
-        Collections.addAll(qFilesToRun,
-            testProperties.getProperty("minillap.shared.query.files").trim().split(","));
-        break;
-      case "miniLlapLocal":
-        qFilesToRun = new ArrayList<>();
-        Collections.addAll(qFilesToRun,
-            testProperties.getProperty("minillaplocal.query.files").trim().split(","));
-        Collections.addAll(qFilesToRun,
-            testProperties.getProperty("minillaplocal.shared.query.files").trim().split(","));
-        break;
-      default:
-        throw new RuntimeException("Oops, forgot " + qFileTest);
-      }
-
-      Deque<String> qFiles = new ArrayDeque<>(qFilesToRun);
-      while (qFiles.size() > 0) {
-        MvnCommand mvn = new MvnCommand(baseDir + File.separator + "itests/qtest", containerNumber++);
-        mvn.addTest(masterProperties.getProperty("qFileTest." + qFileTest + ".driver"));
-        mvn.setEnv("USER", DockerClient.USER);
-        for (int i = 0; i < testsPerContainer && qFiles.size() > 0; i++) {
-          String oneTest = qFiles.pop();
-          LOG.debug("Adding qfile " + oneTest + " to container " + (containerNumber - 1));
-          mvn.addQfile(oneTest);
-        }
-        cmds.add(mvn);
-      }
-    }
+  private Deque<String> findQFilesInDir(ContainerClient containerClient, String label,
+                                        DTestLogger logger, String qfileDir) throws IOException {
+    // Find all of the qfile tests
+    String allPositiveQfiles = runContainer(containerClient, qfileDir, label,
+        "qfile-finder-" + containerNumber++, "find . -name \\*.q -maxdepth 1", logger);
 
 
-  }
-
-  private List<String> findRunnableQFiles(
-      ContainerClient containerClient, String label, String containerName, DTestLogger logger,
-      Properties testProperties, String qfileDir) throws IOException {
-    // Find all of the positive qfile tests
-    String allPositiveQfiles = runContainer(containerClient, label, containerName,
-        "find " + qfileDir + " -name \\*.q -maxdepth 1", logger);
-
-    Set<String> excludedQfiles = new HashSet<>();
-    String excludedQfilesStr = testProperties.getProperty("disabled.query.files");
-    if (excludedQfilesStr != null && excludedQfilesStr.length() > 0) {
-      String[] excludedQfilessArray = excludedQfilesStr.trim().split(",");
-      Collections.addAll(excludedQfiles, excludedQfilessArray);
-    }
-
-    List<String> runnableQfiles = new ArrayList<>();
+    Deque<String> runnableQfiles = new ArrayDeque<>();
     for (String line : allPositiveQfiles.split("\n")) {
       String testPath = line.trim();
-      String[] pathElements = testPath.split(File.separator);
+      String[] pathElements = testPath.split("/");
       String testName = pathElements[pathElements.length - 1];
       if (!excludedQfiles.contains(testName)) runnableQfiles.add(testName);
     }
