@@ -122,6 +122,7 @@ public class SimplerCommandFactory extends ContainerCommandFactory {
       MvnCommand mvn = new MvnCommand(containerClient.getContainerBaseDir() + "/" + dir, containerNumber++);
       mvn.addTest(test);
       mvn.setEnv("USER", DockerClient.USER);
+      cmds.add(mvn);
     }
   }
 
@@ -148,6 +149,7 @@ public class SimplerCommandFactory extends ContainerCommandFactory {
           LOG.debug("Adding qfile " + single + " to container " + (containerNumber - 1));
           mvn.addQfile(single);
         }
+        cmds.add(mvn);
       }
     }
   }
