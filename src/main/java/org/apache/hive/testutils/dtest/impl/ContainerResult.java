@@ -19,17 +19,53 @@ package org.apache.hive.testutils.dtest.impl;
 
 import org.apache.hive.testutils.dtest.ContainerCommand;
 
-public class ContainerResult {
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
 
-  public final String name;
-  public final int rc;
-  public final String logs;
-  public final String containerDirectory;
+public class ContainerResult {
+  public enum ContainerStatus { SUCCEEDED, FAILED, TIMED_OUT }
+
+  private final ContainerCommand cmd;
+  private final int rc;
+  private final String logs;
+  private ContainerStatus analysisResult;
+  private Set<String> logFilesToFetch;
 
   public ContainerResult(ContainerCommand cmd, int rc, String logs) {
-    this.name = cmd.containerName();
+    this.cmd = cmd;
     this.rc = rc;
     this.logs = logs;
-    this.containerDirectory = cmd.containerDirectory();
+    logFilesToFetch = new HashSet<>();
   }
+
+  public ContainerCommand getCmd() {
+    return cmd;
+  }
+
+  public int getRc() {
+    return rc;
+  }
+
+  public String getLogs() {
+    return logs;
+  }
+
+  public ContainerStatus getAnalysisResult() {
+    return analysisResult;
+  }
+
+  public void setAnalysisResult(
+      ContainerStatus analysisResult) {
+    this.analysisResult = analysisResult;
+  }
+
+  public Set<String> getLogFilesToFetch() {
+    return logFilesToFetch;
+  }
+
+  public void addLogFileToFetch(String logFile) {
+    logFilesToFetch.add(logFile);
+  }
+
 }

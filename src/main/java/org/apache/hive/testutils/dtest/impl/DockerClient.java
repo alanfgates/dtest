@@ -29,7 +29,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -100,11 +99,11 @@ public class DockerClient implements ContainerClient {
   public ContainerResult runContainer(long toWait, TimeUnit unit, ContainerCommand cmd,
                                       DTestLogger logger) throws IOException {
     List<String> runCmd = new ArrayList<>();
-    containerName = Utils.buildContainerName(label, cmd.containerName());
+    containerName = Utils.buildContainerName(label, cmd.containerSuffix());
     runCmd.addAll(Arrays.asList("docker", "run", "--name", containerName, imageName()));
     runCmd.addAll(Arrays.asList(cmd.shellCommand()));
     long seconds = TimeUnit.SECONDS.convert(toWait, unit);
-    ProcessResults res = Utils.runProcess(cmd.containerName(), seconds, logger,
+    ProcessResults res = Utils.runProcess(cmd.containerSuffix(), seconds, logger,
         runCmd.toArray(new String[runCmd.size()]));
     return new ContainerResult(cmd, res.rc, res.stdout);
   }

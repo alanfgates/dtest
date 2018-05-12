@@ -66,7 +66,7 @@ class MvnCommand implements ContainerCommand {
   }
 
   @Override
-  public String containerName() {
+  public String containerSuffix() {
     return (isITest ? "itest" : "unittest") + "-" + cmdNumber;
   }
 

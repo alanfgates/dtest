@@ -23,12 +23,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import java.util.Vector;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -42,7 +38,6 @@ public class SimpleResultAnalyzer implements ResultAnalyzer {
   private AtomicInteger succeeded;
   private List<String> failed;
   private List<String> errors;
-  private Map<String, Set<String>> logfiles;
   private final Pattern successLine;
   private final Pattern errorLine;
   private final Pattern unitTestError;
@@ -62,8 +57,6 @@ public class SimpleResultAnalyzer implements ResultAnalyzer {
     succeeded = new AtomicInteger(0);
     failed = new Vector<>();
     errors = new Vector<>();
-    logfiles = new ConcurrentHashMap<>(); // Access inside a key need not be synchronized as a
-    // test is only executed inside a single container.
     successLine =
         Pattern.compile("\\[INFO\\] Tests run: ([0-9]+), Failures: ([0-9]+), Errors: ([0-9]+).*Time elapsed:.*");
     errorLine =
@@ -98,22 +91,18 @@ public class SimpleResultAnalyzer implements ResultAnalyzer {
   }
 
   @Override
-  public Map<String, Set<String>> logFilesToFetch() {
-    return logfiles;
-  }
-
-  @Override
-  public ContainerStatus analyzeLog(ContainerResult result) {
-    String[] lines = result.logs.split("\n");
+  public void analyzeLog(ContainerResult result) {
+    String[] lines = result.getLogs().split("\n");
     boolean sawTimeout = false;
     for (String line : lines) sawTimeout |= analyzeLogLine(result, line);
     if (sawTimeout) {
-      return ContainerStatus.TIMED_OUT;
-    } else if (result.rc < 0 ||result.rc > 1) {
+      hadTimeouts = true;
+      result.setAnalysisResult(ContainerResult.ContainerStatus.TIMED_OUT);
+    } else if (result.getRc() < 0 ||result.getRc() > 1) {
       runSucceeded = false;
-      return ContainerStatus.FAILED;
+      result.setAnalysisResult(ContainerResult.ContainerStatus.FAILED);
     } else {
-      return ContainerStatus.SUCCEEDED;
+      result.setAnalysisResult(ContainerResult.ContainerStatus.SUCCEEDED);
     }
   }
 
@@ -138,7 +127,6 @@ public class SimpleResultAnalyzer implements ResultAnalyzer {
         // Finally, look for timeouts
         Matcher m = timeout.matcher(line);
         if (m.matches()) {
-          hadTimeouts = true;
           return true;
         }
       }
@@ -160,13 +148,15 @@ public class SimpleResultAnalyzer implements ResultAnalyzer {
                                         Pattern failure) {
     Matcher errorLine = error.matcher(line);
     if (errorLine.matches()) {
-      errors.add(errorLine.group(2) + "." + errorLine.group(1));
+      String testName = errorLine.group(2) + "." + errorLine.group(1);
+      errors.add(testName);
       findLogFiles(result, line, errorLine.group(2));
       return true;
     } else {
       Matcher failureLine = failure.matcher(line);
       if (failureLine.matches()) {
-        failed.add(failureLine.group(2) + "." + failureLine.group(1));
+        String testName = failureLine.group(2) + "." + failureLine.group(1);
+        failed.add(testName);
         findLogFiles(result, line, failureLine.group(2));
         return true;
       }
@@ -175,15 +165,14 @@ public class SimpleResultAnalyzer implements ResultAnalyzer {
   }
 
   private void findLogFiles(ContainerResult result, String line, String testName) {
-    Set<String> files = logfiles.computeIfAbsent(result.name, k -> new HashSet<>());
     Pattern p = Pattern.compile(".*(org\\.apache\\..*\\." + testName + ").*");
     Matcher m = p.matcher(line);
     if (!m.matches()) {
       throw new RuntimeException("Failed to find the full name of the failed test.");
     }
-    LOG.debug("Adding log files for container " + result.name);
-    files.add(result.containerDirectory + "/target/tmp/log/hive.log");
-    files.add(result.containerDirectory + "/target/surefire-reports/" + m.group(1) + ".txt");
-    files.add(result.containerDirectory + "/target/surefire-reports/" + m.group(1) + "-output.txt");
+    LOG.debug("Adding log files for container " + result.getCmd().containerSuffix());
+    result.addLogFileToFetch(result.getCmd().containerDirectory() + "/target/tmp/log/hive.log");
+    result.addLogFileToFetch(result.getCmd().containerDirectory() + "/target/surefire-reports/" + m.group(1) + ".txt");
+    result.addLogFileToFetch(result.getCmd().containerDirectory() + "/target/surefire-reports/" + m.group(1) + "-output.txt");
   }
 }

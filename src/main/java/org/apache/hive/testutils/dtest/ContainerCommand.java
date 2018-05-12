@@ -20,12 +20,12 @@ package org.apache.hive.testutils.dtest;
 public interface ContainerCommand {
 
   /**
-   * Get a unique container name for this command.  This must return the same value every time
-   * for a given instance.  The name must be unique, and it must be a valid docker container name
-   * (generally means it uses only letters, numbers, underscore, and dash).
+   * Get a unique suffix for the container name for this command.  This must return the same value
+   * every time for a given instance.  The name must be unique, and it must be a valid docker
+   * container name (generally means it uses only letters, numbers, underscore, and dash).
    * @return unique name.
    */
-  String containerName();
+  String containerSuffix();
 
   /**
    * Build a shell command.  The command itself should be the first element in the array, with

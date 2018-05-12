@@ -39,7 +39,7 @@ public class TestSimpleResultAnalyzer {
     }
 
     @Override
-    public String containerName() {
+    public String containerSuffix() {
       return name;
     }
 
@@ -57,8 +57,9 @@ public class TestSimpleResultAnalyzer {
   @Test
   public void unitTestLog() {
     SimpleResultAnalyzer analyzer = new SimpleResultAnalyzer();
-    analyzer.analyzeLog(new ContainerResult(new SimpleContainerCommand("hive-dtest-1_unittests-hive-unit",
-        "/Users/gates/git/hive/itests/hive-unit") , 0, LOG1));
+    ContainerResult cr = new ContainerResult(new SimpleContainerCommand("hive-dtest-1_unittests-hive-unit",
+        "/Users/gates/git/hive/itests/hive-unit") , 0, LOG1);
+    analyzer.analyzeLog(cr);
     Assert.assertEquals(1, analyzer.getErrors().size());
     Assert.assertEquals("TestAcidOnTez.testGetSplitsLocks", analyzer.getErrors().get(0));
     Assert.assertEquals(1, analyzer.getFailed().size());
@@ -66,10 +67,8 @@ public class TestSimpleResultAnalyzer {
     Assert.assertEquals(32, analyzer.getSucceeded());
     Assert.assertFalse(analyzer.hadTimeouts());
     Assert.assertTrue(analyzer.runSucceeded());
-    Assert.assertEquals(1, analyzer.logFilesToFetch().size());
-    Set<String> logfiles = analyzer.logFilesToFetch().get("hive-dtest-1_unittests-hive-unit");
-    Assert.assertEquals(5, logfiles.size());
-    SortedSet<String> orderedLogFiles = new TreeSet<>(logfiles);
+    Assert.assertEquals(5, cr.getLogFilesToFetch().size());
+    SortedSet<String> orderedLogFiles = new TreeSet<>(cr.getLogFilesToFetch());
     Iterator iter = orderedLogFiles.iterator();
     Assert.assertEquals("/Users/gates/git/hive/itests/hive-unit/target/surefire-reports/org.apache.hadoop.hive.ql.TestAcidOnTez-output.txt", iter.next());
     Assert.assertEquals("/Users/gates/git/hive/itests/hive-unit/target/surefire-reports/org.apache.hadoop.hive.ql.TestAcidOnTez.txt", iter.next());
@@ -81,9 +80,10 @@ public class TestSimpleResultAnalyzer {
   @Test
   public void qtestLog() {
     SimpleResultAnalyzer analyzer = new SimpleResultAnalyzer();
-    analyzer.analyzeLog(new ContainerResult(new SimpleContainerCommand(
+    ContainerResult cr = new ContainerResult(new SimpleContainerCommand(
         "hive-dtest-1_itests-qtest_TestNegativeCliDriver_a_LF_a-t_RT_._S_",
-        "/Users/gates/git/hive/itests/qtest"), 1, LOG2));
+        "/Users/gates/git/hive/itests/qtest"), 1, LOG2);
+    analyzer.analyzeLog(cr);
     Assert.assertEquals(1, analyzer.getErrors().size());
     Assert.assertEquals("TestNegativeCliDriver.alter_notnull_constraint_violation", analyzer.getErrors().get(0));
     Assert.assertEquals(1, analyzer.getFailed().size());
@@ -91,10 +91,8 @@ public class TestSimpleResultAnalyzer {
     Assert.assertEquals(72, analyzer.getSucceeded());
     Assert.assertFalse(analyzer.hadTimeouts());
     Assert.assertTrue(analyzer.runSucceeded());
-    Assert.assertEquals(1, analyzer.logFilesToFetch().size());
-    Set<String> logfiles = analyzer.logFilesToFetch().get("hive-dtest-1_itests-qtest_TestNegativeCliDriver_a_LF_a-t_RT_._S_");
-    Assert.assertEquals(3, logfiles.size());
-    SortedSet<String> orderedLogFiles = new TreeSet<>(logfiles);
+    Assert.assertEquals(3, cr.getLogFilesToFetch().size());
+    SortedSet<String> orderedLogFiles = new TreeSet<>(cr.getLogFilesToFetch());
     Iterator iter = orderedLogFiles.iterator();
     Assert.assertEquals("/Users/gates/git/hive/itests/qtest/target/surefire-reports/org.apache.hadoop.hive.cli.TestNegativeCliDriver-output.txt", iter.next());
     Assert.assertEquals("/Users/gates/git/hive/itests/qtest/target/surefire-reports/org.apache.hadoop.hive.cli.TestNegativeCliDriver.txt", iter.next());

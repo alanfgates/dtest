@@ -250,7 +250,7 @@ public class MvnCommandFactory extends ContainerCommandFactory {
     ContainerResult result = containerClient.runContainer(5, TimeUnit.MINUTES,
         new ContainerCommand() {
           @Override
-          public String containerName() {
+          public String containerSuffix() {
             return Utils.buildContainerName(label, containerName);
           }
 
@@ -266,12 +266,12 @@ public class MvnCommandFactory extends ContainerCommandFactory {
             return dir;
           }
         }, logger);
-    if (result.rc != 0) {
+    if (result.getRc() != 0) {
       String msg = "Failed to run cmd " + cmd + " as part of determining tests to run";
       LOG.error(msg);
       throw new IOException(msg);
     }
-    return result.logs;
+    return result.getLogs();
   }
 
   private Deque<String> findQFilesFromProperties(String... properties) {

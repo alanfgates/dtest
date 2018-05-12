@@ -206,11 +206,11 @@ public class DockerTest {
     for (ContainerCommand taskCmd : taskCmds) {
       tasks.add(executor.submit(() -> {
         ContainerResult result = docker.runContainer(timeout, timeUnit, taskCmd, logger);
-        ResultAnalyzer.ContainerStatus status = analyzer.analyzeLog(result);
+        analyzer.analyzeLog(result);
         StringBuilder statusMsg = new StringBuilder("Task ")
-            .append(result.name)
+            .append(result.getCmd().containerSuffix())
             .append(' ');
-        switch (status) {
+        switch (result.getAnalysisResult()) {
         case TIMED_OUT:
           statusMsg.append(" had TIMEOUTS");
           break;
@@ -226,16 +226,15 @@ public class DockerTest {
         default:
           throw new RuntimeException("Unexpected state");
         }
-        logger.write(result.name, statusMsg.toString());
+        logger.write(result.getCmd().containerSuffix(), statusMsg.toString());
 
         // Copy log files from any failed tests to a directory specific to this container
-        LOG.debug("Looking for files associated with container " + result.name);
-        Set<String> filesToCopy = analyzer.logFilesToFetch().get(result.name);
+        Set<String> filesToCopy = result.getLogFilesToFetch();
         if (filesToCopy != null && !filesToCopy.isEmpty()) {
           LOG.debug("Found " + filesToCopy.size() + " logs to copy");
-          File logDir = new File(info.getDir(), result.name);
+          File logDir = new File(info.getDir(), result.getCmd().containerSuffix());
           LOG.info("Creating directory " + logDir.getAbsolutePath() + " for logs from container "
-              + result.name);
+              + result.getCmd().containerSuffix());
           logDir.mkdir();
           docker.copyLogFiles(filesToCopy, logDir.getAbsolutePath(), logger);
         }

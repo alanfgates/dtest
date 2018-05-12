@@ -35,9 +35,7 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
@@ -47,7 +45,6 @@ public class TestDockerTest {
   private static int succeeded;
   private static List<String> failures;
   private static List<String> errors;
-  private static Map<String, Set<String>> logFiles;
 
   private ByteArrayOutputStream outBuffer;
   private PrintStream out;
@@ -203,7 +200,7 @@ public class TestDockerTest {
                                                        DTestLogger logger) throws IOException {
       return Collections.singletonList(new ContainerCommand() {
         @Override
-        public String containerName() {
+        public String containerSuffix() {
           return "friendly";
         }
 
@@ -227,7 +224,7 @@ public class TestDockerTest {
                                                        DTestLogger logger) throws IOException {
       return Collections.singletonList(new ContainerCommand() {
         @Override
-        public String containerName() {
+        public String containerSuffix() {
           return "friendly-itests-qtest";
         }
 
@@ -250,8 +247,8 @@ public class TestDockerTest {
       final SimpleResultAnalyzer contained = new SimpleResultAnalyzer();
       return new ResultAnalyzer() {
         @Override
-        public ContainerStatus analyzeLog(ContainerResult result) {
-          return contained.analyzeLog(result);
+        public void analyzeLog(ContainerResult result) {
+          contained.analyzeLog(result);
         }
 
         @Override
@@ -270,12 +267,6 @@ public class TestDockerTest {
         public List<String> getErrors() {
           errors = contained.getErrors();
           return errors;
-        }
-
-        @Override
-        public Map<String, Set<String>> logFilesToFetch() {
-          logFiles = contained.logFilesToFetch();
-          return logFiles;
         }
 
         @Override
@@ -299,7 +290,6 @@ public class TestDockerTest {
     succeeded = 0;
     failures = new ArrayList<>();
     errors = new ArrayList<>();
-    logFiles = new HashMap<>();
     hadTimeouts = false;
     outBuffer = new ByteArrayOutputStream();
     out = new PrintStream(outBuffer);

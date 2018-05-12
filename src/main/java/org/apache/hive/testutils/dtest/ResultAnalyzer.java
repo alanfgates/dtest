@@ -25,18 +25,15 @@ import java.util.Set;
 
 public interface ResultAnalyzer {
 
-  enum ContainerStatus { SUCCEEDED, FAILED, TIMED_OUT }
-
   /**
    * Analyze a log.
-   * @param containerResult the result from the container run.  It is ok for this method to make
-   *                        changes in the result.
-   * @return status of the container operation.
+   * @param containerResult the result from the container run.  Information in the result will be
+   *                       appended by this method.
    */
-  ContainerStatus analyzeLog(ContainerResult containerResult);
+  void analyzeLog(ContainerResult containerResult);
 
   /**
-   * Get count of succeeded tests.
+   * Get aggregate count of succeeded tests.
    * @return number of tests that succeeded.
    */
   int getSucceeded();
@@ -52,13 +49,6 @@ public interface ResultAnalyzer {
    * @return name of each test that produced an error.
    */
   List<String> getErrors();
-
-  /**
-   * Get log files for failed tests.
-   * @return map with logs files.  The key is the container name, the value is the collection of
-   * associated log files.
-   */
-  Map<String, Set<String>> logFilesToFetch();
 
   /**
    * True if at least one test timed out.
