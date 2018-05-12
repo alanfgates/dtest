@@ -17,6 +17,8 @@
  */
 package org.apache.hive.testutils.dtest.impl;
 
+import org.apache.commons.lang3.StringUtils;
+
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -96,9 +98,12 @@ public class DTestLogger {
         try {
           while ((m = queue.take()) != null) {
             cal.setTimeInMillis(m.time);
-            String msg = cal.get(Calendar.HOUR_OF_DAY) + ":" + cal.get(Calendar.MINUTE) + ':' +
-                cal.get(Calendar.SECOND) + ',' + cal.get(Calendar.MILLISECOND) + " [" +
-                m.containerId + "] :" + m.content + '\n';
+            String msg =
+                StringUtils.leftPad(Integer.toString(cal.get(Calendar.HOUR_OF_DAY)), 2, '0') +
+                ":" + StringUtils.leftPad(Integer.toString(cal.get(Calendar.MINUTE)), 2, '0') +
+                ':' + StringUtils.leftPad(Integer.toString(cal.get(Calendar.SECOND)), 2, '0') +
+                '.' + StringUtils.leftPad(Integer.toString(cal.get(Calendar.MILLISECOND)), 3, '0') +
+                " [" + m.containerId + "] :" + m.content + '\n';
             mainWriter.write(msg);
             mainWriter.flush();
           }

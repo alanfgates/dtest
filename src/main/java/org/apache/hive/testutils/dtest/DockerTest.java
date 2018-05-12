@@ -229,9 +229,13 @@ public class DockerTest {
         logger.write(result.name, statusMsg.toString());
 
         // Copy log files from any failed tests to a directory specific to this container
+        LOG.debug("Looking for files associated with container " + result.name);
         Set<String> filesToCopy = analyzer.logFilesToFetch().get(result.name);
         if (filesToCopy != null && !filesToCopy.isEmpty()) {
+          LOG.debug("Found " + filesToCopy.size() + " logs to copy");
           File logDir = new File(info.getDir(), result.name);
+          LOG.info("Creating directory " + logDir.getAbsolutePath() + " for logs from container "
+              + result.name);
           logDir.mkdir();
           docker.copyLogFiles(filesToCopy, logDir.getAbsolutePath(), logger);
         }

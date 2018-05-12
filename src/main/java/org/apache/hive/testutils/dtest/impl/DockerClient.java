@@ -121,28 +121,6 @@ public class DockerClient implements ContainerClient {
     }
   }
 
-  /*
-  @Override
-  public void catFailedTestLogsToLog(Map<String, List<String>> files, DTestLogger logger)
-      throws IOException {
-    assert containerName != null;
-    for (String testName : files.keySet()) {
-      for (String file : files.get(testName)) {
-        String containerId = "FAILED-TEST-" + testName;
-        logger.write(containerId, "Log file: " + file);
-        File f = File.createTempFile("dtest", "tmplog");
-        List<String> runCmd = new ArrayList<>();
-        runCmd.addAll(Arrays.asList("docker", "cp", containerName + ":" + file, f.getAbsolutePath()));
-        ProcessResults res = Utils.runProcess(containerId, 60, logger, runCmd.toArray(new String[runCmd.size()]));
-        if (res.rc != 0) throw new RuntimeException("Failed to copy logfile " + res.stderr);
-        // TODO read the file line by line
-      }
-    }
-
-
-  }
-  */
-
   @VisibleForTesting
   public static void checkBuildSucceeded(ProcessResults res) throws IOException {
     Matcher m = IMAGE_SUCCESS.matcher(res.stdout);

@@ -19,8 +19,9 @@ package org.apache.hive.testutils.dtest.impl;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.hive.testutils.dtest.ResultAnalyzer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -34,6 +35,8 @@ import java.util.regex.Pattern;
 
 @VisibleForTesting
 public class SimpleResultAnalyzer implements ResultAnalyzer {
+  private static final Logger LOG = LoggerFactory.getLogger(SimpleResultAnalyzer.class);
+
   private boolean hadTimeouts;
   private boolean runSucceeded;
   private AtomicInteger succeeded;
@@ -178,6 +181,7 @@ public class SimpleResultAnalyzer implements ResultAnalyzer {
     if (!m.matches()) {
       throw new RuntimeException("Failed to find the full name of the failed test.");
     }
+    LOG.debug("Adding log files for container " + result.name);
     files.add(result.containerDirectory + "/target/tmp/log/hive.log");
     files.add(result.containerDirectory + "/target/surefire-reports/" + m.group(1) + ".txt");
     files.add(result.containerDirectory + "/target/surefire-reports/" + m.group(1) + "-output.txt");
