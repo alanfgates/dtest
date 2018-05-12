@@ -76,11 +76,6 @@ public class TestDockerTest {
               TestSimpleResultAnalyzer.LOG1;
           return new ContainerResult(cmd, 0, logs);
         }
-
-        @Override
-        public void copyLogFiles(Set<String> files, String dir, DTestLogger logger) throws IOException {
-
-        }
       };
     }
   }
@@ -110,11 +105,6 @@ public class TestDockerTest {
           String logs = "Ran: " + StringUtils.join(cmd.shellCommand(), " ") +
               TestSimpleResultAnalyzer.LOG2;
           return new ContainerResult(cmd, 0, logs);
-        }
-
-        @Override
-        public void copyLogFiles(Set<String> files, String dir, DTestLogger logger) throws IOException {
-
         }
       };
     }
@@ -147,11 +137,6 @@ public class TestDockerTest {
           return new ContainerResult(cmd, 0, logs);
         }
 
-        @Override
-        public void copyLogFiles(Set<String> files, String dir, DTestLogger logger) throws IOException {
-
-        }
-
       };
     }
   }
@@ -182,12 +167,6 @@ public class TestDockerTest {
               TestSimpleResultAnalyzer.LOG1;
           return new ContainerResult(cmd, 130, logs);
         }
-
-        @Override
-        public void copyLogFiles(Set<String> files, String dir, DTestLogger logger) throws IOException {
-
-        }
-
       };
     }
   }

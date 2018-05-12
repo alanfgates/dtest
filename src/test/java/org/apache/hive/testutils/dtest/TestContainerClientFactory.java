@@ -54,12 +54,6 @@ public class TestContainerClientFactory {
         public ContainerResult runContainer(long toWait, TimeUnit unit, ContainerCommand cmd, DTestLogger logger) throws IOException {
           return null;
         }
-
-        @Override
-        public void copyLogFiles(Set<String> files, String dir, DTestLogger logger) throws
-            IOException {
-
-        }
       };
     }
   }

@@ -46,7 +46,6 @@ public class DockerClient implements ContainerClient {
   private static final String HOME_DIR = File.separator + "home" + File.separator + USER;
 
   private final String label;
-  private String containerName;
 
   DockerClient(String label) {
     this.label = label;
@@ -99,7 +98,7 @@ public class DockerClient implements ContainerClient {
   public ContainerResult runContainer(long toWait, TimeUnit unit, ContainerCommand cmd,
                                       DTestLogger logger) throws IOException {
     List<String> runCmd = new ArrayList<>();
-    containerName = Utils.buildContainerName(label, cmd.containerSuffix());
+    String containerName = Utils.buildContainerName(label, cmd.containerSuffix());
     runCmd.addAll(Arrays.asList("docker", "run", "--name", containerName, imageName()));
     runCmd.addAll(Arrays.asList(cmd.shellCommand()));
     long seconds = TimeUnit.SECONDS.convert(toWait, unit);
@@ -109,11 +108,12 @@ public class DockerClient implements ContainerClient {
   }
 
   @Override
-  public void copyLogFiles(Set<String> files, String dir, DTestLogger logger) throws IOException {
-    assert containerName != null;
-    for (String file : files) {
+  public void copyLogFiles(ContainerResult result, String targetDir, DTestLogger logger)
+      throws IOException {
+    String containerName = Utils.buildContainerName(label, result.getCmd().containerSuffix());
+    for (String file : result.getLogFilesToFetch()) {
       List<String> runCmd = new ArrayList<>();
-      runCmd.addAll(Arrays.asList("docker", "cp", containerName + ":" + file, dir));
+      runCmd.addAll(Arrays.asList("docker", "cp", containerName + ":" + file, targetDir));
       ProcessResults res = Utils.runProcess("copying-files-for-" + containerName, 60, logger,
           runCmd.toArray(new String[runCmd.size()]));
       if (res.rc != 0) throw new IOException("Failed to copy logfile " + res.stderr);
