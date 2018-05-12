@@ -20,6 +20,8 @@ package org.apache.hive.testutils.dtest;
 import org.apache.hive.testutils.dtest.impl.ContainerResult;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public interface ResultAnalyzer {
 
@@ -50,6 +52,13 @@ public interface ResultAnalyzer {
    * @return name of each test that produced an error.
    */
   List<String> getErrors();
+
+  /**
+   * Get log files for failed tests.
+   * @return map with logs files.  The key is the container name, the value is the collection of
+   * associated log files.
+   */
+  Map<String, Set<String>> logFilesToFetch();
 
   /**
    * True if at least one test timed out.

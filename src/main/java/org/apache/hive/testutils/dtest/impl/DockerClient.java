@@ -29,6 +29,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
@@ -45,6 +47,7 @@ public class DockerClient implements ContainerClient {
   private static final String HOME_DIR = File.separator + "home" + File.separator + USER;
 
   private final String label;
+  private String containerName;
 
   DockerClient(String label) {
     this.label = label;
@@ -97,14 +100,48 @@ public class DockerClient implements ContainerClient {
   public ContainerResult runContainer(long toWait, TimeUnit unit, ContainerCommand cmd,
                                       DTestLogger logger) throws IOException {
     List<String> runCmd = new ArrayList<>();
-    String containerName = Utils.buildContainerName(label, cmd.containerName());
+    containerName = Utils.buildContainerName(label, cmd.containerName());
     runCmd.addAll(Arrays.asList("docker", "run", "--name", containerName, imageName()));
     runCmd.addAll(Arrays.asList(cmd.shellCommand()));
     long seconds = TimeUnit.SECONDS.convert(toWait, unit);
     ProcessResults res = Utils.runProcess(cmd.containerName(), seconds, logger,
         runCmd.toArray(new String[runCmd.size()]));
-    return new ContainerResult(containerName, res.rc, res.stdout);
+    return new ContainerResult(cmd, res.rc, res.stdout);
   }
+
+  @Override
+  public void copyLogFiles(Set<String> files, String dir, DTestLogger logger) throws IOException {
+    assert containerName != null;
+    for (String file : files) {
+      List<String> runCmd = new ArrayList<>();
+      runCmd.addAll(Arrays.asList("docker", "cp", containerName + ":" + file, dir));
+      ProcessResults res = Utils.runProcess("copying-files-for-" + containerName, 60, logger,
+          runCmd.toArray(new String[runCmd.size()]));
+      if (res.rc != 0) throw new IOException("Failed to copy logfile " + res.stderr);
+    }
+  }
+
+  /*
+  @Override
+  public void catFailedTestLogsToLog(Map<String, List<String>> files, DTestLogger logger)
+      throws IOException {
+    assert containerName != null;
+    for (String testName : files.keySet()) {
+      for (String file : files.get(testName)) {
+        String containerId = "FAILED-TEST-" + testName;
+        logger.write(containerId, "Log file: " + file);
+        File f = File.createTempFile("dtest", "tmplog");
+        List<String> runCmd = new ArrayList<>();
+        runCmd.addAll(Arrays.asList("docker", "cp", containerName + ":" + file, f.getAbsolutePath()));
+        ProcessResults res = Utils.runProcess(containerId, 60, logger, runCmd.toArray(new String[runCmd.size()]));
+        if (res.rc != 0) throw new RuntimeException("Failed to copy logfile " + res.stderr);
+        // TODO read the file line by line
+      }
+    }
+
+
+  }
+  */
 
   @VisibleForTesting
   public static void checkBuildSucceeded(ProcessResults res) throws IOException {

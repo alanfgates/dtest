@@ -34,4 +34,10 @@ public interface ContainerCommand {
    */
   String[] shellCommand();
 
+  /**
+   * Get the directory the container will execute in.
+   * @return container directory
+   */
+  String containerDirectory();
+
 }

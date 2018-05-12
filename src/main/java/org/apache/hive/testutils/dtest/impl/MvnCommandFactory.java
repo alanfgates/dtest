@@ -236,7 +236,7 @@ public class MvnCommandFactory extends ContainerCommandFactory {
     testInfos.add(new SplittingSingleTestDirInfo("itests/qtest", "TestMiniLlapLocalCliDriver", findQFilesFromProperties("minillaplocal.query.files", "minillaplocal.shared.query.files")));
 
     List<ContainerCommand> cmds = new ArrayList<>();
-    int testsPerContainer = Integer.valueOf(System.getProperty(Config.TESTS_PER_CONTAINER, "50"));
+    int testsPerContainer = Integer.valueOf(System.getProperty(Config.TESTS_PER_CONTAINER, "25"));
     for (TestDirInfo tdi : testInfos) {
       tdi.addMvnCommands(containerClient, label, logger, testsPerContainer, cmds);
     }
@@ -259,6 +259,11 @@ public class MvnCommandFactory extends ContainerCommandFactory {
             String localDir = containerClient.getContainerBaseDir();
             return Utils.shellCmdInRoot(
                 containerClient.getContainerBaseDir() + (dir == null ? "" : "/" + dir), ()-> cmd);
+          }
+
+          @Override
+          public String containerDirectory() {
+            return dir;
           }
         }, logger);
     if (result.rc != 0) {

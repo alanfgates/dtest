@@ -1,7 +1,14 @@
 package org.apache.hive.testutils.dtest.impl;
 
+import org.apache.hive.testutils.dtest.ContainerCommand;
 import org.junit.Assert;
 import org.junit.Test;
+
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -22,10 +29,36 @@ import org.junit.Test;
  */
 public class TestSimpleResultAnalyzer {
 
+  private static class SimpleContainerCommand implements ContainerCommand {
+    private final String name;
+    private final String dir;
+
+    public SimpleContainerCommand(String name, String dir) {
+      this.name = name;
+      this.dir = dir;
+    }
+
+    @Override
+    public String containerName() {
+      return name;
+    }
+
+    @Override
+    public String[] shellCommand() {
+      return new String[0];
+    }
+
+    @Override
+    public String containerDirectory() {
+      return dir;
+    }
+  }
+
   @Test
   public void unitTestLog() {
     SimpleResultAnalyzer analyzer = new SimpleResultAnalyzer();
-    analyzer.analyzeLog(new ContainerResult("hive-dtest-1_unittests-hive-unit", 0, LOG1));
+    analyzer.analyzeLog(new ContainerResult(new SimpleContainerCommand("hive-dtest-1_unittests-hive-unit",
+        "/Users/gates/git/hive/itests/hive-unit") , 0, LOG1));
     Assert.assertEquals(1, analyzer.getErrors().size());
     Assert.assertEquals("TestAcidOnTez.testGetSplitsLocks", analyzer.getErrors().get(0));
     Assert.assertEquals(1, analyzer.getFailed().size());
@@ -33,13 +66,24 @@ public class TestSimpleResultAnalyzer {
     Assert.assertEquals(32, analyzer.getSucceeded());
     Assert.assertFalse(analyzer.hadTimeouts());
     Assert.assertTrue(analyzer.runSucceeded());
+    Assert.assertEquals(1, analyzer.logFilesToFetch().size());
+    Set<String> logfiles = analyzer.logFilesToFetch().get("hive-dtest-1_unittests-hive-unit");
+    Assert.assertEquals(5, logfiles.size());
+    SortedSet<String> orderedLogFiles = new TreeSet<>(logfiles);
+    Iterator iter = orderedLogFiles.iterator();
+    Assert.assertEquals("/Users/gates/git/hive/itests/hive-unit/target/surefire-reports/org.apache.hadoop.hive.ql.TestAcidOnTez-output.txt", iter.next());
+    Assert.assertEquals("/Users/gates/git/hive/itests/hive-unit/target/surefire-reports/org.apache.hadoop.hive.ql.TestAcidOnTez.txt", iter.next());
+    Assert.assertEquals("/Users/gates/git/hive/itests/hive-unit/target/surefire-reports/org.apache.hive.jdbc.TestActivePassiveHA-output.txt", iter.next());
+    Assert.assertEquals("/Users/gates/git/hive/itests/hive-unit/target/surefire-reports/org.apache.hive.jdbc.TestActivePassiveHA.txt", iter.next());
+    Assert.assertEquals("/Users/gates/git/hive/itests/hive-unit/target/tmp/log/hive.log", iter.next());
   }
 
   @Test
   public void qtestLog() {
     SimpleResultAnalyzer analyzer = new SimpleResultAnalyzer();
-    analyzer.analyzeLog(new ContainerResult(
-        "hive-dtest-1_itests-qtest_TestNegativeCliDriver_a_LF_a-t_RT_._S_", 1, LOG2));
+    analyzer.analyzeLog(new ContainerResult(new SimpleContainerCommand(
+        "hive-dtest-1_itests-qtest_TestNegativeCliDriver_a_LF_a-t_RT_._S_",
+        "/Users/gates/git/hive/itests/qtest"), 1, LOG2));
     Assert.assertEquals(1, analyzer.getErrors().size());
     Assert.assertEquals("TestNegativeCliDriver.alter_notnull_constraint_violation", analyzer.getErrors().get(0));
     Assert.assertEquals(1, analyzer.getFailed().size());
@@ -47,12 +91,20 @@ public class TestSimpleResultAnalyzer {
     Assert.assertEquals(72, analyzer.getSucceeded());
     Assert.assertFalse(analyzer.hadTimeouts());
     Assert.assertTrue(analyzer.runSucceeded());
+    Assert.assertEquals(1, analyzer.logFilesToFetch().size());
+    Set<String> logfiles = analyzer.logFilesToFetch().get("hive-dtest-1_itests-qtest_TestNegativeCliDriver_a_LF_a-t_RT_._S_");
+    Assert.assertEquals(3, logfiles.size());
+    SortedSet<String> orderedLogFiles = new TreeSet<>(logfiles);
+    Iterator iter = orderedLogFiles.iterator();
+    Assert.assertEquals("/Users/gates/git/hive/itests/qtest/target/surefire-reports/org.apache.hadoop.hive.cli.TestNegativeCliDriver-output.txt", iter.next());
+    Assert.assertEquals("/Users/gates/git/hive/itests/qtest/target/surefire-reports/org.apache.hadoop.hive.cli.TestNegativeCliDriver.txt", iter.next());
+    Assert.assertEquals("/Users/gates/git/hive/itests/qtest/target/tmp/log/hive.log", iter.next());
   }
 
   @Test
   public void timeoutLog() {
     SimpleResultAnalyzer analyzer = new SimpleResultAnalyzer();
-    analyzer.analyzeLog(new ContainerResult("bla", 0, LOG3));
+    analyzer.analyzeLog(new ContainerResult(new SimpleContainerCommand("bla", "bla"), 0, LOG3));
     Assert.assertTrue(analyzer.hadTimeouts());
     Assert.assertTrue(analyzer.runSucceeded());
   }
@@ -60,8 +112,9 @@ public class TestSimpleResultAnalyzer {
   @Test
   public void failedRun() {
     SimpleResultAnalyzer analyzer = new SimpleResultAnalyzer();
-    analyzer.analyzeLog(new ContainerResult(
-        "hive-dtest-1_itests-qtest_TestNegativeCliDriver_a_LF_a-t_RT_._S_", 2, LOG2));
+    analyzer.analyzeLog(new ContainerResult(new SimpleContainerCommand(
+        "hive-dtest-1_itests-qtest_TestNegativeCliDriver_a_LF_a-t_RT_._S_",
+        "/Users/gates/git/hive/itests/qtest"), 2, LOG2));
     Assert.assertFalse(analyzer.runSucceeded());
   }
 

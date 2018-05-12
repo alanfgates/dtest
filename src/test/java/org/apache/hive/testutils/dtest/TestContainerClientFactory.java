@@ -24,6 +24,9 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 public class TestContainerClientFactory {
@@ -50,6 +53,12 @@ public class TestContainerClientFactory {
         @Override
         public ContainerResult runContainer(long toWait, TimeUnit unit, ContainerCommand cmd, DTestLogger logger) throws IOException {
           return null;
+        }
+
+        @Override
+        public void copyLogFiles(Set<String> files, String dir, DTestLogger logger) throws
+            IOException {
+
         }
       };
     }

@@ -76,6 +76,11 @@ class MvnCommand implements ContainerCommand {
     return Utils.shellCmdInRoot(baseDir, new MvnCommandSupplier());
   }
 
+  @Override
+  public String containerDirectory() {
+    return baseDir;
+  }
+
   private class MvnCommandSupplier implements Supplier<String> {
     public String get() {
       StringBuilder buf = new StringBuilder();

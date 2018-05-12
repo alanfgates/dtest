@@ -35,7 +35,10 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 public class TestDockerTest {
@@ -44,6 +47,7 @@ public class TestDockerTest {
   private static int succeeded;
   private static List<String> failures;
   private static List<String> errors;
+  private static Map<String, Set<String>> logFiles;
 
   private ByteArrayOutputStream outBuffer;
   private PrintStream out;
@@ -73,7 +77,12 @@ public class TestDockerTest {
             IOException {
           String logs = "Ran: " + StringUtils.join(cmd.shellCommand(), " ") +
               TestSimpleResultAnalyzer.LOG1;
-          return new ContainerResult(cmd.containerName(), 0, logs);
+          return new ContainerResult(cmd, 0, logs);
+        }
+
+        @Override
+        public void copyLogFiles(Set<String> files, String dir, DTestLogger logger) throws IOException {
+
         }
       };
     }
@@ -103,7 +112,12 @@ public class TestDockerTest {
             IOException {
           String logs = "Ran: " + StringUtils.join(cmd.shellCommand(), " ") +
               TestSimpleResultAnalyzer.LOG2;
-          return new ContainerResult(cmd.containerName(), 0, logs);
+          return new ContainerResult(cmd, 0, logs);
+        }
+
+        @Override
+        public void copyLogFiles(Set<String> files, String dir, DTestLogger logger) throws IOException {
+
         }
       };
     }
@@ -133,8 +147,14 @@ public class TestDockerTest {
             IOException {
           String logs = "Ran: " + StringUtils.join(cmd.shellCommand(), " ") +
               TestSimpleResultAnalyzer.LOG3;
-          return new ContainerResult(cmd.containerName(), 0, logs);
+          return new ContainerResult(cmd, 0, logs);
         }
+
+        @Override
+        public void copyLogFiles(Set<String> files, String dir, DTestLogger logger) throws IOException {
+
+        }
+
       };
     }
   }
@@ -163,8 +183,14 @@ public class TestDockerTest {
             IOException {
           String logs = "Ran: " + StringUtils.join(cmd.shellCommand(), " ") +
               TestSimpleResultAnalyzer.LOG1;
-          return new ContainerResult(cmd.containerName(), 130, logs);
+          return new ContainerResult(cmd, 130, logs);
         }
+
+        @Override
+        public void copyLogFiles(Set<String> files, String dir, DTestLogger logger) throws IOException {
+
+        }
+
       };
     }
   }
@@ -185,6 +211,11 @@ public class TestDockerTest {
         public String[] shellCommand() {
           return new String[] {"echo", "hello", "world"};
         }
+
+        @Override
+        public String containerDirectory() {
+          return "/tmp";
+        }
       });
     }
   }
@@ -203,6 +234,11 @@ public class TestDockerTest {
         @Override
         public String[] shellCommand() {
           return new String[] {"echo", "hello", "world"};
+        }
+
+        @Override
+        public String containerDirectory() {
+          return "/tmp";
         }
       });
     }
@@ -237,6 +273,12 @@ public class TestDockerTest {
         }
 
         @Override
+        public Map<String, Set<String>> logFilesToFetch() {
+          logFiles = contained.logFilesToFetch();
+          return logFiles;
+        }
+
+        @Override
         public boolean hadTimeouts() {
           hadTimeouts = contained.hadTimeouts();
           return hadTimeouts;
@@ -257,6 +299,7 @@ public class TestDockerTest {
     succeeded = 0;
     failures = new ArrayList<>();
     errors = new ArrayList<>();
+    logFiles = new HashMap<>();
     hadTimeouts = false;
     outBuffer = new ByteArrayOutputStream();
     out = new PrintStream(outBuffer);

@@ -21,6 +21,9 @@ import org.apache.hive.testutils.dtest.impl.ContainerResult;
 import org.apache.hive.testutils.dtest.impl.DTestLogger;
 
 import java.io.IOException;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 public interface ContainerClient {
@@ -63,4 +66,13 @@ public interface ContainerClient {
    */
   ContainerResult runContainer(long toWait, TimeUnit unit, ContainerCommand cmd, DTestLogger logger)
       throws IOException;
+
+  /**
+   * Print the contents failed test logs to the log.
+   * @param files files to copy to the local directory
+   * @param dir directory to copy files to
+   * @param logger output log for tests
+   * @throws IOException if the copy of the log files fails
+   */
+  void copyLogFiles(Set<String> files, String dir, DTestLogger logger) throws IOException;
 }

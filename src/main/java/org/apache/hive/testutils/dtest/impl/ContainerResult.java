@@ -17,15 +17,19 @@
  */
 package org.apache.hive.testutils.dtest.impl;
 
+import org.apache.hive.testutils.dtest.ContainerCommand;
+
 public class ContainerResult {
 
   public final String name;
   public final int rc;
   public final String logs;
+  public final String containerDirectory;
 
-  public ContainerResult(String name, int rc, String logs) {
-    this.name = name;
+  public ContainerResult(ContainerCommand cmd, int rc, String logs) {
+    this.name = cmd.containerName();
     this.rc = rc;
     this.logs = logs;
+    this.containerDirectory = cmd.containerDirectory();
   }
 }
