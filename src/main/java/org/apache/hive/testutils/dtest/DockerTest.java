@@ -92,6 +92,7 @@ public class DockerTest {
         .withLongOpt("build-label")
         .withDescription("build label, changing this will force a new container to be built")
         .hasArg()
+        .isRequired()
         .create("l"));
 
     opts.addOption(OptionBuilder
@@ -124,7 +125,7 @@ public class DockerTest {
     }
     try {
       return new BuildInfo(cmd.getOptionValue("b"), cmd.getOptionValue("r"),
-          cmd.getOptionValue("l"));
+          cmd.getOptionValue("l").toLowerCase());
     } catch (IOException e) {
       err.println(e.getMessage());
       LOG.error("Failed to build BuildInfo", e);
