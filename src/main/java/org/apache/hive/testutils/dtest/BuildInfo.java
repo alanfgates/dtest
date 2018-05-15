@@ -33,6 +33,7 @@ public class BuildInfo implements Comparable<BuildInfo> {
   private String dir;
   private boolean success;
   private boolean killed;
+  private boolean cleanupAfter;
 
   public BuildInfo(String branch, String repo, String label) throws IOException {
     this.branch = branch;
@@ -41,6 +42,7 @@ public class BuildInfo implements Comparable<BuildInfo> {
     startTime = queueTime = 0;
     dir = null;
     success = killed = false;
+    cleanupAfter = true;
   }
 
   /**
@@ -125,6 +127,14 @@ public class BuildInfo implements Comparable<BuildInfo> {
     BuildState state = getState();
     return state == BuildState.KILLED || state == BuildState.SUCCEEDED ||
         state == BuildState.FAILED;
+  }
+
+  public boolean shouldCleanupAfter() {
+    return cleanupAfter;
+  }
+
+  public void setCleanupAfter(boolean cleanupAfter) {
+    this.cleanupAfter = cleanupAfter;
   }
 
   @Override

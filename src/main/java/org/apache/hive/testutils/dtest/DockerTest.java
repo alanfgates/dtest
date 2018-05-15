@@ -34,7 +34,6 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -64,6 +63,7 @@ public class DockerTest {
    * @param args Command line arguments.
    * @return A description of the build, or null if the parsing failed.
    */
+  @SuppressWarnings("static-access")
   public BuildInfo parseArgs(String[] args) {
     CommandLineParser parser = new GnuParser();
 
@@ -96,6 +96,11 @@ public class DockerTest {
         .create("l"));
 
     opts.addOption(OptionBuilder
+        .withLongOpt("no-cleanup")
+        .withDescription("do not cleanup docker containers and image after build")
+        .create("m"));
+
+    opts.addOption(OptionBuilder
         .withLongOpt("repo")
         .withDescription("git repository to use")
         .hasArg()
@@ -124,8 +129,10 @@ public class DockerTest {
       return null;
     }
     try {
-      return new BuildInfo(cmd.getOptionValue("b"), cmd.getOptionValue("r"),
+      BuildInfo info = new BuildInfo(cmd.getOptionValue("b"), cmd.getOptionValue("r"),
           cmd.getOptionValue("l").toLowerCase());
+      info.setCleanupAfter(!cmd.hasOption("m"));
+      return info;
     } catch (IOException e) {
       err.println(e.getMessage());
       LOG.error("Failed to build BuildInfo", e);
@@ -133,7 +140,7 @@ public class DockerTest {
     }
   }
 
-  public int startBuild(BuildInfo info) {
+  int startBuild(BuildInfo info) {
     docker = containerClientFactory.getClient(info.getLabel());
     DTestLogger logger = null;
     int rc = 1;
@@ -150,6 +157,7 @@ public class DockerTest {
       }
       try {
         runContainers(info, logger, numContainers, out);
+        if (info.shouldCleanupAfter()) docker.cleanup(logger);
         rc = 0;
       } catch (IOException e) {
         String msg = "Failed to run one or more of the containers.";

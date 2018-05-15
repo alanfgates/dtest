@@ -78,4 +78,12 @@ public interface ContainerClient {
       throws IOException {
 
   }
+
+  /**
+   * Cleanup docker containers and images.
+   * @param logger output log
+   */
+  default void cleanup(DTestLogger logger) {
+
+  }
 }
