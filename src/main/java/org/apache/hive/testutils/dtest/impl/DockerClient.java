@@ -43,7 +43,7 @@ public class DockerClient implements ContainerClient {
   private static final Pattern IMAGE_SUCCESS = Pattern.compile("BUILD SUCCESS");
   private static final Pattern USING_CACHE = Pattern.compile("Using cache");
   private static final String BUILD_CONTAINER_NAME = "image_build";
-  public static final String USER = "dtest_user";
+  public static final String USER = "dtestuser";
   private static final String HOME_DIR = File.separator + "home" + File.separator + USER;
 
   private final String label;
@@ -118,7 +118,6 @@ public class DockerClient implements ContainerClient {
   public void copyLogFiles(ContainerResult result, String targetDir, DTestLogger logger)
       throws IOException {
     String containerName = Utils.buildContainerName(label, result.getCmd().containerSuffix());
-    containers.add(containerName);
     for (String file : result.getLogFilesToFetch()) {
       List<String> runCmd = new ArrayList<>();
       runCmd.addAll(Arrays.asList("docker", "cp", containerName + ":" + file, targetDir));

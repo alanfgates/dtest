@@ -29,6 +29,7 @@ import java.io.StringReader;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Deque;
 import java.util.HashSet;
@@ -128,34 +129,56 @@ public class MvnCommandFactory extends ContainerCommandFactory {
 
   // For qfile tests that need split
   private class SplittingSingleTestDirInfo extends SingleTestDirInfo {
-    final private Deque<String> qFiles;
+    final private Set<String> qFiles;
+    final private List<String> isolated;
 
-    SplittingSingleTestDirInfo(String dir, String test,
-                                      Deque<String> qFiles) {
+    SplittingSingleTestDirInfo(String dir, String test, Set<String> qFiles) {
+      this(dir, test, qFiles, Collections.emptyList());
+    }
+
+    SplittingSingleTestDirInfo(String dir, String test, Set<String> qFiles, List<String> isolated) {
       super(dir, test);
       this.qFiles = qFiles;
+      this.isolated = isolated;
     }
 
     @Override
     void addMvnCommands(ContainerClient containerClient, String label,
-                        DTestLogger logger, int testsPerContainer, List<ContainerCommand> cmds) throws
-        IOException {
-      while (!qFiles.isEmpty()) {
-        MvnCommand mvn = new MvnCommand(containerClient.getContainerBaseDir() + "/" + dir, containerNumber++);
-        mvn.setEnv("USER", DockerClient.USER);
-        mvn.addTest(test);
-        for (int i = 0; i < testsPerContainer && !qFiles.isEmpty(); i++) {
-          String single = qFiles.pop();
-          LOG.debug("Adding qfile " + single + " to container " + (containerNumber - 1));
-          mvn.addQfile(single);
-        }
-        cmds.add(mvn);
+                        DTestLogger logger, int testsPerContainer, List<ContainerCommand> cmds)
+        throws IOException {
+      // Deal with any tests that need to be run alone
+      for (String test : isolated) {
+        cmds.add(buildOneCommand(containerClient, Collections.singleton(test)));
+        qFiles.remove(test);
       }
+
+      while (!qFiles.isEmpty()) {
+        List<String> oneSet = new ArrayList<>(testsPerContainer);
+        for (String qFile : qFiles) {
+          if (oneSet.size() > testsPerContainer) break;
+          oneSet.add(qFile);
+        }
+        cmds.add(buildOneCommand(containerClient, oneSet));
+        qFiles.removeAll(oneSet);
+      }
+    }
+
+    private MvnCommand buildOneCommand(ContainerClient containerClient, Collection<String> qfiles) {
+      MvnCommand mvn = new MvnCommand(containerClient.getContainerBaseDir() + "/" + dir, containerNumber++);
+      mvn.setEnv("USER", DockerClient.USER);
+      mvn.addTest(test);
+      for (String qfile : qfiles) {
+        LOG.debug("Adding qfile " + qfile + " to container " + (containerNumber - 1));
+        mvn.addQfile(qfile);
+      }
+      return mvn;
     }
   }
 
   public MvnCommandFactory() {
-    excludedTests = new HashSet<>(Arrays.asList("TestHiveMetaStore", "TestSerDe"));
+    excludedTests = new HashSet<>(Arrays.asList("TestHiveMetaStore", "TestSerDe",
+        "TestJdbcWithLocalClusterSpark", "TestMultiSessionsHS2WithLocalClusterSpark",
+        "TestSparkStatistics"));
   }
 
   @Override
@@ -214,26 +237,36 @@ public class MvnCommandFactory extends ContainerCommandFactory {
     testInfos.add(new SimpleDirInfo("itests/hive-unit-hadoop2"));
     testInfos.add(new SimpleDirInfo("itests/test-serde"));
     testInfos.add(new SimpleDirInfo("itests/util"));
-    testInfos.add(new SingleTestDirInfo("itests/hive-blobstore", "TestBlobstoreCliDriver"));
-    testInfos.add(new SingleTestDirInfo("itests/hive-blobstore", "TestBlobstoreNegativeCliDriver"));
-    testInfos.add(new SplittingSingleTestDirInfo("itests/qtest", "TestBeeLineDriver", findQFilesFromProperties("beeline.positive.include")));
+    testInfos.add(new SplittingSingleTestDirInfo("itests/qtest", "TestBeeLineDriver",
+        findQFilesFromProperties("beeline.positive.include")));
     testInfos.add(new SingleTestDirInfo("itests/qtest", "TestContribCliDriver"));
     testInfos.add(new SingleTestDirInfo("itests/qtest", "TestContribNegativeCliDriver"));
     testInfos.add(new SingleTestDirInfo("itests/qtest", "TestHBaseNegativeCliDriver"));
-    testInfos.add(new SplittingSingleTestDirInfo("itests/qtest", "TestMiniDruidCliDriver", findQFilesFromProperties("druid.query.files")));
+    testInfos.add(new SplittingSingleTestDirInfo("itests/qtest", "TestMiniDruidCliDriver",
+        findQFilesFromProperties("druid.query.files")));
     //testInfos.add(new SplittingSingleTestDirInfo("itests/qtest", "TestMiniDruidKafkaCliDriver", findQFilesFromProperties("druid.kafka.query.files")));
     testInfos.add(new SingleTestDirInfo("itests/qtest", "TestTezPerfCliDriver"));
     testInfos.add(new SingleTestDirInfo("itests/qtest", "TestParseNegativeDriver"));
     testInfos.add(new SingleTestDirInfo("itests/qtest-accumulo", "TestAccumuloCliDriver"));
-    testInfos.add(new SplittingSingleTestDirInfo("itests/qtest", "TestCliDriver", findQFilesInDir(containerClient, label, logger, "ql/src/test/queries/clientpositive")));
-    testInfos.add(new SplittingSingleTestDirInfo("itests/qtest", "TestMinimrCliDriver", findQFilesFromProperties("minimr.query.files")));
-    testInfos.add(new SplittingSingleTestDirInfo("itests/qtest", "TestEncryptedHDFSCliDriver", findQFilesFromProperties("encrypted.query.files")));
-    testInfos.add(new SplittingSingleTestDirInfo("itests/qtest", "TestNegativeMinimrCliDriver", findQFilesFromProperties("minimr.query.negative.files")));
-    testInfos.add(new SplittingSingleTestDirInfo("itests/qtest", "TestNegativeCliDriver", findQFilesInDir(containerClient, label, logger, "ql/src/test/queries/clientnegative")));
-    testInfos.add(new SplittingSingleTestDirInfo("itests/qtest", "TestHBaseCliDriver", findQFilesInDir(containerClient, label, logger, "hbase-handler/src/test/queries/positive")));
-    testInfos.add(new SplittingSingleTestDirInfo("itests/qtest", "TestMiniTezCliDriver", findQFilesFromProperties("minitez.query.files", "minitez.query.files.shared")));
-    testInfos.add(new SplittingSingleTestDirInfo("itests/qtest", "TestMiniLlapCliDriver", findQFilesFromProperties("minillap.query.files", "minillap.shared.query.files")));
-    testInfos.add(new SplittingSingleTestDirInfo("itests/qtest", "TestMiniLlapLocalCliDriver", findQFilesFromProperties("minillaplocal.query.files", "minillaplocal.shared.query.files")));
+    testInfos.add(new SplittingSingleTestDirInfo("itests/qtest", "TestCliDriver",
+        findQFilesInDir(containerClient, label, logger, "ql/src/test/queries/clientpositive"),
+        Arrays.asList("authorization_show_grant.q")));
+    testInfos.add(new SplittingSingleTestDirInfo("itests/qtest", "TestMinimrCliDriver",
+        findQFilesFromProperties("minimr.query.files")));
+    testInfos.add(new SplittingSingleTestDirInfo("itests/qtest", "TestEncryptedHDFSCliDriver",
+        findQFilesFromProperties("encrypted.query.files")));
+    testInfos.add(new SplittingSingleTestDirInfo("itests/qtest", "TestNegativeMinimrCliDriver",
+        findQFilesFromProperties("minimr.query.negative.files")));
+    testInfos.add(new SplittingSingleTestDirInfo("itests/qtest", "TestNegativeCliDriver",
+        findQFilesInDir(containerClient, label, logger, "ql/src/test/queries/clientnegative")));
+    testInfos.add(new SplittingSingleTestDirInfo("itests/qtest", "TestHBaseCliDriver",
+        findQFilesInDir(containerClient, label, logger, "hbase-handler/src/test/queries/positive")));
+    testInfos.add(new SplittingSingleTestDirInfo("itests/qtest", "TestMiniTezCliDriver",
+        findQFilesFromProperties("minitez.query.files", "minitez.query.files.shared")));
+    testInfos.add(new SplittingSingleTestDirInfo("itests/qtest", "TestMiniLlapCliDriver",
+        findQFilesFromProperties("minillap.query.files", "minillap.shared.query.files")));
+    testInfos.add(new SplittingSingleTestDirInfo("itests/qtest", "TestMiniLlapLocalCliDriver",
+        findQFilesFromProperties("minillaplocal.query.files", "minillaplocal.shared.query.files")));
 
     List<ContainerCommand> cmds = new ArrayList<>();
     int testsPerContainer = Integer.valueOf(System.getProperty(Config.TESTS_PER_CONTAINER, "25"));
@@ -256,7 +289,6 @@ public class MvnCommandFactory extends ContainerCommandFactory {
 
           @Override
           public String[] shellCommand() {
-            String localDir = containerClient.getContainerBaseDir();
             return Utils.shellCmdInRoot(
                 containerClient.getContainerBaseDir() + (dir == null ? "" : "/" + dir), ()-> cmd);
           }
@@ -274,22 +306,22 @@ public class MvnCommandFactory extends ContainerCommandFactory {
     return result.getLogs();
   }
 
-  private Deque<String> findQFilesFromProperties(String... properties) {
-    Deque<String> qfiles = new ArrayDeque<>();
+  private Set<String> findQFilesFromProperties(String... properties) {
+    Set<String> qfiles = new HashSet<>();
     for (String property : properties) {
       Collections.addAll(qfiles, testProperties.getProperty(property).trim().split(","));
     }
     return qfiles;
   }
 
-  private Deque<String> findQFilesInDir(ContainerClient containerClient, String label,
-                                        DTestLogger logger, String qfileDir) throws IOException {
+  private Set<String> findQFilesInDir(ContainerClient containerClient, String label,
+                                      DTestLogger logger, String qfileDir) throws IOException {
     // Find all of the qfile tests
     String allPositiveQfiles = runContainer(containerClient, qfileDir, label,
         "qfile-finder-" + containerNumber++, "find . -name \\*.q -maxdepth 1", logger);
 
 
-    Deque<String> runnableQfiles = new ArrayDeque<>();
+    Set<String> runnableQfiles = new HashSet<>();
     for (String line : allPositiveQfiles.split("\n")) {
       String testPath = line.trim();
       String[] pathElements = testPath.split("/");

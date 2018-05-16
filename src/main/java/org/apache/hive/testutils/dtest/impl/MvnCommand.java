@@ -33,6 +33,7 @@ class MvnCommand implements ContainerCommand {
   private final int cmdNumber;
   private boolean isITest;
   private List<String> tests; // set of tests to run
+  private List<String> excludedTests; // set of tests to NOT run
   private List<String> qfiles; // set of qfiles to run
   private Map<String, String> envs;
   private long testTimeout;
@@ -41,6 +42,7 @@ class MvnCommand implements ContainerCommand {
     this.baseDir = baseDir;
     this.cmdNumber = cmdNumber;
     tests = new ArrayList<>();
+    excludedTests = new ArrayList<>();
     qfiles = new ArrayList<>();
     envs = new HashMap<>();
     int testTimeProperty = Integer.valueOf(System.getProperty(Config.TEST_RUN_TIME, "60"));
@@ -51,6 +53,11 @@ class MvnCommand implements ContainerCommand {
 
   MvnCommand addTest(String test) {
     tests.add(test);
+    return this;
+  }
+
+  MvnCommand excludeTest(String test) {
+    excludedTests.add(test);
     return this;
   }
 
@@ -110,6 +117,16 @@ class MvnCommand implements ContainerCommand {
             else buf.append(',');
             buf.append(qfile);
           }
+        }
+      }
+      if (!excludedTests.isEmpty()) {
+        buf.append(" -Dtest.excludes.additional=");
+        boolean first = true;
+        for (String excludedTest : excludedTests) {
+          if (first) first = false;
+          else buf.append(',');
+          buf.append("**/")
+            .append(excludedTest);
         }
       }
       buf.append(" -Dtest.groups=\"\" -DskipSparkTests");

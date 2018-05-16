@@ -36,6 +36,6 @@ echo SUMMARY:
 grep "\[summary\]" $WORKSPACE/$build_label/dtest.log
 
 # tar up the logs and log files from failed tests.
-tar zcf $build_label.tgz $WORKSPACE/$build_label
+tar zcf $build_label.tgz -C $WORKSPACE $build_label
 exit $RC
 
