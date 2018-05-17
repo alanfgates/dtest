@@ -177,8 +177,8 @@ public class MvnCommandFactory extends ContainerCommandFactory {
 
   public MvnCommandFactory() {
     excludedTests = new HashSet<>(Arrays.asList("TestHiveMetaStore", "TestSerDe",
-        "TestJdbcWithLocalClusterSpark", "TestMultiSessionsHS2WithLocalClusterSpark",
-        "TestSparkStatistics"));
+        "TestJdbcWithLocalClusterSpark.java", "TestMultiSessionsHS2WithLocalClusterSpark.java",
+        "TestSparkStatistics.java"));
   }
 
   @Override
