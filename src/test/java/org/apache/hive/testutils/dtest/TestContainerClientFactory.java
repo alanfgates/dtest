@@ -46,12 +46,7 @@ public class TestContainerClientFactory {
         }
 
         @Override
-        public void buildImage(String dir, long toWait, TimeUnit unit, DTestLogger logger) throws IOException {
-
-        }
-
-        @Override
-        public ContainerResult runContainer(long toWait, TimeUnit unit, ContainerCommand cmd, DTestLogger logger) throws IOException {
+        public ContainerResult runContainer(long toWait, ContainerCommand cmd, DTestLogger logger) throws IOException {
           return null;
         }
       };
@@ -60,14 +55,14 @@ public class TestContainerClientFactory {
 
   @Test
   public void defaultFactory() throws IOException {
-    System.setProperty(Config.CONTAINER_CLIENT_FACTORY, "");
+    Config.CONTAINER_CLIENT_FACTORY.unset();
     ContainerClientFactory factory = ContainerClientFactory.get();
     Assert.assertEquals(DockerClientFactory.class, factory.getClass());
   }
 
   @Test
   public void specifiedFactory() throws IOException {
-    System.setProperty(Config.CONTAINER_CLIENT_FACTORY, DummyContainerClientFactory.class.getName());
+    Config.CONTAINER_CLIENT_FACTORY.set(DummyContainerClientFactory.class);
     ContainerClientFactory factory = ContainerClientFactory.get();
     Assert.assertEquals(DummyContainerClientFactory.class, factory.getClass());
   }

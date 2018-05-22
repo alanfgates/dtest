@@ -92,24 +92,22 @@ public class DockerClient implements ContainerClient {
   }
 
   @Override
-  public void buildImage(String dir, long toWait, TimeUnit unit, DTestLogger logger)
+  public void buildImage(String dir, long toWait, DTestLogger logger)
       throws IOException {
-    long seconds = TimeUnit.SECONDS.convert(toWait, unit);
     LOG.info("Building image");
-    checkBuildSucceeded(Utils.runProcess(BUILD_CONTAINER_NAME, seconds, logger, "docker", "build",
+    checkBuildSucceeded(Utils.runProcess(BUILD_CONTAINER_NAME, toWait, logger, "docker", "build",
         "--tag", imageName, dir));
   }
 
   @Override
-  public ContainerResult runContainer(long toWait, TimeUnit unit, ContainerCommand cmd,
+  public ContainerResult runContainer(long toWait, ContainerCommand cmd,
                                       DTestLogger logger) throws IOException {
     List<String> runCmd = new ArrayList<>();
     String containerName = Utils.buildContainerName(label, cmd.containerSuffix());
     containers.add(containerName);
     runCmd.addAll(Arrays.asList("docker", "run", "--name", containerName, imageName));
     runCmd.addAll(Arrays.asList(cmd.shellCommand()));
-    long seconds = TimeUnit.SECONDS.convert(toWait, unit);
-    ProcessResults res = Utils.runProcess(cmd.containerSuffix(), seconds, logger,
+    ProcessResults res = Utils.runProcess(cmd.containerSuffix(), toWait, logger,
         runCmd.toArray(new String[runCmd.size()]));
     return new ContainerResult(cmd, res.rc, res.stdout);
   }

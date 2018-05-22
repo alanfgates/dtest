@@ -269,7 +269,7 @@ public class MvnCommandFactory extends ContainerCommandFactory {
         findQFilesFromProperties("minillaplocal.query.files", "minillaplocal.shared.query.files")));
 
     List<ContainerCommand> cmds = new ArrayList<>();
-    int testsPerContainer = Integer.valueOf(System.getProperty(Config.TESTS_PER_CONTAINER, "25"));
+    int testsPerContainer = Config.TESTS_PER_CONTAINER.getAsInt();
     for (TestDirInfo tdi : testInfos) {
       tdi.addMvnCommands(containerClient, label, logger, testsPerContainer, cmds);
     }
@@ -280,7 +280,7 @@ public class MvnCommandFactory extends ContainerCommandFactory {
                               final String label,
                               final String containerName,
                               final String cmd, DTestLogger logger) throws IOException {
-    ContainerResult result = containerClient.runContainer(5, TimeUnit.MINUTES,
+    ContainerResult result = containerClient.runContainer(300,
         new ContainerCommand() {
           @Override
           public String containerSuffix() {

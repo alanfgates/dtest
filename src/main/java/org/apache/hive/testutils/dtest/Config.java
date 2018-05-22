@@ -17,25 +17,105 @@
  */
 package org.apache.hive.testutils.dtest;
 
-public class Config {
+import com.google.common.annotations.VisibleForTesting;
+import org.apache.hive.testutils.dtest.impl.DockerClientFactory;
+import org.apache.hive.testutils.dtest.impl.MvnCommandFactory;
+import org.apache.hive.testutils.dtest.impl.SimpleAnalyzerFactory;
+import org.apache.hive.testutils.dtest.impl.TimeInterval;
+import org.apache.hive.testutils.dtest.impl.Utils;
+
+import java.io.IOException;
+import java.util.concurrent.TimeUnit;
+
+public enum Config {
+
   // Implementation of ContainerClientFactory
-  public static final String CONTAINER_CLIENT_FACTORY = "dtest.container.client.factory";
+  CONTAINER_CLIENT_FACTORY("dtest.container.client.factory", DockerClientFactory.class),
   // Implementation of ContainerCommandFactory
-  public static final String CONTAINER_COMMAND_FACTORY = "dtest.container.command.factory";
-  // Implementation of ResultAnalyzerFactory
-  public static final String RESULT_ANALYZER_FACTORY = "dtest.result.analyzer.factory";
-  // Maximum amount of time to wait for image to build
-  public static final String IMAGE_BUILD_TIME = "dtest.image.build.time";
-  // Unit for image build time
-  public static final String IMAGE_BUILD_TIME_UNIT = "dtest.image.build.time.unit";
+  CONTAINER_COMMAND_FACTORY("dtest.container.command.factory", MvnCommandFactory.class),
   // Maximum amount of time to wait for container to run
-  public static final String CONTAINER_RUN_TIME = "dtest.container.run.time";
-  // Unit for container run time
-  public static final String CONTAINER_RUN_TIME_UNIT = "dtest.container.run.time.unit";
+  CONTAINER_RUN_TIME("dtest.container.run.time", new TimeInterval(3, TimeUnit.HOURS)),
+  // Maximum amount of time to wait for image to build
+  IMAGE_BUILD_TIME("dtest.image.build.time", new TimeInterval(30, TimeUnit.MINUTES)),
+  // Implementation of ResultAnalyzerFactory
+  RESULT_ANALYZER_FACTORY("dtest.result.analyzer.factory", SimpleAnalyzerFactory.class),
   // Maximum amount of time to wait for a test to run
-  public static final String TEST_RUN_TIME = "dtest.test.run.time";
-  // Unit for test run time
-  public static final String TEST_RUN_TIME_UNIT = "dtest.test.run.time.unit";
+  TEST_RUN_TIME("dtest.test.run.time", new TimeInterval(90, TimeUnit.MINUTES)),
   // Number of tests to run per container
-  public static final String TESTS_PER_CONTAINER = "dtest.tests.per.container";
+  TESTS_PER_CONTAINER("dtest.tests.per.container", 10);
+
+
+  private final String property;
+  private final Object defaultValue;
+  private Object value;
+
+  Config(String property, Object defaultValue) {
+    this.property = property;
+    this.defaultValue = defaultValue;
+  }
+
+  public <T> Class<? extends T> getAsClass(Class<T> clazz) throws IOException {
+    assert defaultValue.getClass().isInstance(clazz);
+    if (value == null) {
+      String className = System.getProperty(property);
+      if (nullOrEmtpy(className)) {
+        value = defaultValue;
+      } else {
+        value = Utils.getClass(className, clazz);
+      }
+    }
+    return (Class<? extends T>)value;
+  }
+
+  public int getAsInt() {
+    assert defaultValue.getClass() == Integer.class;
+    if (value == null) {
+      String str = System.getProperty(property);
+      if (nullOrEmtpy(str)) value = defaultValue;
+      else value = Integer.valueOf(str);
+    }
+    return (int)value;
+  }
+
+  public long getAsSeconds() {
+    assert defaultValue.getClass() == TimeInterval.class;
+    if (value == null) {
+      String timeUnitName = System.getProperty(property + ".unit");
+      String durationStr = System.getProperty(property);
+      if (nullOrEmtpy(timeUnitName) || nullOrEmtpy(durationStr)) {
+        value = defaultValue;
+      } else {
+        value = new TimeInterval(Long.valueOf(durationStr), TimeUnit.valueOf(timeUnitName));
+      }
+    }
+    return TimeUnit.SECONDS.convert(((TimeInterval)value).duration, ((TimeInterval)value).unit);
+  }
+
+  public String getAsString() {
+    assert defaultValue.getClass() == String.class;
+    if (value == null) {
+      value = System.getProperty(property);
+      if (nullOrEmtpy((String)value)) value = defaultValue;
+    }
+    return value.toString();
+  }
+
+  @VisibleForTesting
+  public void set(Class<?> clazz) {
+    value = null;
+    System.setProperty(property, clazz.getName());
+  }
+
+  @VisibleForTesting
+  public void unset() {
+    value = null;
+    System.setProperty(property, "");
+  }
+
+  private boolean nullOrEmtpy(String x) {
+    return x == null || x.isEmpty();
+  }
+
+
+
 }

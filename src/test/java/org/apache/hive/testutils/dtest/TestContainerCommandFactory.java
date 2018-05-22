@@ -40,14 +40,14 @@ public class TestContainerCommandFactory {
 
   @Test
   public void defaultFactory() throws IOException {
-    System.setProperty(Config.CONTAINER_COMMAND_FACTORY, "");
+    Config.CONTAINER_COMMAND_FACTORY.unset();
     ContainerCommandFactory factory = ContainerCommandFactory.get();
     Assert.assertEquals(MvnCommandFactory.class, factory.getClass());
   }
 
   @Test
   public void specifiedFactory() throws IOException {
-    System.setProperty(Config.CONTAINER_COMMAND_FACTORY, DummyContainerCommandFactory.class.getName());
+    Config.CONTAINER_COMMAND_FACTORY.set(DummyContainerCommandFactory.class);
     ContainerCommandFactory factory = ContainerCommandFactory.get();
     Assert.assertEquals(DummyContainerCommandFactory.class, factory.getClass());
   }

@@ -15,22 +15,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.hive.testutils.dtest;
+package org.apache.hive.testutils.dtest.impl;
 
-import org.apache.hive.testutils.dtest.impl.SimpleAnalyzerFactory;
-import org.apache.hive.testutils.dtest.impl.Utils;
+import java.util.concurrent.TimeUnit;
 
-import java.io.IOException;
+public class TimeInterval {
+  public final TimeUnit unit;
+  public final long duration;
 
-public abstract class ResultAnalyzerFactory {
-
-  static ResultAnalyzerFactory get() throws IOException {
-    Class<? extends ResultAnalyzerFactory> clazz =
-        Config.RESULT_ANALYZER_FACTORY.getAsClass(ResultAnalyzerFactory.class);
-    return Utils.newInstance(clazz);
+  public TimeInterval(long duration, TimeUnit unit) {
+    this.unit = unit;
+    this.duration = duration;
   }
-
-  public abstract ResultAnalyzer getAnalyzer();
-
-
 }

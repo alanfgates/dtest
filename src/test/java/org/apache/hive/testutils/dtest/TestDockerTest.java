@@ -36,8 +36,6 @@ import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Set;
-import java.util.concurrent.TimeUnit;
 
 public class TestDockerTest {
   private static final Logger LOG = LoggerFactory.getLogger(TestDockerTest.class);
@@ -65,12 +63,12 @@ public class TestDockerTest {
         }
 
         @Override
-        public void buildImage(String dir, long toWait, TimeUnit unit, DTestLogger logger) throws IOException {
+        public void buildImage(String dir, long toWait, DTestLogger logger) throws IOException {
           imageBuilt = true;
         }
 
         @Override
-        public ContainerResult runContainer(long toWait, TimeUnit unit, ContainerCommand cmd, DTestLogger logger) throws
+        public ContainerResult runContainer(long toWait, ContainerCommand cmd, DTestLogger logger) throws
             IOException {
           String logs = "Ran: " + StringUtils.join(cmd.shellCommand(), " ") +
               TestSimpleResultAnalyzer.LOG1;
@@ -95,12 +93,12 @@ public class TestDockerTest {
         }
 
         @Override
-        public void buildImage(String dir, long toWait, TimeUnit unit, DTestLogger logger) throws IOException {
+        public void buildImage(String dir, long toWait, DTestLogger logger) throws IOException {
           imageBuilt = true;
         }
 
         @Override
-        public ContainerResult runContainer(long toWait, TimeUnit unit, ContainerCommand cmd, DTestLogger logger) throws
+        public ContainerResult runContainer(long toWait, ContainerCommand cmd, DTestLogger logger) throws
             IOException {
           String logs = "Ran: " + StringUtils.join(cmd.shellCommand(), " ") +
               TestSimpleResultAnalyzer.LOG2;
@@ -125,12 +123,12 @@ public class TestDockerTest {
         }
 
         @Override
-        public void buildImage(String dir, long toWait, TimeUnit unit, DTestLogger logger) throws IOException {
+        public void buildImage(String dir, long toWait, DTestLogger logger) throws IOException {
           imageBuilt = true;
         }
 
         @Override
-        public ContainerResult runContainer(long toWait, TimeUnit unit, ContainerCommand cmd, DTestLogger logger) throws
+        public ContainerResult runContainer(long toWait, ContainerCommand cmd, DTestLogger logger) throws
             IOException {
           String logs = "Ran: " + StringUtils.join(cmd.shellCommand(), " ") +
               TestSimpleResultAnalyzer.LOG3;
@@ -156,12 +154,12 @@ public class TestDockerTest {
         }
 
         @Override
-        public void buildImage(String dir, long toWait, TimeUnit unit, DTestLogger logger) throws IOException {
+        public void buildImage(String dir, long toWait, DTestLogger logger) throws IOException {
           imageBuilt = true;
         }
 
         @Override
-        public ContainerResult runContainer(long toWait, TimeUnit unit, ContainerCommand cmd, DTestLogger logger) throws
+        public ContainerResult runContainer(long toWait, ContainerCommand cmd, DTestLogger logger) throws
             IOException {
           String logs = "Ran: " + StringUtils.join(cmd.shellCommand(), " ") +
               TestSimpleResultAnalyzer.LOG1;
@@ -277,9 +275,9 @@ public class TestDockerTest {
 
   @Test
   public void successfulRunAllTestsPass() {
-    System.setProperty(Config.CONTAINER_CLIENT_FACTORY, SuccessfulClientFactory.class.getName());
-    System.setProperty(Config.CONTAINER_COMMAND_FACTORY, HelloWorldCommandFactory.class.getName());
-    System.setProperty(Config.RESULT_ANALYZER_FACTORY, SpyingResultAnalyzerFactory.class.getName());
+    Config.CONTAINER_CLIENT_FACTORY.set(SuccessfulClientFactory.class);
+    Config.CONTAINER_COMMAND_FACTORY.set(HelloWorldCommandFactory.class);
+    Config.RESULT_ANALYZER_FACTORY.set(SpyingResultAnalyzerFactory.class);
     DockerTest test = new DockerTest(out, err);
     BuildInfo build = test.parseArgs(new String[] {"-b", "successful",
                                                    "-d", System.getProperty("java.io.tmpdir"),
@@ -299,9 +297,9 @@ public class TestDockerTest {
 
   @Test
   public void successfulRunSomeTestsFail() {
-    System.setProperty(Config.CONTAINER_CLIENT_FACTORY, SuccessfulWithFailingTestsClientFactory.class.getName());
-    System.setProperty(Config.CONTAINER_COMMAND_FACTORY, ItestCommandFactory.class.getName());
-    System.setProperty(Config.RESULT_ANALYZER_FACTORY, SpyingResultAnalyzerFactory.class.getName());
+    Config.CONTAINER_CLIENT_FACTORY.set(SuccessfulWithFailingTestsClientFactory.class);
+    Config.CONTAINER_COMMAND_FACTORY.set(ItestCommandFactory.class);
+    Config.RESULT_ANALYZER_FACTORY.set(SpyingResultAnalyzerFactory.class);
     DockerTest test = new DockerTest(out, err);
     BuildInfo build = test.parseArgs(new String[] {"-b", "successful",
                                                    "-d", System.getProperty("java.io.tmpdir"),
@@ -321,9 +319,9 @@ public class TestDockerTest {
 
   @Test
   public void timeout() {
-    System.setProperty(Config.CONTAINER_CLIENT_FACTORY, TimingOutClientFactory.class.getName());
-    System.setProperty(Config.CONTAINER_COMMAND_FACTORY, HelloWorldCommandFactory.class.getName());
-    System.setProperty(Config.RESULT_ANALYZER_FACTORY, SpyingResultAnalyzerFactory.class.getName());
+    Config.CONTAINER_CLIENT_FACTORY.set(TimingOutClientFactory.class);
+    Config.CONTAINER_COMMAND_FACTORY.set(HelloWorldCommandFactory.class);
+    Config.RESULT_ANALYZER_FACTORY.set(SpyingResultAnalyzerFactory.class);
     DockerTest test = new DockerTest(out, err);
     BuildInfo build = test.parseArgs(new String[] {"-b", "failure",
                                                    "-d", System.getProperty("java.io.tmpdir"),
@@ -338,9 +336,9 @@ public class TestDockerTest {
 
   @Test
   public void failedRun() {
-    System.setProperty(Config.CONTAINER_CLIENT_FACTORY, FailingClientFactory.class.getName());
-    System.setProperty(Config.CONTAINER_COMMAND_FACTORY, HelloWorldCommandFactory.class.getName());
-    System.setProperty(Config.RESULT_ANALYZER_FACTORY, SpyingResultAnalyzerFactory.class.getName());
+    Config.CONTAINER_CLIENT_FACTORY.set(FailingClientFactory.class);
+    Config.CONTAINER_COMMAND_FACTORY.set(HelloWorldCommandFactory.class);
+    Config.RESULT_ANALYZER_FACTORY.set(SpyingResultAnalyzerFactory.class);
     DockerTest test = new DockerTest(out, err);
     BuildInfo build = test.parseArgs(new String[] {"-b", "failure",
                                                    "-d", System.getProperty("java.io.tmpdir"),

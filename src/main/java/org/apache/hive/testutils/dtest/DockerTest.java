@@ -192,20 +192,16 @@ public class DockerTest {
 
   private void buildDockerImage(BuildInfo info, DTestLogger logger)
       throws IOException {
-    int timeout = Integer.valueOf(System.getProperty(Config.IMAGE_BUILD_TIME, "30"));
-    TimeUnit timeUnit = TimeUnit.valueOf(System.getProperty(Config.IMAGE_BUILD_TIME_UNIT,
-        TimeUnit.MINUTES.name()));
+    long timeout = Config.IMAGE_BUILD_TIME.getAsSeconds();
     docker.defineImage(info.getDir(), info.getRepo(), info.getBranch(), info.getLabel());
-    docker.buildImage(info.getDir(), timeout, timeUnit, logger);
+    docker.buildImage(info.getDir(), timeout, logger);
   }
 
   private void runContainers(final BuildInfo info, final DTestLogger logger, int numContainers,
                              PrintStream out) throws IOException {
     List<ContainerCommand> taskCmds = commandFactory.getContainerCommands(docker, info.getLabel(), logger);
 
-    final int timeout = Integer.valueOf(System.getProperty(Config.CONTAINER_RUN_TIME, "3"));
-    final TimeUnit timeUnit = TimeUnit.valueOf(System.getProperty(Config.CONTAINER_RUN_TIME_UNIT,
-        TimeUnit.HOURS.name()));
+    final long timeout = Config.CONTAINER_RUN_TIME.getAsSeconds();
 
     final ResultAnalyzer analyzer = analyzerFactory.getAnalyzer();
     // I don't need the return value, but by having one I can use the Callable interface instead
@@ -214,7 +210,7 @@ public class DockerTest {
     ExecutorService executor = Executors.newFixedThreadPool(numContainers);
     for (ContainerCommand taskCmd : taskCmds) {
       tasks.add(executor.submit(() -> {
-        ContainerResult result = docker.runContainer(timeout, timeUnit, taskCmd, logger);
+        ContainerResult result = docker.runContainer(timeout, taskCmd, logger);
         analyzer.analyzeLog(result);
         StringBuilder statusMsg = new StringBuilder("Task ")
             .append(result.getCmd().containerSuffix())

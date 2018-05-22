@@ -31,13 +31,8 @@ import java.util.List;
 public abstract class ContainerCommandFactory {
 
   static ContainerCommandFactory get() throws IOException {
-    String factoryClassName = System.getProperty(Config.CONTAINER_COMMAND_FACTORY);
-    if (factoryClassName == null || factoryClassName.isEmpty()) {
-      factoryClassName = MvnCommandFactory.class.getName();
-    }
-
-    Class<? extends ContainerCommandFactory> clazz = Utils.getClass(factoryClassName,
-        ContainerCommandFactory.class);
+    Class<? extends ContainerCommandFactory> clazz =
+        Config.CONTAINER_COMMAND_FACTORY.getAsClass(ContainerCommandFactory.class);
     return Utils.newInstance(clazz);
   }
 

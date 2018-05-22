@@ -48,23 +48,23 @@ public interface ContainerClient {
    * Build an image
    * @param dir directory to build in, must either be absolute path or relative to CWD of the
    *            process.
-   * @param toWait how long to wait for this command
-   * @param unit toWait is measured in
+   * @param toWait how long to wait for this command in seconds
    * @param logger output log for tests
    * @throws IOException if the image fails to build
    */
-  void buildImage(String dir, long toWait, TimeUnit unit, DTestLogger logger) throws IOException;
+  default void buildImage(String dir, long toWait, DTestLogger logger) throws IOException {
+
+  }
 
   /**
    * Run a container and return a string containing the logs
-   * @param toWait how long to wait for this run
-   * @param unit toWait is measured in
+   * @param toWait how long to wait for this run in seconds
    * @param cmd command to run along with any arguments
    * @param logger output log for tests
    * @return results from the container
    * @throws IOException if the container fails to run
    */
-  ContainerResult runContainer(long toWait, TimeUnit unit, ContainerCommand cmd, DTestLogger logger)
+  ContainerResult runContainer(long toWait, ContainerCommand cmd, DTestLogger logger)
       throws IOException;
 
   /**
