@@ -80,10 +80,22 @@ public interface ContainerClient {
   }
 
   /**
-   * Cleanup docker containers and images.
-   * @param logger output log
+   * Remove a container.
+   * @param result results from running the container
+   * @param logger output log for tests
+   * @throws IOException if the remove fails
    */
-  default void cleanup(DTestLogger logger) {
+  default void removeContainer(ContainerResult result, DTestLogger logger) throws IOException {
 
   }
+
+  /**
+   * Remove the docker image
+   * @param logger output log for tests
+   * @throws IOException if the remove fails
+   */
+  default void removeImage(DTestLogger logger) throws IOException {
+
+  }
+
 }

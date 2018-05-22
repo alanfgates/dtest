@@ -38,7 +38,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
 
 public class DockerTest {
   private static final Logger LOG = LoggerFactory.getLogger(DockerTest.class);
@@ -157,7 +156,6 @@ public class DockerTest {
       }
       try {
         runContainers(info, logger, numContainers, out);
-        if (info.shouldCleanupAfter()) docker.cleanup(logger);
         rc = 0;
       } catch (IOException e) {
         String msg = "Failed to run one or more of the containers.";
@@ -241,6 +239,7 @@ public class DockerTest {
           logDir.mkdir();
           docker.copyLogFiles(result, logDir.getAbsolutePath(), logger);
         }
+        if (info.shouldCleanupAfter()) docker.removeContainer(result, logger);
         return 1;
       }));
     }
@@ -286,6 +285,7 @@ public class DockerTest {
         .append(analyzer.getFailed().size());
     logger.write(SUMMARY_LOG, msg.toString());
     out.println(msg.toString());
+    if (info.shouldCleanupAfter()) docker.removeImage(logger);
   }
 
   /**

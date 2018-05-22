@@ -27,12 +27,9 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
-import java.util.Vector;
-import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -43,17 +40,14 @@ public class DockerClient implements ContainerClient {
   private static final Pattern IMAGE_SUCCESS = Pattern.compile("BUILD SUCCESS");
   private static final Pattern USING_CACHE = Pattern.compile("Using cache");
   private static final String BUILD_CONTAINER_NAME = "image_build";
-  public static final String USER = "dtestuser";
+  static final String USER = "dtestuser";
   private static final String HOME_DIR = File.separator + "home" + File.separator + USER;
 
   private final String label;
   private final String imageName;
-  private final List<String> containers;
 
   DockerClient(String label) {
     this.label = label;
-    // Use vector as we want access to this synchronized.
-    containers = new Vector<>();
     imageName = IMAGE_BASE + label;
   }
 
@@ -104,9 +98,8 @@ public class DockerClient implements ContainerClient {
                                       DTestLogger logger) throws IOException {
     List<String> runCmd = new ArrayList<>();
     String containerName = Utils.buildContainerName(label, cmd.containerSuffix());
-    containers.add(containerName);
-    runCmd.addAll(Arrays.asList("docker", "run", "--name", containerName, imageName));
-    runCmd.addAll(Arrays.asList(cmd.shellCommand()));
+    Collections.addAll(runCmd, "docker", "run", "--name", containerName, imageName);
+    Collections.addAll(runCmd, cmd.shellCommand());
     ProcessResults res = Utils.runProcess(cmd.containerSuffix(), toWait, logger,
         runCmd.toArray(new String[runCmd.size()]));
     return new ContainerResult(cmd, res.rc, res.stdout);
@@ -117,10 +110,8 @@ public class DockerClient implements ContainerClient {
       throws IOException {
     String containerName = Utils.buildContainerName(label, result.getCmd().containerSuffix());
     for (String file : result.getLogFilesToFetch()) {
-      List<String> runCmd = new ArrayList<>();
-      runCmd.addAll(Arrays.asList("docker", "cp", containerName + ":" + file, targetDir));
       ProcessResults res = Utils.runProcess("copying-files-for-" + containerName, 60, logger,
-          runCmd.toArray(new String[runCmd.size()]));
+          "docker", "cp", containerName + ":" + file, targetDir);
       if (res.rc != 0) throw new IOException("Failed to copy logfile " + res.stderr);
     }
   }
@@ -140,27 +131,20 @@ public class DockerClient implements ContainerClient {
   }
 
   @Override
-  public void cleanup(DTestLogger logger) {
-    LOG.info("Cleaning up containers and image");
-    List<String> runCmd = new ArrayList<>();
-    runCmd.addAll(Arrays.asList("docker", "rm"));
-    runCmd.addAll(containers);
-    try {
-      ProcessResults res = Utils.runProcess("cleanup", 300, logger,
-          runCmd.toArray(new String[runCmd.size()]));
-      if (res.rc != 0) {
-        LOG.warn("Failed to cleanup containers: " + res.stderr);
-        return;
-      }
-      runCmd = new ArrayList<>();
-      runCmd.addAll(Arrays.asList("docker", "image", "rm", imageName));
-      res = Utils.runProcess("cleanup", 300, logger,
-          runCmd.toArray(new String[runCmd.size()]));
-      if (res.rc != 0) {
-        LOG.warn("Failed to cleanup containers: " + res.stderr);
-      }
-    } catch (IOException e) {
-      LOG.warn("Failed to cleanup containers and/or image", e);
+  public void removeContainer(ContainerResult result, DTestLogger logger) throws IOException {
+    String containerName = Utils.buildContainerName(label, result.getCmd().containerSuffix());
+    ProcessResults res = Utils.runProcess("cleanup", 300, logger, "docker", "rm", containerName);
+    if (res.rc != 0) {
+      LOG.warn("Failed to cleanup containers: " + res.stderr);
     }
+  }
+
+  @Override
+  public void removeImage(DTestLogger logger) throws IOException {
+    ProcessResults res = Utils.runProcess("cleanup", 300, logger, "docker", "image", "rm", imageName);
+    if (res.rc != 0) {
+      LOG.warn("Failed to cleanup containers: " + res.stderr);
+    }
+
   }
 }

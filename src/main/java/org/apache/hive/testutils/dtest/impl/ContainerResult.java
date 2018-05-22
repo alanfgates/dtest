@@ -19,7 +19,6 @@ package org.apache.hive.testutils.dtest.impl;
 
 import org.apache.hive.testutils.dtest.ContainerCommand;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
 
