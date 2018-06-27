@@ -22,6 +22,7 @@ import org.apache.commons.lang3.StringUtils;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.concurrent.BlockingQueue;
@@ -62,6 +63,17 @@ public class DTestLogger {
   }
 
   /**
+   * Write a message to the log and to print stream (probably stdout).  This calls enqueues the
+   * message, a separate thread writes it to the log and stdout
+   * @param containerId unique id for this container
+   * @param message message to be logged
+   * @param out stream to print the message to in addition to logging
+   */
+  public void writeAndPrint(String containerId, String message, PrintStream out) {
+    queue.offer(new Message(System.currentTimeMillis(), containerId, message, out));
+  }
+
+  /**
    * Close the writer.  It cannot be reopened once this is done.
    * @throws IOException the closing message cannot be written to the log
    */
@@ -74,11 +86,17 @@ public class DTestLogger {
     private final long time;
     private final String containerId;
     private final String content;
+    private final PrintStream out;
 
     private Message(long time, String containerId, String content) {
+      this(time, containerId, content, null);
+    }
+
+    private Message(long time, String containerId, String content, PrintStream out) {
       this.time = time;
       this.containerId = containerId;
       this.content = content;
+      this.out = out;
     }
   }
 
@@ -106,6 +124,7 @@ public class DTestLogger {
                 " [" + m.containerId + "] :" + m.content + '\n';
             mainWriter.write(msg);
             mainWriter.flush();
+            if (m.out != null) m.out.print(msg);
           }
         } catch (InterruptedException e) {
           // Assume this means we're supposed to quit.

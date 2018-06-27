@@ -283,7 +283,7 @@ public class TestDockerTest {
                                                    "-d", System.getProperty("java.io.tmpdir"),
                                                    "-l", "firstTry",
                                                    "-r", "repo"});
-    test.startBuild(build);
+    test.runBuild(build);
     Assert.assertTrue(imageBuilt);
     Assert.assertEquals(1, errors.size());
     Assert.assertEquals("TestAcidOnTez.testGetSplitsLocks", errors.get(0));
@@ -305,7 +305,7 @@ public class TestDockerTest {
                                                    "-d", System.getProperty("java.io.tmpdir"),
                                                    "-l", "secondTry",
                                                    "-r", "repo"});
-    test.startBuild(build);
+    test.runBuild(build);
     Assert.assertTrue(imageBuilt);
     Assert.assertEquals(1, errors.size());
     Assert.assertEquals("TestNegativeCliDriver.alter_notnull_constraint_violation", errors.get(0));
@@ -327,7 +327,7 @@ public class TestDockerTest {
                                                    "-d", System.getProperty("java.io.tmpdir"),
                                                    "-l", "will-time-out",
                                                    "-r", "repo"});
-    test.startBuild(build);
+    test.runBuild(build);
     Assert.assertTrue(imageBuilt);
     Assert.assertTrue(hadTimeouts);
     Assert.assertTrue(runSucceeded);
@@ -344,7 +344,7 @@ public class TestDockerTest {
                                                    "-d", System.getProperty("java.io.tmpdir"),
                                                    "-l", "take2",
                                                    "-r", "repo"});
-    test.startBuild(build);
+    test.runBuild(build);
     Assert.assertTrue(imageBuilt);
     Assert.assertFalse(hadTimeouts);
     Assert.assertFalse(runSucceeded);

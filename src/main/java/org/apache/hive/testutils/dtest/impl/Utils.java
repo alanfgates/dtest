@@ -48,7 +48,7 @@ public class Utils {
     }
   }
 
-  static ProcessResults runProcess(String containerId, long secondsToWait,
+  public static ProcessResults runProcess(String containerId, long secondsToWait,
                                    DTestLogger logger, String... cmd) throws IOException {
     LOG.info("Going to run: " + StringUtils.join(cmd, " "));
     Process proc = Runtime.getRuntime().exec(cmd);

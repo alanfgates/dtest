@@ -30,12 +30,5 @@ shift; shift; shift;
 
 
 $DTEST_HOME/bin/dtest -b $build_branch -c $NUM_CONTAINERS -d $WORKSPACE -l $build_label -r $build_repository $@
-RC=$?
-echo
-echo SUMMARY:
-grep "\[summary\]" $WORKSPACE/$build_label/dtest.log
-
-# tar up the logs and log files from failed tests.
-tar zcf $build_label.tgz -C $WORKSPACE $build_label
-exit $RC
+exit $?
 

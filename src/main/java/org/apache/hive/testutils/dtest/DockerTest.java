@@ -26,6 +26,8 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.hive.testutils.dtest.impl.ContainerResult;
 import org.apache.hive.testutils.dtest.impl.DTestLogger;
+import org.apache.hive.testutils.dtest.impl.ProcessResults;
+import org.apache.hive.testutils.dtest.impl.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,7 +54,7 @@ public class DockerTest {
   private PrintStream err;
   private String baseDir;
 
-  public DockerTest(PrintStream out, PrintStream err) {
+  DockerTest(PrintStream out, PrintStream err) {
     this.out = out;
     this.err = err;
   }
@@ -63,7 +65,7 @@ public class DockerTest {
    * @return A description of the build, or null if the parsing failed.
    */
   @SuppressWarnings("static-access")
-  public BuildInfo parseArgs(String[] args) {
+  BuildInfo parseArgs(String[] args) {
     CommandLineParser parser = new GnuParser();
 
     Options opts = new Options();
@@ -129,7 +131,7 @@ public class DockerTest {
     }
     try {
       BuildInfo info = new BuildInfo(cmd.getOptionValue("b"), cmd.getOptionValue("r"),
-          cmd.getOptionValue("l").toLowerCase());
+          cmd.getOptionValue("l"));
       info.setCleanupAfter(!cmd.hasOption("m"));
       return info;
     } catch (IOException e) {
@@ -139,7 +141,7 @@ public class DockerTest {
     }
   }
 
-  int startBuild(BuildInfo info) {
+  int runBuild(BuildInfo info) {
     docker = containerClientFactory.getClient(info.getLabel());
     DTestLogger logger = null;
     int rc = 1;
@@ -155,7 +157,8 @@ public class DockerTest {
         return 1;
       }
       try {
-        runContainers(info, logger, numContainers, out);
+        runContainers(info, logger, numContainers);
+        packageLogsAndCleanup(info, logger);
         rc = 0;
       } catch (IOException e) {
         String msg = "Failed to run one or more of the containers.";
@@ -195,8 +198,8 @@ public class DockerTest {
     docker.buildImage(info.getDir(), timeout, logger);
   }
 
-  private void runContainers(final BuildInfo info, final DTestLogger logger, int numContainers,
-                             PrintStream out) throws IOException {
+  private void runContainers(final BuildInfo info, final DTestLogger logger, int numContainers)
+      throws IOException {
     List<ContainerCommand> taskCmds = commandFactory.getContainerCommands(docker, info.getLabel(), logger);
 
     final long timeout = Config.CONTAINER_RUN_TIME.getAsSeconds();
@@ -262,15 +265,15 @@ public class DockerTest {
 
     executor.shutdown();
     if (analyzer.getErrors().size() > 0) {
-      logger.write(SUMMARY_LOG, "All Errors:");
+      logger.writeAndPrint(SUMMARY_LOG, "All Errors:", out);
       for (String error : analyzer.getErrors()) {
-        logger.write(SUMMARY_LOG, error);
+        logger.writeAndPrint(SUMMARY_LOG, error, out);
       }
     }
     if (analyzer.getFailed().size() > 0) {
-      logger.write(SUMMARY_LOG, "All Failures:");
+      logger.writeAndPrint(SUMMARY_LOG, "All Failures:", out);
       for (String failure : analyzer.getFailed()) {
-        logger.write(SUMMARY_LOG, failure);
+        logger.writeAndPrint(SUMMARY_LOG, failure, out);
       }
     }
     StringBuilder msg = new StringBuilder("Test run ");
@@ -283,20 +286,28 @@ public class DockerTest {
         .append(analyzer.getErrors().size())
         .append(", Failures: ")
         .append(analyzer.getFailed().size());
-    logger.write(SUMMARY_LOG, msg.toString());
-    out.println(msg.toString());
+    logger.writeAndPrint(SUMMARY_LOG, msg.toString(), out);
+  }
+
+  private void packageLogsAndCleanup(BuildInfo info, DTestLogger logger) throws IOException {
     if (info.shouldCleanupAfter()) docker.removeImage(logger);
+    ProcessResults res = Utils.runProcess("tar", 60, logger, "tar", "zcf",
+        info.getLabel() + ".tgz", "-C", baseDir, info.getLabel());
+    if (res.rc != 0) {
+      throw new IOException("Failed to tar up logs, error " + res.rc + " msg: " + res.stderr);
+    }
+
   }
 
   /**
    * This calls System.exit, don't call it if you're using a tool.  Use
-   * {@link #startBuild(BuildInfo)} instead.
+   * {@link #runBuild(BuildInfo)} instead.
    * @param args command line arguments.
    */
   public static void main(String[] args) {
     DockerTest test = new DockerTest(System.out, System.err);
     BuildInfo build = test.parseArgs(args);
-    int rc = (build == null) ? 1 : test.startBuild(build);
+    int rc = (build == null) ? 1 : test.runBuild(build);
     System.exit(rc);
   }
 }

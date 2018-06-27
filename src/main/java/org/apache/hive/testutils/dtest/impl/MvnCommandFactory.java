@@ -251,12 +251,8 @@ public class MvnCommandFactory extends ContainerCommandFactory {
     testInfos.add(new SplittingSingleTestDirInfo("itests/qtest", "TestCliDriver",
         findQFilesInDir(containerClient, label, logger, "ql/src/test/queries/clientpositive"),
         Arrays.asList("authorization_show_grant.q")));
-    testInfos.add(new SplittingSingleTestDirInfo("itests/qtest", "TestMinimrCliDriver",
-        findQFilesFromProperties("minimr.query.files")));
     testInfos.add(new SplittingSingleTestDirInfo("itests/qtest", "TestEncryptedHDFSCliDriver",
         findQFilesFromProperties("encrypted.query.files")));
-    testInfos.add(new SplittingSingleTestDirInfo("itests/qtest", "TestNegativeMinimrCliDriver",
-        findQFilesFromProperties("minimr.query.negative.files")));
     testInfos.add(new SplittingSingleTestDirInfo("itests/qtest", "TestNegativeCliDriver",
         findQFilesInDir(containerClient, label, logger, "ql/src/test/queries/clientnegative")));
     testInfos.add(new SplittingSingleTestDirInfo("itests/qtest", "TestHBaseCliDriver",
