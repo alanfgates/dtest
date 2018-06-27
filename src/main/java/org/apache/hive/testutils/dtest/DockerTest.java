@@ -131,7 +131,7 @@ public class DockerTest {
     }
     try {
       BuildInfo info = new BuildInfo(cmd.getOptionValue("b"), cmd.getOptionValue("r"),
-          cmd.getOptionValue("l"));
+          cmd.getOptionValue("l").toLowerCase());
       info.setCleanupAfter(!cmd.hasOption("m"));
       return info;
     } catch (IOException e) {
