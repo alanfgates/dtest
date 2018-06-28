@@ -290,12 +290,12 @@ public class DockerTest {
   }
 
   private void packageLogsAndCleanup(BuildInfo info, DTestLogger logger) throws IOException {
-    if (info.shouldCleanupAfter()) docker.removeImage(logger);
     ProcessResults res = Utils.runProcess("tar", 60, logger, "tar", "zcf",
         info.getLabel() + ".tgz", "-C", baseDir, info.getLabel());
     if (res.rc != 0) {
       throw new IOException("Failed to tar up logs, error " + res.rc + " msg: " + res.stderr);
     }
+    if (info.shouldCleanupAfter()) docker.removeImage(logger);
 
   }
 

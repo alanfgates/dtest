@@ -68,7 +68,10 @@ public class MvnCommandFactory extends ContainerCommandFactory {
     @Override
     void addMvnCommands(ContainerClient containerClient, String label,
                         DTestLogger logger, int testsPerContainer, List<ContainerCommand> cmds) {
-      cmds.add(new MvnCommand(containerClient.getContainerBaseDir() + "/" + dir, containerNumber++));
+      MvnCommand mvn = new MvnCommand(containerClient.getContainerBaseDir() + "/" + dir, containerNumber++);
+      mvn.setEnv("USER", DockerClient.USER);
+      // TODO need to exclude any excluded tests
+      cmds.add(mvn);
 
     }
   }
@@ -97,6 +100,7 @@ public class MvnCommandFactory extends ContainerCommandFactory {
 
       while (!tests.isEmpty()) {
         MvnCommand mvn = new MvnCommand(containerClient.getContainerBaseDir() + "/" + dir, containerNumber++);
+        mvn.setEnv("USER", DockerClient.USER);
         for (int i = 0; i < testsPerContainer && !tests.isEmpty(); i++) {
           String single = tests.pop();
           LOG.debug("Adding test " + single + " to container " + (containerNumber - 1));
@@ -178,7 +182,9 @@ public class MvnCommandFactory extends ContainerCommandFactory {
   public MvnCommandFactory() {
     excludedTests = new HashSet<>(Arrays.asList("TestHiveMetaStore", "TestSerDe",
         "TestJdbcWithLocalClusterSpark.java", "TestMultiSessionsHS2WithLocalClusterSpark.java",
-        "TestSparkStatistics.java"));
+        "TestSparkStatistics.java", "TestReplicationScenariosAcrossInstances.java",
+        "TestReplicationScenariosAcrossInstances.java"));
+    excludedQfiles = new HashSet<>(Arrays.asList("masking_5.q", "orc_merge10.q"));
   }
 
   @Override
@@ -192,7 +198,6 @@ public class MvnCommandFactory extends ContainerCommandFactory {
     testProperties.load(new StringReader(testPropertiesString));
 
     // Figure out which qfiles are excluded
-    excludedQfiles = new HashSet<>();
     String excludedQfilesStr = testProperties.getProperty("disabled.query.files");
     if (excludedQfilesStr != null && excludedQfilesStr.length() > 0) {
       String[] excludedQfilessArray = excludedQfilesStr.trim().split(",");
