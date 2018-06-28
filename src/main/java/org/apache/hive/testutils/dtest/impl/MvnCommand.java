@@ -25,7 +25,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
 class MvnCommand implements ContainerCommand {
@@ -37,6 +36,7 @@ class MvnCommand implements ContainerCommand {
   private List<String> excludedTests; // set of tests to NOT run
   private List<String> qfiles; // set of qfiles to run
   private Map<String, String> envs;
+  private Map<String, String> properties; // properties to pass to maven (-DX=Y) val can be null
   private long testTimeout;
 
   MvnCommand(String baseDir, int cmdNumber) {
@@ -46,34 +46,34 @@ class MvnCommand implements ContainerCommand {
     excludedTests = new ArrayList<>();
     qfiles = new ArrayList<>();
     envs = new HashMap<>();
+    properties = new HashMap<>();
     testTimeout = Config.TEST_RUN_TIME.getAsSeconds();
     isITest = false;
   }
 
-  MvnCommand addTest(String test) {
+  void addTest(String test) {
     tests.add(test);
-    return this;
   }
 
-  MvnCommand excludeTests(String[] toExclude) {
+  void excludeTests(String[] toExclude) {
     Collections.addAll(excludedTests, toExclude);
-    return this;
   }
 
-  MvnCommand addQfile(String qfile) {
+  void addQfile(String qfile) {
     qfiles.add(qfile);
     isITest = true;
-    return this;
   }
 
-  MvnCommand setEnv(String envVar, String value) {
+  void setEnv(String envVar, String value) {
     envs.put(envVar, value);
-    return this;
   }
 
-  MvnCommand addEnvs(Map<String, String> envs) {
+  void addEnvs(Map<String, String> envs) {
     this.envs.putAll(envs);
-    return this;
+  }
+
+  void addProperties(Map<String, String> props) {
+    properties.putAll(props);
   }
 
   @Override
@@ -133,7 +133,14 @@ class MvnCommand implements ContainerCommand {
             .append(excludedTest);
         }
       }
-      buf.append(" -Dtest.groups=\"\" -DskipSparkTests");
+      for (Map.Entry<String, String> e : properties.entrySet()) {
+        buf.append(" -D")
+            .append(e.getKey());
+        if (e.getValue() != null) {
+          buf.append('=')
+              .append(e.getValue());
+        }
+      }
       return buf.toString();
     }
   }

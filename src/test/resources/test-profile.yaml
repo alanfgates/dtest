@@ -7,31 +7,40 @@ skippedTests:
 ---
 dir: standalone-metastore
 needsSplit: true
+mvnProperties:
+  test.groups: '""'
 ---
 dir: ql
 needsSplit: true
+testsPerContainer: 4
 skippedTests:
   - TestWorker
 isolatedTests:
-  - TestCompactor2
+  - TestCleaner2
 ---
 dir: itests/qtest
 singleTest: TestContribCliDriver
+mvnProperties:
+  skipSparkTests: null
 ---
 dir: itests/qtest
 singleTest: TestMiniLlapLocalCliDriver
 qfilesProperties:
-  - minillaplocal.query.files
-  - minillaplocal.shared.query.files
+  - minillap.query.files
+  - minillap.shared.query.files
 env:
   USER: dtestuser
+mvnProperties:
+  skipSparkTests: null
 ---
 dir: itests/qtest
 singleTest: TestCliDriver
 qfilesDir: ql/src/test/queries/clientpositive
-testsPerContainer: 5
+testsPerContainer: 4
 isolatedQFiles:
   - authorization_show_grant.q
 skippedQFiles:
   - masking_5.q
   - orc_merge10.q
+mvnProperties:
+  skipSparkTests: null

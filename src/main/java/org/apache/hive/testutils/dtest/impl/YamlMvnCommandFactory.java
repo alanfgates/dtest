@@ -66,14 +66,14 @@ public class YamlMvnCommandFactory extends ContainerCommandFactory {
     for (ModuleDirectory mDir : mDirs) {
       mDir.validate();
       int testsPerContainer = mDir.isSetTestsPerContainer() ?
-          Config.TESTS_PER_CONTAINER .getAsInt() :
-          mDir.getTestsPerContainer();
-      if (!mDir.getNeedsSplit() && mDir.isSetSingleTest() && !mDir.hasQFiles()) {
+          mDir.getTestsPerContainer() :
+          Config.TESTS_PER_CONTAINER .getAsInt();
+      if (!mDir.getNeedsSplit() && !mDir.isSetSingleTest() && !mDir.hasQFiles()) {
         // This is the simple case.  Remove any skipped tests and set any environment variables
         // and we're good
         MvnCommand mvn = new MvnCommand(containerClient.getContainerBaseDir() + "/" + mDir.getDir(),
             containerNumber++);
-        setEnvs(mDir, mvn);
+        setEnvsAndProperties(mDir, mvn);
         if (mDir.isSetSkippedTests()) mvn.excludeTests(mDir.getSkippedTests());
         cmds.add(mvn);
       } else if (mDir.getNeedsSplit()) {
@@ -89,6 +89,7 @@ public class YamlMvnCommandFactory extends ContainerCommandFactory {
           // Isolate the test name
           String[] pathElements = testPath.split("/");
           String testName = pathElements[pathElements.length - 1];
+          if (testName.endsWith(".java")) testName = testName.substring(0, testName.length() - 5);
           if (!excludedTests.contains(testName)) tests.add(testName);
         }
 
@@ -97,7 +98,8 @@ public class YamlMvnCommandFactory extends ContainerCommandFactory {
           for (String test : mDir.getIsolatedTests()) {
             MvnCommand mvn = new MvnCommand(containerClient.getContainerBaseDir() + "/" + mDir.getDir(),
                 containerNumber++);
-            setEnvs(mDir, mvn);
+            setEnvsAndProperties(mDir, mvn);
+            mvn.addTest(test);
             LOG.debug("Isolating test " + test + " in container " + (containerNumber - 1));
             cmds.add(mvn);
             tests.remove(test);
@@ -107,7 +109,7 @@ public class YamlMvnCommandFactory extends ContainerCommandFactory {
         while (!tests.isEmpty()) {
           MvnCommand mvn = new MvnCommand(containerClient.getContainerBaseDir() + "/" +
               mDir.getDir(), containerNumber++);
-          setEnvs(mDir, mvn);
+          setEnvsAndProperties(mDir, mvn);
           for (int i = 0; i < testsPerContainer && !tests.isEmpty(); i++) {
             String single = tests.pop();
             LOG.debug("Adding test " + single + " to container " + (containerNumber - 1));
@@ -122,13 +124,13 @@ public class YamlMvnCommandFactory extends ContainerCommandFactory {
           MvnCommand mvn = new MvnCommand(containerClient.getContainerBaseDir() + "/" + mDir.getDir(),
                   containerNumber++);
           mvn.addTest(mDir.getSingleTest());
-          setEnvs(mDir, mvn);
+          setEnvsAndProperties(mDir, mvn);
           cmds.add(mvn);
         } else {
           Set<String> qfiles;
           Set<String> excludedQFiles = new HashSet<>();
           // Figure out qfiles we need to skip
-          if (mDir.isSetSkippedTests()) Collections.addAll(excludedQFiles, mDir.getSkippedQFiles());
+          if (mDir.isSetSkippedQFiles()) Collections.addAll(excludedQFiles, mDir.getSkippedQFiles());
           if (mDir.isSetQFilesDir()) {
             // If we're supposed to read the qfiles from a directory, do that
             qfiles = findQFilesInDir(containerClient, buildInfo.getLabel(), logger, mDir.getQFilesDir(),
@@ -152,7 +154,7 @@ public class YamlMvnCommandFactory extends ContainerCommandFactory {
           while (!qfiles.isEmpty()) {
             List<String> oneSet = new ArrayList<>(testsPerContainer);
             for (String qFile : qfiles) {
-              if (oneSet.size() > testsPerContainer) break;
+              if (oneSet.size() >= testsPerContainer) break;
               oneSet.add(qFile);
             }
             cmds.add(buildOneQFilesCmd(containerClient, oneSet, mDir));
@@ -180,17 +182,16 @@ public class YamlMvnCommandFactory extends ContainerCommandFactory {
     return iter.readAll();
   }
 
-  private void setEnvs(ModuleDirectory mDir, MvnCommand mvn) {
-    if (mDir.getEnv() != null) {
-      mvn.addEnvs(mDir.getEnv());
-    }
+  private void setEnvsAndProperties(ModuleDirectory mDir, MvnCommand mvn) {
+    if (mDir.getEnv() != null) mvn.addEnvs(mDir.getEnv());
+    if (mDir.getMvnProperties() != null) mvn.addProperties(mDir.getMvnProperties());
   }
 
   private MvnCommand buildOneQFilesCmd(ContainerClient containerClient, Collection<String> qfiles,
                                        ModuleDirectory mDir) {
     MvnCommand mvn = new MvnCommand(containerClient.getContainerBaseDir() + "/" + mDir.getDir(),
         containerNumber++);
-    mvn.setEnv("USER", DockerClient.USER);
+    setEnvsAndProperties(mDir, mvn);
     mvn.addTest(mDir.getSingleTest());
     for (String qfile : qfiles) {
       LOG.debug("Adding qfile " + qfile + " to container " + (containerNumber - 1));
@@ -232,7 +233,9 @@ public class YamlMvnCommandFactory extends ContainerCommandFactory {
   private Set<String> findQFilesFromProperties(String... properties) {
     Set<String> qfiles = new HashSet<>();
     for (String property : properties) {
-      Collections.addAll(qfiles, testProperties.getProperty(property).trim().split(","));
+      if (testProperties.getProperty(property) != null) {
+        Collections.addAll(qfiles, testProperties.getProperty(property).trim().split(","));
+      }
     }
     return qfiles;
   }

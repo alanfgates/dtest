@@ -38,6 +38,7 @@ public class ModuleDirectory {
   private String   qFilesDir;          // if set, all qfiles in this directory will be used
   private String[] isolatedQFiles;     // Any qfiles that need to be run alone
   private Map<String, String> env;     // environment variables to set when running the mvn cmd
+  private Map<String, String> mvnProperties;  // properties to set via -D when running mvn cmd
 
   public String getDir() {
     return dir;
@@ -170,6 +171,14 @@ public class ModuleDirectory {
 
   public void setEnv(Map<String, String> env) {
     this.env = env;
+  }
+
+  public Map<String, String> getMvnProperties() {
+    return mvnProperties;
+  }
+
+  public void setMvnProperties(Map<String, String> mvnProperties) {
+    this.mvnProperties = mvnProperties;
   }
 
   /**

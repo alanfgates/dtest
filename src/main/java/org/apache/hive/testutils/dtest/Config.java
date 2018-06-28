@@ -106,6 +106,12 @@ public enum Config {
     System.setProperty(property, clazz.getName());
   }
 
+  public void set(int val) {
+    assert defaultValue.getClass() == Integer.class;
+    value = null;
+    System.setProperty(property, Integer.toString(val));
+  }
+
   @VisibleForTesting
   public void unset() {
     value = null;
