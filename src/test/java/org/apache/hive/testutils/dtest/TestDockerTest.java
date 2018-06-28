@@ -173,7 +173,7 @@ public class TestDockerTest {
   public static class HelloWorldCommandFactory extends ContainerCommandFactory {
     @Override
     public List<ContainerCommand> getContainerCommands(ContainerClient containerClient,
-                                                       String label,
+                                                       BuildInfo label,
                                                        DTestLogger logger) throws IOException {
       return Collections.singletonList(new ContainerCommand() {
         @Override
@@ -197,7 +197,7 @@ public class TestDockerTest {
   public static class ItestCommandFactory extends ContainerCommandFactory {
     @Override
     public List<ContainerCommand> getContainerCommands(ContainerClient containerClient,
-                                                       String label,
+                                                       BuildInfo label,
                                                        DTestLogger logger) throws IOException {
       return Collections.singletonList(new ContainerCommand() {
         @Override
@@ -282,7 +282,8 @@ public class TestDockerTest {
     BuildInfo build = test.parseArgs(new String[] {"-b", "successful",
                                                    "-d", System.getProperty("java.io.tmpdir"),
                                                    "-l", "firstTry",
-                                                   "-r", "repo"});
+                                                   "-r", "repo",
+                                                   "-p", "profile1"});
     test.runBuild(build);
     Assert.assertTrue(imageBuilt);
     Assert.assertEquals(1, errors.size());
@@ -304,7 +305,8 @@ public class TestDockerTest {
     BuildInfo build = test.parseArgs(new String[] {"-b", "successful",
                                                    "-d", System.getProperty("java.io.tmpdir"),
                                                    "-l", "secondTry",
-                                                   "-r", "repo"});
+                                                   "-r", "repo",
+                                                   "-p", "profile1"});
     test.runBuild(build);
     Assert.assertTrue(imageBuilt);
     Assert.assertEquals(1, errors.size());
@@ -326,7 +328,8 @@ public class TestDockerTest {
     BuildInfo build = test.parseArgs(new String[] {"-b", "failure",
                                                    "-d", System.getProperty("java.io.tmpdir"),
                                                    "-l", "will-time-out",
-                                                   "-r", "repo"});
+                                                   "-r", "repo",
+                                                   "-p", "profile1"});
     test.runBuild(build);
     Assert.assertTrue(imageBuilt);
     Assert.assertTrue(hadTimeouts);
@@ -343,7 +346,8 @@ public class TestDockerTest {
     BuildInfo build = test.parseArgs(new String[] {"-b", "failure",
                                                    "-d", System.getProperty("java.io.tmpdir"),
                                                    "-l", "take2",
-                                                   "-r", "repo"});
+                                                   "-r", "repo",
+                                                   "-p", "profile1"});
     test.runBuild(build);
     Assert.assertTrue(imageBuilt);
     Assert.assertFalse(hadTimeouts);

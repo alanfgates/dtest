@@ -34,6 +34,7 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -97,6 +98,14 @@ public class DockerTest {
         .create("l"));
 
     opts.addOption(OptionBuilder
+        .withLongOpt("test-profile")
+        .withDescription("profiles available for testing, usually tied to a branch, current " +
+            "available ones are: " + findAvailableProfiles())
+        .hasArg()
+        .isRequired()
+        .create("p"));
+
+    opts.addOption(OptionBuilder
         .withLongOpt("no-cleanup")
         .withDescription("do not cleanup docker containers and image after build")
         .create("m"));
@@ -131,7 +140,7 @@ public class DockerTest {
     }
     try {
       BuildInfo info = new BuildInfo(cmd.getOptionValue("b"), cmd.getOptionValue("r"),
-          cmd.getOptionValue("l").toLowerCase());
+          cmd.getOptionValue("l").toLowerCase(), cmd.getOptionValue("p"));
       info.setCleanupAfter(!cmd.hasOption("m"));
       return info;
     } catch (IOException e) {
@@ -191,6 +200,23 @@ public class DockerTest {
     formatter.printHelp("docker-test", opts);
   }
 
+  private String findAvailableProfiles() {
+    // This is a lame implementation, in that it has to know to look for something before it can
+    // find it, but I'm not sure of a better way to do it.
+    String[] possibilies = {"master-profile.yaml", "branch-3-profile.yaml", "branch-2-profile.yaml"};
+    StringBuilder buf = new StringBuilder();
+    boolean first = true;
+    for (String possibility : possibilies) {
+      URL yamlFile = getClass().getClassLoader().getResource(possibility);
+      if (yamlFile != null) {
+        if (first) first = false;
+        else buf.append(", ");
+        buf.append(new File(yamlFile.getFile()).getName());
+      }
+    }
+    return buf.toString();
+  }
+
   private void buildDockerImage(BuildInfo info, DTestLogger logger)
       throws IOException {
     long timeout = Config.IMAGE_BUILD_TIME.getAsSeconds();
@@ -200,7 +226,7 @@ public class DockerTest {
 
   private void runContainers(final BuildInfo info, final DTestLogger logger, int numContainers)
       throws IOException {
-    List<ContainerCommand> taskCmds = commandFactory.getContainerCommands(docker, info.getLabel(), logger);
+    List<ContainerCommand> taskCmds = commandFactory.getContainerCommands(docker, info, logger);
 
     final long timeout = Config.CONTAINER_RUN_TIME.getAsSeconds();
 

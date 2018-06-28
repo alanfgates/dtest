@@ -31,7 +31,7 @@ public class TestContainerCommandFactory {
   public static class DummyContainerCommandFactory extends ContainerCommandFactory {
     @Override
     public List<ContainerCommand> getContainerCommands(ContainerClient containerClient,
-                                                       String label,
+                                                       BuildInfo label,
                                                        DTestLogger logger)
         throws IOException {
       return Collections.emptyList();

@@ -17,6 +17,7 @@
  */
 package org.apache.hive.testutils.dtest.impl;
 
+import org.apache.hive.testutils.dtest.BuildInfo;
 import org.apache.hive.testutils.dtest.Config;
 import org.apache.hive.testutils.dtest.ContainerClient;
 import org.apache.hive.testutils.dtest.ContainerCommand;
@@ -36,7 +37,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Properties;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 
 public class MvnCommandFactory extends ContainerCommandFactory {
   private static final Logger LOG = LoggerFactory.getLogger(MvnCommandFactory.class);
@@ -183,16 +183,17 @@ public class MvnCommandFactory extends ContainerCommandFactory {
     excludedTests = new HashSet<>(Arrays.asList("TestHiveMetaStore", "TestSerDe",
         "TestJdbcWithLocalClusterSpark.java", "TestMultiSessionsHS2WithLocalClusterSpark.java",
         "TestSparkStatistics.java", "TestReplicationScenariosAcrossInstances.java",
-        "TestReplicationScenariosAcrossInstances.java"));
+        "TestReplicationScenariosAcidTables.java"));
     excludedQfiles = new HashSet<>(Arrays.asList("masking_5.q", "orc_merge10.q"));
   }
 
   @Override
-  public List<ContainerCommand> getContainerCommands(ContainerClient containerClient, String label,
+  public List<ContainerCommand> getContainerCommands(ContainerClient containerClient,
+                                                     BuildInfo buildInfo,
                                                      DTestLogger logger) throws IOException {
 
     // Read the test properties file as a number of things need info in there
-    String testPropertiesString = runContainer(containerClient, ".", label, "read-testconfiguration",
+    String testPropertiesString = runContainer(containerClient, ".", buildInfo.getLabel(), "read-testconfiguration",
         "cat itests/src/test/resources/testconfiguration.properties", logger);
     testProperties = new Properties();
     testProperties.load(new StringReader(testPropertiesString));
@@ -254,14 +255,14 @@ public class MvnCommandFactory extends ContainerCommandFactory {
     testInfos.add(new SingleTestDirInfo("itests/qtest", "TestParseNegativeDriver"));
     testInfos.add(new SingleTestDirInfo("itests/qtest-accumulo", "TestAccumuloCliDriver"));
     testInfos.add(new SplittingSingleTestDirInfo("itests/qtest", "TestCliDriver",
-        findQFilesInDir(containerClient, label, logger, "ql/src/test/queries/clientpositive"),
+        findQFilesInDir(containerClient, buildInfo.getLabel(), logger, "ql/src/test/queries/clientpositive"),
         Arrays.asList("authorization_show_grant.q")));
     testInfos.add(new SplittingSingleTestDirInfo("itests/qtest", "TestEncryptedHDFSCliDriver",
         findQFilesFromProperties("encrypted.query.files")));
     testInfos.add(new SplittingSingleTestDirInfo("itests/qtest", "TestNegativeCliDriver",
-        findQFilesInDir(containerClient, label, logger, "ql/src/test/queries/clientnegative")));
+        findQFilesInDir(containerClient, buildInfo.getLabel(), logger, "ql/src/test/queries/clientnegative")));
     testInfos.add(new SplittingSingleTestDirInfo("itests/qtest", "TestHBaseCliDriver",
-        findQFilesInDir(containerClient, label, logger, "hbase-handler/src/test/queries/positive")));
+        findQFilesInDir(containerClient, buildInfo.getLabel(), logger, "hbase-handler/src/test/queries/positive")));
     testInfos.add(new SplittingSingleTestDirInfo("itests/qtest", "TestMiniTezCliDriver",
         findQFilesFromProperties("minitez.query.files", "minitez.query.files.shared")));
     testInfos.add(new SplittingSingleTestDirInfo("itests/qtest", "TestMiniLlapCliDriver",
@@ -272,7 +273,7 @@ public class MvnCommandFactory extends ContainerCommandFactory {
     List<ContainerCommand> cmds = new ArrayList<>();
     int testsPerContainer = Config.TESTS_PER_CONTAINER.getAsInt();
     for (TestDirInfo tdi : testInfos) {
-      tdi.addMvnCommands(containerClient, label, logger, testsPerContainer, cmds);
+      tdi.addMvnCommands(containerClient, buildInfo.getLabel(), logger, testsPerContainer, cmds);
     }
     return cmds;
   }

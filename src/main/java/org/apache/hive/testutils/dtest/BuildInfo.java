@@ -27,6 +27,7 @@ public class BuildInfo implements Comparable<BuildInfo> {
   private final String branch;
   private final String repo;
   private final String label;
+  private final String profile; // test profile to use
   private long queueTime;
   private long startTime;
   private long completionTime;
@@ -35,10 +36,11 @@ public class BuildInfo implements Comparable<BuildInfo> {
   private boolean killed;
   private boolean cleanupAfter;
 
-  public BuildInfo(String branch, String repo, String label) throws IOException {
+  public BuildInfo(String branch, String repo, String label, String profile) throws IOException {
     this.branch = branch;
     this.repo = repo;
     this.label = checkLabelIsDockerable(label);
+    this.profile = profile;
     startTime = queueTime = 0;
     dir = null;
     success = killed = false;
@@ -68,6 +70,10 @@ public class BuildInfo implements Comparable<BuildInfo> {
 
   public String getLabel() {
     return label;
+  }
+
+  public String getProfile() {
+    return profile;
   }
 
   public String getDir() {

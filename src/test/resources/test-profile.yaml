@@ -1,0 +1,37 @@
+---
+dir: beeline
+---
+dir: cli
+skippedTests:
+  - TestCliDriverMethods
+---
+dir: standalone-metastore
+needsSplit: true
+---
+dir: ql
+needsSplit: true
+skippedTests:
+  - TestWorker
+isolatedTests:
+  - TestCompactor2
+---
+dir: itests/qtest
+singleTest: TestContribCliDriver
+---
+dir: itests/qtest
+singleTest: TestMiniLlapLocalCliDriver
+qfilesProperties:
+  - minillaplocal.query.files
+  - minillaplocal.shared.query.files
+env:
+  USER: dtestuser
+---
+dir: itests/qtest
+singleTest: TestCliDriver
+qfilesDir: ql/src/test/queries/clientpositive
+testsPerContainer: 5
+isolatedQFiles:
+  - authorization_show_grant.q
+skippedQFiles:
+  - masking_5.q
+  - orc_merge10.q

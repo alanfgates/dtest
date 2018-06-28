@@ -21,6 +21,7 @@ import org.apache.hive.testutils.dtest.Config;
 import org.apache.hive.testutils.dtest.ContainerCommand;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -54,8 +55,8 @@ class MvnCommand implements ContainerCommand {
     return this;
   }
 
-  MvnCommand excludeTest(String test) {
-    excludedTests.add(test);
+  MvnCommand excludeTests(String[] toExclude) {
+    Collections.addAll(excludedTests, toExclude);
     return this;
   }
 
@@ -67,6 +68,11 @@ class MvnCommand implements ContainerCommand {
 
   MvnCommand setEnv(String envVar, String value) {
     envs.put(envVar, value);
+    return this;
+  }
+
+  MvnCommand addEnvs(Map<String, String> envs) {
+    this.envs.putAll(envs);
     return this;
   }
 

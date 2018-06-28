@@ -25,16 +25,16 @@ public class TestBuildInfo {
 
   @Test
   public void simple() throws IOException {
-    new BuildInfo("a", "b", "patch1");
+    new BuildInfo("a", "b", "patch1", "profile1");
   }
 
   @Test
   public void withDash() throws IOException {
-    new BuildInfo("a", "b", "patch1-run2");
+    new BuildInfo("a", "b", "patch1-run2", "profile1");
   }
 
   @Test(expected = IOException.class)
   public void withSlash() throws IOException {
-    new BuildInfo("a", "b", "patch1/run2");
+    new BuildInfo("a", "b", "patch1/run2", "profile1");
   }
 }

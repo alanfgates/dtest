@@ -41,13 +41,13 @@ public abstract class ContainerCommandFactory {
    * for each container.
    * @param containerClient container client, in case any containers are needed for determining
    *                        commands to run.
-   * @param label label for this build.
+   * @param buildInfo information for this build
    * @param logger logger
    * @return list of commands
    * @throws IOException unable to generate command list.
    */
   public abstract List<ContainerCommand> getContainerCommands(ContainerClient containerClient,
-                                                              String label,
+                                                              BuildInfo buildInfo,
                                                               DTestLogger logger)
       throws IOException;
 }
