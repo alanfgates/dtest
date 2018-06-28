@@ -85,6 +85,22 @@ public class TestYamlMvnCommandFactory {
   }
 
   @Test
+  public void parseMasterYamlProfile() throws IOException {
+    // I won't verify the contents but at least parse it
+    YamlMvnCommandFactory factory = new YamlMvnCommandFactory();
+    List<ModuleDirectory> mDirs = factory.readYaml("master-profile.yaml");
+    Assert.assertTrue(mDirs.size() > 0);
+  }
+
+  @Test
+  public void parseBranch3YamlProfile() throws IOException {
+    // I won't verify the contents but at least parse it
+    YamlMvnCommandFactory factory = new YamlMvnCommandFactory();
+    List<ModuleDirectory> mDirs = factory.readYaml("branch-3-profile.yaml");
+    Assert.assertTrue(mDirs.size() > 0);
+  }
+
+  @Test
   public void buildCommands() throws IOException {
     YamlMvnCommandFactory factory = new YamlMvnCommandFactory();
     BuildInfo buildInfo = new BuildInfo("mybranch", "http://myrepo.com/repo.git", "mylabel",

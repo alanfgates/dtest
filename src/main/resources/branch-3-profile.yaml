@@ -1,0 +1,199 @@
+---
+dir: accumulo-handler
+---
+dir: beeline
+---
+dir: cli
+---
+dir: common
+---
+dir: contrib
+---
+dir: hplsql
+---
+dir: jdbc
+---
+dir: jdbc-handler
+---
+dir: serde
+---
+dir: shims/0.23
+---
+dir: shims/common
+---
+dir: storage-api
+---
+dir: llap-client
+env:
+  USER: dtestuser
+---
+dir: llap-common
+env:
+  USER: dtestuser
+---
+dir: llap-server
+env:
+  USER: dtestuser
+---
+dir: llap-tez
+env:
+  USER: dtestuser
+---
+dir: standalone-metastore
+needsSplit: true
+mvnProperties:
+  test.groups: '""'
+---
+dir: druid-handler
+---
+dir: service
+---
+dir: spark-client
+---
+dir: hbase-handler
+---
+dir: hcatalog/core
+---
+dir: hcatalog/hcatalog-pig-adapter
+---
+dir: hcatalog/server-extensions
+---
+dir: hcatalog/streaming
+---
+dir: hcatalog/webhcat/java-client
+---
+dir: hcatalog/webhcat/svr
+---
+dir: ql
+needsSplit: true
+---
+dir: itests/hcatalog-unit
+mvnProperties:
+  skipSparkTests: null
+---
+dir: itests/hive-blobstore
+mvnProperties:
+  skipSparkTests: null
+---
+dir: itests/hive-minikdc
+mvnProperties:
+  skipSparkTests: null
+---
+dir: itests/hive-unit
+needsSplit: true
+mvnProperties:
+  skipSparkTests: null
+---
+dir: itests/hive-unit-hadoop2
+mvnProperties:
+  skipSparkTests: null
+---
+dir: itests/test-serde
+mvnProperties:
+  skipSparkTests: null
+---
+dir: itests/util
+mvnProperties:
+  skipSparkTests: null
+---
+dir: itests/qtest
+singleTest: TestBeeLineDriver
+qfilesProperties:
+  - beeline.positive.include
+mvnProperties:
+  skipSparkTests: null
+---
+dir: itests/qtest
+singleTest: TestContribCliDriver
+mvnProperties:
+  skipSparkTests: null
+---
+dir: itests/qtest
+singleTest: TestContribNegativeCliDriver
+mvnProperties:
+  skipSparkTests: null
+---
+dir: itests/qtest
+singleTest: TestHBaseNegativeCliDriver
+mvnProperties:
+  skipSparkTests: null
+---
+dir: itests/qtest
+singleTest: TestMiniDruidCliDriver
+qfilesProperties:
+  - druid.query.files
+mvnProperties:
+  skipSparkTests: null
+---
+dir: itests/qtest
+singleTest: TestTezPerfCliDriver
+mvnProperties:
+  skipSparkTests: null
+---
+dir: itests/qtest
+singleTest: TestParseNegativeDriver
+mvnProperties:
+  skipSparkTests: null
+---
+dir: itests/qtest-accumulo
+mvnProperties:
+  skipSparkTests: null
+---
+dir: itests/qtest
+singleTest: TestCliDriver
+qfilesDir: ql/src/test/queries/clientpositive
+isolatedQFiles:
+  - authorization_show_grant.q
+skippedQFiles:
+  - masking_5.q
+  - orc_merge10.q
+mvnProperties:
+  skipSparkTests: null
+---
+dir: itests/qtest
+singleTest: TestEncryptedHDFSCliDriver
+qfilesProperties:
+  - encrypted.query.files
+mvnProperties:
+  skipSparkTests: null
+---
+dir: itests/qtest
+singleTest: TestNegativeCliDriver
+qfilesDir: ql/src/test/queries/clientnegative
+mvnProperties:
+  skipSparkTests: null
+---
+dir: itests/qtest
+singleTest: TestHBaseCliDriver
+qfilesDir: hbase-handler/src/test/queries/positive
+mvnProperties:
+  skipSparkTests: null
+---
+dir: itests/qtest
+singleTest: TestMiniTezCliDriver
+qfilesProperties:
+  - minitez.query.files
+  - minitez.query.files.shared
+mvnProperties:
+  skipSparkTests: null
+---
+dir: itests/qtest
+singleTest: TestMiniLlapCliDriver
+qfilesProperties:
+  - minillap.query.files
+  - minillap.shared.query.files
+env:
+  USER: dtestuser
+mvnProperties:
+  skipSparkTests: null
+---
+dir: itests/qtest
+singleTest: TestMiniLlapLocalCliDriver
+qfilesProperties:
+  - minillaplocal.query.files
+  - minillaplocal.shared.query.files
+env:
+  USER: dtestuser
+mvnProperties:
+  skipSparkTests: null
+

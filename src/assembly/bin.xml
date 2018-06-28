@@ -59,6 +59,8 @@
       <fileMode>644</fileMode>
       <includes>
         <include>dtest-log4j2.properties</include>
+        <include>master-profile.yaml</include>
+        <include>branch-3-profile.yaml</include>
       </includes>
       <outputDirectory>conf</outputDirectory>
     </fileSet>

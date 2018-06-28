@@ -45,7 +45,7 @@ import java.util.Properties;
 import java.util.Set;
 
 public class YamlMvnCommandFactory extends ContainerCommandFactory {
-  private static final Logger LOG = LoggerFactory.getLogger(MvnCommandFactory.class);
+  private static final Logger LOG = LoggerFactory.getLogger(YamlMvnCommandFactory.class);
   private int containerNumber;
   private Properties testProperties;
 
