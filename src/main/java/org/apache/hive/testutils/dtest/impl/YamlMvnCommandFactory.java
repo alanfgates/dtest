@@ -172,6 +172,7 @@ public class YamlMvnCommandFactory extends ContainerCommandFactory {
 
   @VisibleForTesting
   List<ModuleDirectory> readYaml(String filename) throws IOException {
+    if (!filename.endsWith("-profile.yaml")) filename = filename + "-profile.yaml";
     URL yamlFile = getClass().getClassLoader().getResource(filename);
     if (yamlFile == null) {
       throw new IOException("Unable to find " + filename + " to determine tests to run");

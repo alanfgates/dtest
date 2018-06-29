@@ -23,6 +23,7 @@ import org.apache.hive.testutils.dtest.impl.MvnCommandFactory;
 import org.apache.hive.testutils.dtest.impl.SimpleAnalyzerFactory;
 import org.apache.hive.testutils.dtest.impl.TimeInterval;
 import org.apache.hive.testutils.dtest.impl.Utils;
+import org.apache.hive.testutils.dtest.impl.YamlMvnCommandFactory;
 
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
@@ -32,7 +33,7 @@ public enum Config {
   // Implementation of ContainerClientFactory
   CONTAINER_CLIENT_FACTORY("dtest.container.client.factory", DockerClientFactory.class),
   // Implementation of ContainerCommandFactory
-  CONTAINER_COMMAND_FACTORY("dtest.container.command.factory", MvnCommandFactory.class),
+  CONTAINER_COMMAND_FACTORY("dtest.container.command.factory", YamlMvnCommandFactory.class),
   // Maximum amount of time to wait for container to run
   CONTAINER_RUN_TIME("dtest.container.run.time", new TimeInterval(3, TimeUnit.HOURS)),
   // Maximum amount of time to wait for image to build

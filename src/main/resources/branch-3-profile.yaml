@@ -52,6 +52,8 @@ dir: service
 ---
 dir: spark-client
 ---
+dir: streaming
+---
 dir: hbase-handler
 ---
 dir: hcatalog/core

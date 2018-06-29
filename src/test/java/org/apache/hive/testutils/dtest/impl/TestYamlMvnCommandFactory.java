@@ -88,7 +88,7 @@ public class TestYamlMvnCommandFactory {
   public void parseMasterYamlProfile() throws IOException {
     // I won't verify the contents but at least parse it
     YamlMvnCommandFactory factory = new YamlMvnCommandFactory();
-    List<ModuleDirectory> mDirs = factory.readYaml("master-profile.yaml");
+    List<ModuleDirectory> mDirs = factory.readYaml("master");
     Assert.assertTrue(mDirs.size() > 0);
   }
 
@@ -96,7 +96,7 @@ public class TestYamlMvnCommandFactory {
   public void parseBranch3YamlProfile() throws IOException {
     // I won't verify the contents but at least parse it
     YamlMvnCommandFactory factory = new YamlMvnCommandFactory();
-    List<ModuleDirectory> mDirs = factory.readYaml("branch-3-profile.yaml");
+    List<ModuleDirectory> mDirs = factory.readYaml("branch-3");
     Assert.assertTrue(mDirs.size() > 0);
   }
 
