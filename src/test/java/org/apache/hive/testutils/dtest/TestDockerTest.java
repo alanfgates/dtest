@@ -293,7 +293,7 @@ public class TestDockerTest {
     Assert.assertEquals(32, succeeded);
     Assert.assertFalse(hadTimeouts);
     Assert.assertTrue(runSucceeded);
-    Assert.assertTrue(outBuffer.toString().contains("Test run RAN ALL TESTS"));
+    Assert.assertTrue(outBuffer.toString().contains("Test run SUCCEEDED"));
   }
 
   @Test
@@ -316,7 +316,7 @@ public class TestDockerTest {
     Assert.assertEquals(72, succeeded);
     Assert.assertFalse(hadTimeouts);
     Assert.assertTrue(runSucceeded);
-    Assert.assertTrue(outBuffer.toString().contains("Test run RAN ALL TESTS"));
+    Assert.assertTrue(outBuffer.toString().contains("Test run SUCCEEDED"));
   }
 
   @Test
@@ -352,7 +352,7 @@ public class TestDockerTest {
     Assert.assertTrue(imageBuilt);
     Assert.assertFalse(hadTimeouts);
     Assert.assertFalse(runSucceeded);
-    Assert.assertTrue(outBuffer.toString().contains("Test run FAILED.  Following numbers are probably meaningless."));
+    Assert.assertTrue(outBuffer.toString().contains("Test run FAILED, this can mean tests failed or mvn commands failed to execute properly."));
   }
 
   @Test

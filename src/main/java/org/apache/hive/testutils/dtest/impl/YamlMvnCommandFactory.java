@@ -236,7 +236,7 @@ public class YamlMvnCommandFactory extends ContainerCommandFactory {
     Set<String> qfiles = new HashSet<>();
     for (String property : properties) {
       if (testProperties.getProperty(property) != null) {
-        Collections.addAll(qfiles, testProperties.getProperty(property).trim().split(","));
+        Collections.addAll(qfiles, testProperties.getProperty(property).split(","));
       }
     }
     return qfiles;

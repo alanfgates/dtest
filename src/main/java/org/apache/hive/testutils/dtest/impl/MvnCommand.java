@@ -119,7 +119,7 @@ class MvnCommand implements ContainerCommand {
           for (String qfile : qfiles) {
             if (first) first = false;
             else buf.append(',');
-            buf.append(qfile);
+            buf.append(qfile.trim());
           }
         }
       }

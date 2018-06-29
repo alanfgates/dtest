@@ -18,6 +18,7 @@
 package org.apache.hive.testutils.dtest.impl;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.hive.testutils.dtest.DockerTest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,7 +51,9 @@ public class Utils {
 
   public static ProcessResults runProcess(String containerId, long secondsToWait,
                                    DTestLogger logger, String... cmd) throws IOException {
-    LOG.info("Going to run: " + StringUtils.join(cmd, " "));
+    String msg = "Going to run: " + StringUtils.join(cmd, " ");
+    LOG.info(msg);
+    logger.write(DockerTest.EXEC_LOG, msg);
     Process proc = Runtime.getRuntime().exec(cmd);
     AtomicBoolean running = new AtomicBoolean(true);
     StreamPumper stdout = new StreamPumper(running, proc.getInputStream(), containerId, logger);

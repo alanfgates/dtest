@@ -98,7 +98,7 @@ public class SimpleResultAnalyzer implements ResultAnalyzer {
     if (sawTimeout) {
       hadTimeouts = true;
       result.setAnalysisResult(ContainerResult.ContainerStatus.TIMED_OUT);
-    } else if (result.getRc() < 0 ||result.getRc() > 1) {
+    } else if (result.getRc() != 0) {
       runSucceeded = false;
       result.setAnalysisResult(ContainerResult.ContainerStatus.FAILED);
     } else {

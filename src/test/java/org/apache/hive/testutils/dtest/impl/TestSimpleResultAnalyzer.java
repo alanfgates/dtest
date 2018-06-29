@@ -90,7 +90,7 @@ public class TestSimpleResultAnalyzer {
     Assert.assertEquals("TestNegativeCliDriver.alter_table_constraint_duplicate_pk", analyzer.getFailed().get(0));
     Assert.assertEquals(72, analyzer.getSucceeded());
     Assert.assertFalse(analyzer.hadTimeouts());
-    Assert.assertTrue(analyzer.runSucceeded());
+    Assert.assertFalse(analyzer.runSucceeded());
     Assert.assertEquals(3, cr.getLogFilesToFetch().size());
     SortedSet<String> orderedLogFiles = new TreeSet<>(cr.getLogFilesToFetch());
     Iterator iter = orderedLogFiles.iterator();

@@ -45,6 +45,7 @@ import java.util.concurrent.Future;
 public class DockerTest {
   private static final Logger LOG = LoggerFactory.getLogger(DockerTest.class);
   private static final String SUMMARY_LOG = "summary";
+  public static final String EXEC_LOG = "dtest-exec"; // for log entries by dtest
 
   private ContainerClient docker;
   private ContainerCommandFactory commandFactory;
@@ -303,9 +304,10 @@ public class DockerTest {
       }
     }
     StringBuilder msg = new StringBuilder("Test run ");
-    if (!runSucceeded) msg.append("FAILED.  Following numbers are probably meaningless.\n");
+    if (!runSucceeded) msg.append("FAILED, this can mean tests failed or mvn commands failed to " +
+        "execute properly.\n");
     else if (analyzer.hadTimeouts()) msg.append("HAD TIMEOUTS.  Following numbers are incomplete.\n");
-    else msg.append("RAN ALL TESTS ");
+    else msg.append("SUCCEEDED");
     msg.append("Final counts: Succeeded: ")
         .append(analyzer.getSucceeded())
         .append(", Errors: ")

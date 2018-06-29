@@ -19,7 +19,6 @@ package org.apache.hive.testutils.dtest;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.hive.testutils.dtest.impl.DockerClientFactory;
-import org.apache.hive.testutils.dtest.impl.MvnCommandFactory;
 import org.apache.hive.testutils.dtest.impl.SimpleAnalyzerFactory;
 import org.apache.hive.testutils.dtest.impl.TimeInterval;
 import org.apache.hive.testutils.dtest.impl.Utils;
