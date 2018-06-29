@@ -43,6 +43,8 @@ dir: standalone-metastore
 needsSplit: true
 mvnProperties:
   test.groups: '""'
+skippedTests:
+  - TestHiveMetastore
 ---
 dir: druid-handler
 ---
@@ -83,6 +85,12 @@ dir: itests/hive-unit
 needsSplit: true
 mvnProperties:
   skipSparkTests: null
+skippedTests:
+  - TestJdbcWithLocalClusterSpark
+  - TestMultiSessionsHS2WithLocalClusterSpark
+  - TestSparkStatistics
+  - TestReplicationScenariosAcrossInstances
+  - TestReplicationScenariosAcidTables
 ---
 dir: itests/hive-unit-hadoop2
 mvnProperties:
@@ -91,6 +99,8 @@ mvnProperties:
 dir: itests/test-serde
 mvnProperties:
   skipSparkTests: null
+skippedTests:
+  - TestSerDe
 ---
 dir: itests/util
 mvnProperties:
