@@ -17,13 +17,14 @@
  */
 package org.apache.hive.testutils.dtest.impl;
 
+import org.apache.hive.testutils.dtest.BuildInfo;
 import org.apache.hive.testutils.dtest.ContainerClient;
 import org.apache.hive.testutils.dtest.ContainerClientFactory;
 
 public class DockerClientFactory extends ContainerClientFactory {
 
   @Override
-  public ContainerClient getClient(String label) {
-    return new DockerClient(label);
+  public ContainerClient getClient(BuildInfo info) {
+    return new DockerClient(info);
   }
 }

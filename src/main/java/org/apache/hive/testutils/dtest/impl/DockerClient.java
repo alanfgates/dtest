@@ -18,6 +18,7 @@
 package org.apache.hive.testutils.dtest.impl;
 
 import com.google.common.annotations.VisibleForTesting;
+import org.apache.hive.testutils.dtest.BuildInfo;
 import org.apache.hive.testutils.dtest.ContainerClient;
 import org.apache.hive.testutils.dtest.ContainerCommand;
 import org.slf4j.Logger;
@@ -45,10 +46,12 @@ public class DockerClient implements ContainerClient {
 
   private final String label;
   private final String imageName;
+  private boolean shouldCleanupAfter;
 
-  DockerClient(String label) {
-    this.label = label;
+  DockerClient(BuildInfo info) {
+    this.label = info.getLabel();
     imageName = IMAGE_BASE + label;
+    shouldCleanupAfter = info.shouldCleanupAfter();
   }
 
   @Override
@@ -133,18 +136,26 @@ public class DockerClient implements ContainerClient {
   @Override
   public void removeContainer(ContainerResult result, DTestLogger logger) throws IOException {
     String containerName = Utils.buildContainerName(label, result.getCmd().containerSuffix());
-    ProcessResults res = Utils.runProcess("cleanup", 300, logger, "docker", "rm", containerName);
-    if (res.rc != 0) {
-      LOG.warn("Failed to cleanup containers: " + res.stderr);
+    if (shouldCleanupAfter) {
+      ProcessResults res = Utils.runProcess("cleanup", 300, logger, "docker", "rm", containerName);
+      if (res.rc != 0) {
+        LOG.warn("Failed to cleanup containers: " + res.stderr);
+      }
+    } else {
+      LOG.info("Skipping cleanup of container " + containerName + " since no-cleanup is set");
     }
   }
 
   @Override
   public void removeImage(DTestLogger logger) throws IOException {
-    ProcessResults res = Utils.runProcess("cleanup", 300, logger, "docker", "image", "rm", imageName);
-    if (res.rc != 0) {
-      LOG.warn("Failed to cleanup containers: " + res.stderr);
+    if (shouldCleanupAfter) {
+      ProcessResults res =
+          Utils.runProcess("cleanup", 300, logger, "docker", "image", "rm", imageName);
+      if (res.rc != 0) {
+        LOG.warn("Failed to cleanup containers: " + res.stderr);
+      }
+    } else {
+      LOG.info("Skipping cleanup of image " + imageName + " since no-cleanup is set");
     }
-
   }
 }

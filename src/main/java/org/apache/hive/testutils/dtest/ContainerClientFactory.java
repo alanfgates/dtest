@@ -36,8 +36,8 @@ public abstract class ContainerClientFactory {
 
   /**
    * Get the client.
-   * @param label for this build
+   * @param buildInfo information for this build
    * @return client
    */
-  public abstract ContainerClient getClient(String label);
+  public abstract ContainerClient getClient(BuildInfo buildInfo);
 }

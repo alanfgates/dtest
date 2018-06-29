@@ -305,6 +305,7 @@ public class MvnCommandFactory extends ContainerCommandFactory {
       LOG.error(msg);
       throw new IOException(msg);
     }
+    containerClient.removeContainer(result, logger);
     return result.getLogs();
   }
 

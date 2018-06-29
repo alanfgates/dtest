@@ -50,7 +50,7 @@ public class TestDockerTest {
 
   public static class SuccessfulClientFactory extends ContainerClientFactory {
     @Override
-    public ContainerClient getClient(String label) {
+    public ContainerClient getClient(BuildInfo info) {
       return new ContainerClient() {
         @Override
         public void defineImage(String dir, String repo, String branch, String label) throws IOException {
@@ -80,7 +80,7 @@ public class TestDockerTest {
 
   public static class SuccessfulWithFailingTestsClientFactory extends ContainerClientFactory {
     @Override
-    public ContainerClient getClient(String label) {
+    public ContainerClient getClient(BuildInfo info) {
       return new ContainerClient() {
         @Override
         public void defineImage(String dir, String repo, String branch, String label) throws IOException {
@@ -110,7 +110,7 @@ public class TestDockerTest {
 
   public static class TimingOutClientFactory extends ContainerClientFactory {
     @Override
-    public ContainerClient getClient(String label) {
+    public ContainerClient getClient(BuildInfo info) {
       return new ContainerClient() {
         @Override
         public void defineImage(String dir, String repo, String branch, String label) throws IOException {
@@ -141,7 +141,7 @@ public class TestDockerTest {
 
   public static class FailingClientFactory extends ContainerClientFactory {
     @Override
-    public ContainerClient getClient(String label) {
+    public ContainerClient getClient(BuildInfo info) {
       return new ContainerClient() {
         @Override
         public void defineImage(String dir, String repo, String branch, String label) throws IOException {

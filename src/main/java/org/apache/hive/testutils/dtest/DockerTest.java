@@ -151,7 +151,7 @@ public class DockerTest {
   }
 
   int runBuild(BuildInfo info) {
-    docker = containerClientFactory.getClient(info.getLabel());
+    docker = containerClientFactory.getClient(info);
     DTestLogger logger = null;
     int rc = 1;
     try {
@@ -268,7 +268,7 @@ public class DockerTest {
           logDir.mkdir();
           docker.copyLogFiles(result, logDir.getAbsolutePath(), logger);
         }
-        if (info.shouldCleanupAfter()) docker.removeContainer(result, logger);
+        docker.removeContainer(result, logger);
         return 1;
       }));
     }
@@ -321,7 +321,7 @@ public class DockerTest {
     if (res.rc != 0) {
       throw new IOException("Failed to tar up logs, error " + res.rc + " msg: " + res.stderr);
     }
-    if (info.shouldCleanupAfter()) docker.removeImage(logger);
+    docker.removeImage(logger);
 
   }
 

@@ -33,7 +33,7 @@ public class TestContainerClientFactory {
 
   public static class DummyContainerClientFactory extends ContainerClientFactory {
     @Override
-    public ContainerClient getClient(String label) {
+    public ContainerClient getClient(BuildInfo info) {
       return new ContainerClient() {
         @Override
         public void defineImage(String dir, String repo, String branch, String label) throws IOException {
