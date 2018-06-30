@@ -154,7 +154,7 @@ public class DockerTest {
   int runBuild(BuildInfo info) {
     docker = containerClientFactory.getClient(info);
     DTestLogger logger = null;
-    int rc = 1;
+    int rc;
     try {
       String dir = info.buildDir(baseDir);
       logger = new DTestLogger(dir);
@@ -167,20 +167,19 @@ public class DockerTest {
         return 1;
       }
       try {
-        runContainers(info, logger, numContainers);
+        rc = runContainers(info, logger, numContainers);
         packageLogsAndCleanup(info, logger);
-        rc = 0;
       } catch (IOException e) {
         String msg = "Failed to run one or more of the containers.";
         err.println(msg + "  See log for details.");
         LOG.error(msg, e);
-        return 1;
+        return -1;
       }
     } catch (IOException e) {
       String msg = "Failed to open the logger.  This often means you gave a bogus output directory.";
       err.println(msg);
       LOG.error(msg, e);
-      return 1;
+      return -1;
     } finally {
       if (logger != null) {
         try {
@@ -225,7 +224,7 @@ public class DockerTest {
     docker.buildImage(info.getDir(), timeout, logger);
   }
 
-  private void runContainers(final BuildInfo info, final DTestLogger logger, int numContainers)
+  private int runContainers(final BuildInfo info, final DTestLogger logger, int numContainers)
       throws IOException {
     List<ContainerCommand> taskCmds = commandFactory.getContainerCommands(docker, info, logger);
 
@@ -304,10 +303,17 @@ public class DockerTest {
       }
     }
     StringBuilder msg = new StringBuilder("Test run ");
-    if (!runSucceeded) msg.append("FAILED, this can mean tests failed or mvn commands failed to " +
-        "execute properly.\n");
-    else if (analyzer.hadTimeouts()) msg.append("HAD TIMEOUTS.  Following numbers are incomplete.\n");
-    else msg.append("SUCCEEDED");
+    int rc = 0;
+    if (!runSucceeded) {
+      msg.append("FAILED, this can mean tests failed or mvn commands failed to " +
+          "execute properly.\n");
+      rc = 1;
+    } else if (analyzer.hadTimeouts()) {
+      msg.append("HAD TIMEOUTS.  Following numbers are incomplete.\n");
+      rc = -1;
+    } else {
+      msg.append("SUCCEEDED");
+    }
     msg.append("Final counts: Succeeded: ")
         .append(analyzer.getSucceeded())
         .append(", Errors: ")
@@ -315,6 +321,7 @@ public class DockerTest {
         .append(", Failures: ")
         .append(analyzer.getFailed().size());
     logger.writeAndPrint(SUMMARY_LOG, msg.toString(), out);
+    return rc;
   }
 
   private void packageLogsAndCleanup(BuildInfo info, DTestLogger logger) throws IOException {

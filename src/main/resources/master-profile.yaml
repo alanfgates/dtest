@@ -173,6 +173,8 @@ dir: itests/qtest
 singleTest: TestEncryptedHDFSCliDriver
 qfilesProperties:
   - encrypted.query.files
+skippedQFiles:
+  - encryption_with_trash.q
 mvnProperties:
   skipSparkTests: null
 ---
@@ -201,6 +203,8 @@ singleTest: TestMiniLlapCliDriver
 qfilesProperties:
   - minillap.query.files
   - minillap.shared.query.files
+skippedQFiles:
+  - tez_aggr_part_stats.q
 env:
   USER: dtestuser
 mvnProperties:
@@ -211,6 +215,8 @@ singleTest: TestMiniLlapLocalCliDriver
 qfilesProperties:
   - minillaplocal.query.files
   - minillaplocal.shared.query.files
+skippedQFiles:
+  - vector_udf_inline.q
 env:
   USER: dtestuser
 mvnProperties:
