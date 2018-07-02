@@ -96,7 +96,7 @@ public class TestYamlMvnCommandFactory {
   public void parseBranch3YamlProfile() throws IOException {
     // I won't verify the contents but at least parse it
     YamlMvnCommandFactory factory = new YamlMvnCommandFactory();
-    List<ModuleDirectory> mDirs = factory.readYaml("branch-3");
+    List<ModuleDirectory> mDirs = factory.readYaml("branch-3-profile.yaml");
     Assert.assertTrue(mDirs.size() > 0);
   }
 

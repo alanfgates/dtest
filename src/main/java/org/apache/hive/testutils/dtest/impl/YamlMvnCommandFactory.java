@@ -133,8 +133,7 @@ public class YamlMvnCommandFactory extends ContainerCommandFactory {
           if (mDir.isSetSkippedQFiles()) Collections.addAll(excludedQFiles, mDir.getSkippedQFiles());
           if (mDir.isSetQFilesDir()) {
             // If we're supposed to read the qfiles from a directory, do that
-            qfiles = findQFilesInDir(containerClient, buildInfo.getLabel(), logger, mDir.getQFilesDir(),
-                excludedQFiles);
+            qfiles = findQFilesInDir(containerClient, buildInfo.getLabel(), logger, mDir.getQFilesDir());
           } else if (mDir.isSetQFilesProperties()) {
             // If we're supposed to read them from a properties list, do that
             qfiles = findQFilesFromProperties(mDir.getQFilesProperties());
@@ -143,6 +142,7 @@ public class YamlMvnCommandFactory extends ContainerCommandFactory {
             qfiles = new HashSet<>();
             Collections.addAll(qfiles, mDir.getQFiles());
           }
+          qfiles.removeAll(excludedQFiles);
           // Deal with any tests that need to be run alone
           if (mDir.isSetIsolatedQFiles()) {
             for (String test : mDir.getIsolatedQFiles()) {
@@ -243,8 +243,7 @@ public class YamlMvnCommandFactory extends ContainerCommandFactory {
   }
 
   private Set<String> findQFilesInDir(ContainerClient containerClient, String label,
-                                      DTestLogger logger, String qfileDir,
-                                      Set<String> excludedQfiles) throws IOException {
+                                      DTestLogger logger, String qfileDir) throws IOException {
     // Find all of the qfile tests
     String allPositiveQfiles = runContainer(containerClient, qfileDir, label,
         "qfile-finder-" + containerNumber++, "find . -name \\*.q -maxdepth 1", logger);
@@ -255,7 +254,7 @@ public class YamlMvnCommandFactory extends ContainerCommandFactory {
       String testPath = line.trim();
       String[] pathElements = testPath.split("/");
       String testName = pathElements[pathElements.length - 1];
-      if (!excludedQfiles.contains(testName)) runnableQfiles.add(testName);
+      runnableQfiles.add(testName);
     }
     return runnableQfiles;
   }
