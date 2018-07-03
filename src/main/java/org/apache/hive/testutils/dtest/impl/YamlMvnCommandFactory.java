@@ -32,7 +32,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InvalidObjectException;
-import java.io.StringReader;
 import java.net.URL;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -41,25 +40,17 @@ import java.util.Collections;
 import java.util.Deque;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Properties;
 import java.util.Set;
 
 public class YamlMvnCommandFactory extends ContainerCommandFactory {
   private static final Logger LOG = LoggerFactory.getLogger(YamlMvnCommandFactory.class);
   private int containerNumber;
-  private Properties testProperties;
 
   @Override
   public List<ContainerCommand> getContainerCommands(ContainerClient containerClient,
                                                      BuildInfo buildInfo,
                                                      DTestLogger logger) throws IOException {
     containerNumber = 0;
-
-    // Read the test properties file as a number of things need info in there
-    String testPropertiesString = runContainer(containerClient, ".", buildInfo.getLabel(), "read-testconfiguration",
-        "cat itests/src/test/resources/testconfiguration.properties", logger);
-    testProperties = new Properties();
-    testProperties.load(new StringReader(testPropertiesString));
 
     List<ModuleDirectory> mDirs = readYaml(buildInfo.getProfile());
     List<ContainerCommand> cmds = new ArrayList<>();
@@ -131,12 +122,9 @@ public class YamlMvnCommandFactory extends ContainerCommandFactory {
           Set<String> excludedQFiles = new HashSet<>();
           // Figure out qfiles we need to skip
           if (mDir.isSetSkippedQFiles()) Collections.addAll(excludedQFiles, mDir.getSkippedQFiles());
-          if (mDir.isSetQFilesDir()) {
-            // If we're supposed to read the qfiles from a directory, do that
-            qfiles = findQFilesInDir(containerClient, buildInfo.getLabel(), logger, mDir.getQFilesDir());
-          } else if (mDir.isSetQFilesProperties()) {
-            // If we're supposed to read them from a properties list, do that
-            qfiles = findQFilesFromProperties(mDir.getQFilesProperties());
+          if (mDir.isSetqFileConfigClass()) {
+            qfiles = findQFilesFromCfg(containerClient, buildInfo.getLabel(), logger,
+                mDir.getqFileConfigClass());
           } else {
             // Or if we've been given a list of qfiles, use that
             qfiles = new HashSet<>();
@@ -232,30 +220,28 @@ public class YamlMvnCommandFactory extends ContainerCommandFactory {
     return result.getLogs();
   }
 
-  private Set<String> findQFilesFromProperties(String... properties) {
+  private Set<String> findQFilesFromCfg(ContainerClient client, String label,
+                                        DTestLogger logger, String configClass) throws IOException {
+    // This is quite the command
+    StringBuilder buf = new StringBuilder();
+    buf.append("echo \"public class Hack { " +
+        "public static void main(String[] args) throws Exception { " +
+        "java.util.Set<java.io.File> qfiles = " +
+        "new org.apache.hadoop.hive.cli.control.CliConfigs.")
+        .append(configClass)
+        .append("().getQueryFiles(); for (java.io.File q : qfiles) { " +
+        "System.out.println(q)).getName()); }}}\" > Hack.java;");
+    buf.append("java -cp hive/itests/util/target/hive-it-util-4.0.0-SNAPSHOT.jar:" +
+        "hive/ql/target/hive-exec-4.0.0-SNAPSHOT-tests.jar:" +
+        ".m2/repository/junit/junit/4.11/junit-4.11.jar:" +
+        ".m2/repository/com/google/collections/google-collections/1.0/google-collections-1.0.jar:" +
+        ".m2/repository/org/slf4j/slf4j-api/1.7.10/slf4j-api-1.7.10.jar:" +
+        ".m2/repository/com/google/guava/guava/19.0/guava-19.0.jar:. " +
+        "-Dhive.root=/home/dtestuser/hive Hack");
+    String result = runContainer(client, client.getContainerBaseDir(), label,
+        "qfile-finder-for-" + configClass, buf.toString(), logger);
     Set<String> qfiles = new HashSet<>();
-    for (String property : properties) {
-      if (testProperties.getProperty(property) != null) {
-        Collections.addAll(qfiles, testProperties.getProperty(property).split(","));
-      }
-    }
+    for (String qfile : result.split("\n")) qfiles.add(qfile.trim());
     return qfiles;
-  }
-
-  private Set<String> findQFilesInDir(ContainerClient containerClient, String label,
-                                      DTestLogger logger, String qfileDir) throws IOException {
-    // Find all of the qfile tests
-    String allPositiveQfiles = runContainer(containerClient, qfileDir, label,
-        "qfile-finder-" + containerNumber++, "find . -name \\*.q -maxdepth 1", logger);
-
-
-    Set<String> runnableQfiles = new HashSet<>();
-    for (String line : allPositiveQfiles.split("\n")) {
-      String testPath = line.trim();
-      String[] pathElements = testPath.split("/");
-      String testName = pathElements[pathElements.length - 1];
-      runnableQfiles.add(testName);
-    }
-    return runnableQfiles;
   }
 }

@@ -32,10 +32,8 @@ public class ModuleDirectory {
   private String[] skippedTests;       // tests to skip
   private String[] qFiles;             // list of qfiles to run
   private String[] skippedQFiles;      // list of qfiles to skip
-  private String[] qFilesProperties;   // if set, the list of qfiles will be determined by
-                                       // reading the testconfigurations.properties file
-                                       // more than one property can be read from the file
-  private String   qFilesDir;          // if set, all qfiles in this directory will be used
+  private String   qFileConfigClass;   // class that extends org.apache.hadoop.hive.cli.control.AbstractCliConfig
+                                       // and can be used to give the list of all qtests to be run
   private String[] isolatedQFiles;     // Any qfiles that need to be run alone
   private Map<String, String> env;     // environment variables to set when running the mvn cmd
   private Map<String, String> mvnProperties;  // properties to set via -D when running mvn cmd
@@ -110,7 +108,7 @@ public class ModuleDirectory {
 
   // If this can get qfile in any way, this will return true
   public boolean hasQFiles() {
-    return qFiles != null || qFilesDir != null || qFilesProperties != null;
+    return qFiles != null || qFileConfigClass != null;
   }
 
   public void setQFiles(String[] qFiles) {
@@ -129,28 +127,16 @@ public class ModuleDirectory {
     this.skippedQFiles = skippedQFiles;
   }
 
-  public String[] getQFilesProperties() {
-    return qFilesProperties;
+  public String getqFileConfigClass() {
+    return qFileConfigClass;
   }
 
-  public boolean isSetQFilesProperties() {
-    return qFilesProperties != null;
+  public boolean isSetqFileConfigClass() {
+    return qFileConfigClass != null;
   }
 
-  public void setQFilesProperties(String[] qFilesProperties) {
-    this.qFilesProperties = qFilesProperties;
-  }
-
-  public String getQFilesDir() {
-    return qFilesDir;
-  }
-
-  public boolean isSetQFilesDir() {
-    return qFilesDir != null;
-  }
-
-  public void setQFilesDir(String qFilesDir) {
-    this.qFilesDir = qFilesDir;
+  public void setqFileConfigClass(String qFileConfigClass) {
+    this.qFileConfigClass = qFileConfigClass;
   }
 
   public String[] getIsolatedQFiles() {
@@ -198,17 +184,9 @@ public class ModuleDirectory {
     if (singleTest == null && hasQFiles()) {
       throw new InvalidObjectException("You cannot specify qfiles for more than one test, " + dir);
     }
-    if (qFiles != null && qFilesDir != null) {
-      throw new InvalidObjectException("You cannot specify a list of qfiles and a directory to " +
+    if (qFiles != null && qFileConfigClass != null) {
+      throw new InvalidObjectException("You cannot specify a list of qfiles and a ConfigClass to " +
           "read qfiles from, " + dir);
-    }
-    if (qFiles != null && qFilesProperties != null) {
-      throw new InvalidObjectException("You cannot specify a list of qfiles and a list of " +
-          "properties to read qfiles from, " + dir);
-    }
-    if (qFilesDir != null && qFilesProperties != null) {
-      throw new InvalidObjectException("You cannot specify a directory to read qfiles from and a " +
-          "list of properties to read qfiles from, " + dir);
     }
   }
 }

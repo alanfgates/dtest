@@ -24,18 +24,8 @@ mvnProperties:
   skipSparkTests: null
 ---
 dir: itests/qtest
-singleTest: TestMiniLlapLocalCliDriver
-qfilesProperties:
-  - minillap.query.files
-  - minillap.shared.query.files
-env:
-  USER: dtestuser
-mvnProperties:
-  skipSparkTests: null
----
-dir: itests/qtest
 singleTest: TestCliDriver
-qfilesDir: ql/src/test/queries/clientpositive
+qFileConfigClass: CliConf
 testsPerContainer: 4
 isolatedQFiles:
   - authorization_show_grant.q
@@ -44,3 +34,6 @@ skippedQFiles:
   - orc_merge10.q
 mvnProperties:
   skipSparkTests: null
+env:
+  USER: dtestuser
+

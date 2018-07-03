@@ -39,26 +39,10 @@ public class TestModuleDirectory {
   }
 
   @Test(expected = InvalidObjectException.class)
-  public void qfilesAndQFilesDir() throws InvalidObjectException {
+  public void qfilesAndQFilesCfg() throws InvalidObjectException {
     ModuleDirectory dir = new ModuleDirectory();
     dir.setQFiles(new String[] {"a", "b"});
-    dir.setQFilesDir("a");
-    dir.validate();
-  }
-
-  @Test(expected = InvalidObjectException.class)
-  public void qfilesAndQFilesProperties() throws InvalidObjectException {
-    ModuleDirectory dir = new ModuleDirectory();
-    dir.setQFiles(new String[] {"a", "b"});
-    dir.setQFilesProperties(new String[] {"a", "b"});
-    dir.validate();
-  }
-
-  @Test(expected = InvalidObjectException.class)
-  public void qfilesPropertiesAndQFilesDir() throws InvalidObjectException {
-    ModuleDirectory dir = new ModuleDirectory();
-    dir.setQFilesProperties(new String[] {"a", "b"});
-    dir.setQFilesDir("a");
+    dir.setqFileConfigClass("a");
     dir.validate();
   }
 }

@@ -110,8 +110,7 @@ mvnProperties:
 ---
 dir: itests/qtest
 singleTest: TestBeeLineDriver
-qfilesProperties:
-  - beeline.positive.include
+qFileConfigClass: BeeLineConfig
 mvnProperties:
   skipSparkTests: null
 ---
@@ -132,8 +131,7 @@ mvnProperties:
 ---
 dir: itests/qtest
 singleTest: TestMiniDruidCliDriver
-qfilesProperties:
-  - druid.query.files
+qFileConfigClass: MiniDruidCliConfig
 mvnProperties:
   skipSparkTests: null
 ---
@@ -153,7 +151,7 @@ mvnProperties:
 ---
 dir: itests/qtest
 singleTest: TestCliDriver
-qfilesDir: ql/src/test/queries/clientpositive
+qFileConfigClass: CliConfig
 isolatedQFiles:
   - authorization_show_grant.q
 skippedQFiles:
@@ -164,8 +162,7 @@ mvnProperties:
 ---
 dir: itests/qtest
 singleTest: TestEncryptedHDFSCliDriver
-qfilesProperties:
-  - encrypted.query.files
+qFileConfigClass: EncryptedHDFSCliConfig
 skippedQFiles:
   - encryption_with_trash.q
 mvnProperties:
@@ -173,29 +170,25 @@ mvnProperties:
 ---
 dir: itests/qtest
 singleTest: TestNegativeCliDriver
-qfilesDir: ql/src/test/queries/clientnegative
+qFileConfigClass: NegativeCliConfig
 mvnProperties:
   skipSparkTests: null
 ---
 dir: itests/qtest
 singleTest: TestHBaseCliDriver
-qfilesDir: hbase-handler/src/test/queries/positive
+qFileConfigClass: HBaseCliConfig
 mvnProperties:
   skipSparkTests: null
 ---
 dir: itests/qtest
 singleTest: TestMiniTezCliDriver
-qfilesProperties:
-  - minitez.query.files
-  - minitez.query.files.shared
+qFileConfigClass: MiniTezCliConfig
 mvnProperties:
   skipSparkTests: null
 ---
 dir: itests/qtest
 singleTest: TestMiniLlapCliDriver
-qfilesProperties:
-  - minillap.query.files
-  - minillap.shared.query.files
+qFileConfigClass: MiniLlapCliConfig
 skippedQFiles:
   - tez_aggr_part_stats.q
 env:
@@ -205,9 +198,7 @@ mvnProperties:
 ---
 dir: itests/qtest
 singleTest: TestMiniLlapLocalCliDriver
-qfilesProperties:
-  - minillaplocal.query.files
-  - minillaplocal.shared.query.files
+qFileConfigClass: MiniLlapLocalCliConfig
 skippedQFiles:
   - vector_udf_inline.q
 env:

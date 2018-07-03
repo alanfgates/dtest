@@ -34,7 +34,7 @@ public class TestYamlMvnCommandFactory {
   public void parseYaml() throws IOException {
     YamlMvnCommandFactory factory = new YamlMvnCommandFactory();
     List<ModuleDirectory> mDirs = factory.readYaml("test-profile.yaml");
-    Assert.assertEquals(7, mDirs.size());
+    Assert.assertEquals(6, mDirs.size());
     ModuleDirectory mDir = mDirs.get(0);
     Assert.assertEquals("beeline", mDir.getDir());
     mDir = mDirs.get(1);
@@ -58,18 +58,8 @@ public class TestYamlMvnCommandFactory {
     Assert.assertEquals("TestContribCliDriver", mDir.getSingleTest());
     mDir = mDirs.get(5);
     Assert.assertEquals("itests/qtest", mDir.getDir());
-    Assert.assertEquals("TestMiniLlapLocalCliDriver", mDir.getSingleTest());
-    Assert.assertEquals(2, mDir.getQFilesProperties().length);
-    Assert.assertEquals("minillap.query.files", mDir.getQFilesProperties()[0]);
-    Assert.assertEquals("minillap.shared.query.files", mDir.getQFilesProperties()[1]);
-    Assert.assertEquals(1, mDir.getEnv().size());
-    Assert.assertEquals("dtestuser", mDir.getEnv().get("USER"));
-    Assert.assertEquals(1, mDir.getMvnProperties().size());
-    Assert.assertTrue(mDir.getMvnProperties().containsKey("skipSparkTests"));
-    mDir = mDirs.get(6);
-    Assert.assertEquals("itests/qtest", mDir.getDir());
     Assert.assertEquals("TestCliDriver", mDir.getSingleTest());
-    Assert.assertEquals("ql/src/test/queries/clientpositive", mDir.getQFilesDir());
+    Assert.assertEquals("CliConf", mDir.getqFileConfigClass());
     Assert.assertEquals(4, mDir.getTestsPerContainer());
     Assert.assertEquals(1, mDir.getIsolatedQFiles().length);
     Assert.assertEquals("authorization_show_grant.q", mDir.getIsolatedQFiles()[0]);
@@ -108,7 +98,7 @@ public class TestYamlMvnCommandFactory {
     DTestLogger logger = new DTestLogger(".");
     List<ContainerCommand> cmds = factory.getContainerCommands(new TestContainerClient(),
         buildInfo, logger);
-    Assert.assertEquals(11, cmds.size());
+    Assert.assertEquals(10, cmds.size());
     Assert.assertEquals("/bin/bash -c ( cd /tmp/beeline; /usr/bin/mvn test -Dsurefire.timeout=5400)", StringUtils.join(cmds.get(0).shellCommand(), " "));
     Assert.assertEquals("/bin/bash -c ( cd /tmp/cli; /usr/bin/mvn test -Dsurefire.timeout=5400 -Dtest.excludes.additional=**/TestCliDriverMethods)", StringUtils.join(cmds.get(1).shellCommand(), " "));
     Assert.assertEquals("/bin/bash -c ( cd /tmp/standalone-metastore; /usr/bin/mvn test -Dsurefire.timeout=5400 -Dtest=TestRetriesInRetryingHMSHandler,TestRetryingHMSHandler,TestSetUGIOnBothClientServer,TestSetUGIOnOnlyClient,TestSetUGIOnOnlyServer,TestStats,TestMetastoreSchemaTool,TestSchemaToolForMetastore,TestTxnHandlerNegative,TestTxnUtils -Dtest.groups=\"\")", StringUtils.join(cmds.get(2).shellCommand(), " "));
@@ -116,10 +106,9 @@ public class TestYamlMvnCommandFactory {
     Assert.assertEquals("/bin/bash -c ( cd /tmp/ql; /usr/bin/mvn test -Dsurefire.timeout=5400 -Dtest=TestCleaner2)", StringUtils.join(cmds.get(4).shellCommand(), " "));
     Assert.assertEquals("/bin/bash -c ( cd /tmp/ql; /usr/bin/mvn test -Dsurefire.timeout=5400 -Dtest=CompactorTest,TestCleaner,TestInitiator,TestWorker2)", StringUtils.join(cmds.get(5).shellCommand(), " "));
     Assert.assertEquals("/bin/bash -c ( cd /tmp/itests/qtest; /usr/bin/mvn test -Dsurefire.timeout=5400 -Dtest=TestContribCliDriver -DskipSparkTests)", StringUtils.join(cmds.get(6).shellCommand(), " "));
-    Assert.assertEquals("/bin/bash -c ( cd /tmp/itests/qtest; USER=dtestuser /usr/bin/mvn test -Dsurefire.timeout=5400 -Dtest=TestMiniLlapLocalCliDriver -Dqfile=llapdecider.q,acid_bucket_pruning.q,insert_into1.q,bucket6.q -DskipSparkTests)", StringUtils.join(cmds.get(7).shellCommand(), " "));
-    Assert.assertEquals("/bin/bash -c ( cd /tmp/itests/qtest; /usr/bin/mvn test -Dsurefire.timeout=5400 -Dtest=TestCliDriver -Dqfile=authorization_show_grant.q -DskipSparkTests)", StringUtils.join(cmds.get(8).shellCommand(), " "));
-    Assert.assertEquals("/bin/bash -c ( cd /tmp/itests/qtest; /usr/bin/mvn test -Dsurefire.timeout=5400 -Dtest=TestCliDriver -Dqfile=masking_acid_no_masking.q,masking_8.q,masking_9.q,masking_6.q -DskipSparkTests)", StringUtils.join(cmds.get(9).shellCommand(), " "));
-    Assert.assertEquals("/bin/bash -c ( cd /tmp/itests/qtest; /usr/bin/mvn test -Dsurefire.timeout=5400 -Dtest=TestCliDriver -Dqfile=masking_7.q -DskipSparkTests)", StringUtils.join(cmds.get(10).shellCommand(), " "));
+    Assert.assertEquals("/bin/bash -c ( cd /tmp/itests/qtest; USER=dtestuser /usr/bin/mvn test -Dsurefire.timeout=5400 -Dtest=TestCliDriver -Dqfile=authorization_show_grant.q -DskipSparkTests)", StringUtils.join(cmds.get(7).shellCommand(), " "));
+    Assert.assertEquals("/bin/bash -c ( cd /tmp/itests/qtest; USER=dtestuser /usr/bin/mvn test -Dsurefire.timeout=5400 -Dtest=TestCliDriver -Dqfile=masking_acid_no_masking.q,masking_8.q,masking_9.q,masking_6.q -DskipSparkTests)", StringUtils.join(cmds.get(8).shellCommand(), " "));
+    Assert.assertEquals("/bin/bash -c ( cd /tmp/itests/qtest; USER=dtestuser /usr/bin/mvn test -Dsurefire.timeout=5400 -Dtest=TestCliDriver -Dqfile=masking_7.q -DskipSparkTests)", StringUtils.join(cmds.get(9).shellCommand(), " "));
   }
 
   private static class TestContainerClient implements ContainerClient {
@@ -164,14 +153,14 @@ public class TestYamlMvnCommandFactory {
             "ql/src/test/org/apache/hadoop/hive/ql/txn//compactor/TestInitiator.java\n" +
             "ql/src/test/org/apache/hadoop/hive/ql/txn//compactor/TestWorker.java\n" +
             "ql/src/test/org/apache/hadoop/hive/ql/txn//compactor/TestWorker2.java\n");
-      } else if (shellCmd.contains("find") && shellCmd.contains("clientpositive")) {
-        return new ContainerResult(cmd, 0, "ql/src/test/queries/clientpositive//authorization_show_grant.q\n" +
-            "ql/src/test/queries/clientpositive//masking_5.q\n" +
-            "ql/src/test/queries/clientpositive//masking_6.q\n" +
-            "ql/src/test/queries/clientpositive//masking_7.q\n" +
-            "ql/src/test/queries/clientpositive//masking_8.q\n" +
-            "ql/src/test/queries/clientpositive//masking_9.q\n" +
-            "ql/src/test/queries/clientpositive//masking_acid_no_masking.q\n");
+      } else if (shellCmd.contains("public class Hack")) {
+        return new ContainerResult(cmd, 0, "authorization_show_grant.q\n" +
+            "masking_5.q\n" +
+            "masking_6.q\n" +
+            "masking_7.q\n" +
+            "masking_8.q\n" +
+            "masking_9.q\n" +
+            "masking_acid_no_masking.q\n");
       } else {
         throw new RuntimeException("Unexpected cmd " + shellCmd);
       }
