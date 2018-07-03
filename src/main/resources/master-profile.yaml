@@ -203,8 +203,6 @@ singleTest: TestMiniLlapCliDriver
 qfilesProperties:
   - minillap.query.files
   - minillap.shared.query.files
-skippedQFiles:
-  - tez_aggr_part_stats.q
 env:
   USER: dtestuser
 mvnProperties:
