@@ -87,12 +87,16 @@ dir: itests/hive-unit
 needsSplit: true
 mvnProperties:
   skipSparkTests: null
+isolatedTests:
+  - TestTriggersWorkloadManager
 skippedTests:
   - TestJdbcWithLocalClusterSpark
   - TestMultiSessionsHS2WithLocalClusterSpark
   - TestSparkStatistics
   - TestReplicationScenariosAcrossInstances
   - TestReplicationScenariosAcidTables
+  - TestHS2ImpersonationWithRemoteMS
+  - TestWarehouseExternalDir
 ---
 dir: itests/hive-unit-hadoop2
 mvnProperties:
@@ -136,6 +140,8 @@ qfilesProperties:
   - druid.query.files
 mvnProperties:
   skipSparkTests: null
+skippedQFiles:
+  - druidkafkamini_basic.q
 ---
 dir: itests/qtest
 singleTest: TestTezPerfCliDriver
