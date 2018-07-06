@@ -132,6 +132,7 @@ mvnProperties:
 ---
 dir: itests/qtest
 singleTest: TestMiniDruidCliDriver
+testsPerContainer: 5
 qfilesProperties:
   - druid.query.files
 mvnProperties:
@@ -139,8 +140,6 @@ mvnProperties:
 ---
 dir: itests/qtest
 singleTest: TestMiniDruidKafkaCliDriver
-qfilesProperties:
-  - druid.kafka.query.files
 mvnProperties:
   skipSparkTests: null
 ---

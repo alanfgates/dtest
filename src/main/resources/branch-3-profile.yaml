@@ -51,6 +51,8 @@ dir: druid-handler
 dir: service
 ---
 dir: spark-client
+skippedTests:
+  - TestRpc
 ---
 dir: streaming
 ---
@@ -136,6 +138,7 @@ mvnProperties:
 ---
 dir: itests/qtest
 singleTest: TestMiniDruidCliDriver
+testsPerContainer: 5
 qfilesProperties:
   - druid.query.files
 mvnProperties:
