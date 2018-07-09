@@ -41,10 +41,12 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 public class DockerTest {
   private static final Logger LOG = LoggerFactory.getLogger(DockerTest.class);
   private static final String SUMMARY_LOG = "summary";
+  static final String DTEST_HOME = "DTEST_HOME";
   public static final String EXEC_LOG = "dtest-exec"; // for log entries by dtest
 
   private ContainerClient docker;
@@ -219,7 +221,7 @@ public class DockerTest {
 
   private void buildDockerImage(BuildInfo info, DTestLogger logger)
       throws IOException {
-    long timeout = Config.IMAGE_BUILD_TIME.getAsSeconds();
+    long timeout = Config.IMAGE_BUILD_TIME.getAsTime(TimeUnit.SECONDS);
     docker.defineImage(info.getDir(), info.getRepo(), info.getBranch(), info.getLabel());
     docker.buildImage(info.getDir(), timeout, logger);
   }
@@ -228,7 +230,7 @@ public class DockerTest {
       throws IOException {
     List<ContainerCommand> taskCmds = commandFactory.getContainerCommands(docker, info, logger);
 
-    final long timeout = Config.CONTAINER_RUN_TIME.getAsSeconds();
+    final long timeout = Config.CONTAINER_RUN_TIME.getAsTime(TimeUnit.SECONDS);
 
     final ResultAnalyzer analyzer = analyzerFactory.getAnalyzer();
     // I don't need the return value, but by having one I can use the Callable interface instead

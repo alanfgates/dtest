@@ -148,6 +148,10 @@ limitations under the License.
           <systemPropertyVariables>
             <java.io.tmpdir>${project.build.directory}</java.io.tmpdir>
           </systemPropertyVariables>
+          <environmentVariables>
+            <DTEST_HOME>${project.build.directory}</DTEST_HOME>
+          </environmentVariables>
+          <reuseForks>false</reuseForks>
         </configuration>
       </plugin>
     </plugins>

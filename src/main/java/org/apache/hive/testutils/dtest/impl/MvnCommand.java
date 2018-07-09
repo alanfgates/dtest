@@ -25,6 +25,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
 class MvnCommand implements ContainerCommand {
@@ -47,7 +48,7 @@ class MvnCommand implements ContainerCommand {
     qfiles = new ArrayList<>();
     envs = new HashMap<>();
     properties = new HashMap<>();
-    testTimeout = Config.TEST_RUN_TIME.getAsSeconds();
+    testTimeout = Config.TEST_RUN_TIME.getAsTime(TimeUnit.SECONDS);
     isITest = false;
   }
 

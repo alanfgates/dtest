@@ -48,7 +48,7 @@ public class TestContainerCommandFactory {
 
   @Test
   public void specifiedFactory() throws IOException {
-    Config.CONTAINER_COMMAND_FACTORY.set(DummyContainerCommandFactory.class);
+    Config.CONTAINER_COMMAND_FACTORY.set(DummyContainerCommandFactory.class.getName());
     ContainerCommandFactory factory = ContainerCommandFactory.get();
     Assert.assertEquals(DummyContainerCommandFactory.class, factory.getClass());
   }

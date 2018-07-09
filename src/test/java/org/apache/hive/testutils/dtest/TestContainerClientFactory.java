@@ -62,7 +62,7 @@ public class TestContainerClientFactory {
 
   @Test
   public void specifiedFactory() throws IOException {
-    Config.CONTAINER_CLIENT_FACTORY.set(DummyContainerClientFactory.class);
+    Config.CONTAINER_CLIENT_FACTORY.set(DummyContainerClientFactory.class.getName());
     ContainerClientFactory factory = ContainerClientFactory.get();
     Assert.assertEquals(DummyContainerClientFactory.class, factory.getClass());
   }

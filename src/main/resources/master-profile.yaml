@@ -87,12 +87,15 @@ dir: itests/hive-unit
 needsSplit: true
 mvnProperties:
   skipSparkTests: null
+isolatedTests:
+  - TestMetaStoreMetrics
 skippedTests:
   - TestJdbcWithLocalClusterSpark
   - TestMultiSessionsHS2WithLocalClusterSpark
   - TestSparkStatistics
   - TestReplicationScenariosAcrossInstances
   - TestReplicationScenariosAcidTables
+  - TestJdbcWithMiniHS2ErasureCoding
 ---
 dir: itests/hive-unit-hadoop2
 mvnProperties:

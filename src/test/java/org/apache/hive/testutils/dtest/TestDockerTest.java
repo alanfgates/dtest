@@ -275,9 +275,9 @@ public class TestDockerTest {
 
   @Test
   public void successfulRunAllTestsPass() {
-    Config.CONTAINER_CLIENT_FACTORY.set(SuccessfulClientFactory.class);
-    Config.CONTAINER_COMMAND_FACTORY.set(HelloWorldCommandFactory.class);
-    Config.RESULT_ANALYZER_FACTORY.set(SpyingResultAnalyzerFactory.class);
+    Config.CONTAINER_CLIENT_FACTORY.set(SuccessfulClientFactory.class.getName());
+    Config.CONTAINER_COMMAND_FACTORY.set(HelloWorldCommandFactory.class.getName());
+    Config.RESULT_ANALYZER_FACTORY.set(SpyingResultAnalyzerFactory.class.getName());
     DockerTest test = new DockerTest(out, err);
     BuildInfo build = test.parseArgs(new String[] {"-b", "successful",
                                                    "-d", System.getProperty("java.io.tmpdir"),
@@ -298,9 +298,9 @@ public class TestDockerTest {
 
   @Test
   public void successfulRunSomeTestsFail() {
-    Config.CONTAINER_CLIENT_FACTORY.set(SuccessfulWithFailingTestsClientFactory.class);
-    Config.CONTAINER_COMMAND_FACTORY.set(ItestCommandFactory.class);
-    Config.RESULT_ANALYZER_FACTORY.set(SpyingResultAnalyzerFactory.class);
+    Config.CONTAINER_CLIENT_FACTORY.set(SuccessfulWithFailingTestsClientFactory.class.getName());
+    Config.CONTAINER_COMMAND_FACTORY.set(ItestCommandFactory.class.getName());
+    Config.RESULT_ANALYZER_FACTORY.set(SpyingResultAnalyzerFactory.class.getName());
     DockerTest test = new DockerTest(out, err);
     BuildInfo build = test.parseArgs(new String[] {"-b", "successful",
                                                    "-d", System.getProperty("java.io.tmpdir"),
@@ -321,9 +321,9 @@ public class TestDockerTest {
 
   @Test
   public void timeout() {
-    Config.CONTAINER_CLIENT_FACTORY.set(TimingOutClientFactory.class);
-    Config.CONTAINER_COMMAND_FACTORY.set(HelloWorldCommandFactory.class);
-    Config.RESULT_ANALYZER_FACTORY.set(SpyingResultAnalyzerFactory.class);
+    Config.CONTAINER_CLIENT_FACTORY.set(TimingOutClientFactory.class.getName());
+    Config.CONTAINER_COMMAND_FACTORY.set(HelloWorldCommandFactory.class.getName());
+    Config.RESULT_ANALYZER_FACTORY.set(SpyingResultAnalyzerFactory.class.getName());
     DockerTest test = new DockerTest(out, err);
     BuildInfo build = test.parseArgs(new String[] {"-b", "failure",
                                                    "-d", System.getProperty("java.io.tmpdir"),
@@ -339,9 +339,9 @@ public class TestDockerTest {
 
   @Test
   public void failedRun() {
-    Config.CONTAINER_CLIENT_FACTORY.set(FailingClientFactory.class);
-    Config.CONTAINER_COMMAND_FACTORY.set(HelloWorldCommandFactory.class);
-    Config.RESULT_ANALYZER_FACTORY.set(SpyingResultAnalyzerFactory.class);
+    Config.CONTAINER_CLIENT_FACTORY.set(FailingClientFactory.class.getName());
+    Config.CONTAINER_COMMAND_FACTORY.set(HelloWorldCommandFactory.class.getName());
+    Config.RESULT_ANALYZER_FACTORY.set(SpyingResultAnalyzerFactory.class.getName());
     DockerTest test = new DockerTest(out, err);
     BuildInfo build = test.parseArgs(new String[] {"-b", "failure",
                                                    "-d", System.getProperty("java.io.tmpdir"),

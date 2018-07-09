@@ -91,6 +91,7 @@ mvnProperties:
   skipSparkTests: null
 isolatedTests:
   - TestTriggersWorkloadManager
+  - TestMetaStoreMetrics
 skippedTests:
   - TestJdbcWithLocalClusterSpark
   - TestMultiSessionsHS2WithLocalClusterSpark
