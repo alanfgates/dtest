@@ -48,7 +48,7 @@ public class HiveDockerClient extends SimpleDockerClient {
     writer.write("USER " + getUser() + "\n");
     writer.write("\n");
     writer.write("RUN { \\\n");
-    writer.write("    cd " + getUser() + "; \\\n");
+    writer.write("    cd " + getHomeDir() + "; \\\n");
     writer.write("    /usr/bin/git clone " + repo + "; \\\n");
     writer.write("    cd " + getProjectName() + "; \\\n");
     writer.write("    /usr/bin/git checkout " + branch + "; \\\n");
