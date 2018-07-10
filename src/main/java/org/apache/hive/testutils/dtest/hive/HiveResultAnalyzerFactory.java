@@ -15,15 +15,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.hive.testutils.dtest.impl;
+package org.apache.hive.testutils.dtest.hive;
 
 import org.apache.hive.testutils.dtest.ResultAnalyzer;
 import org.apache.hive.testutils.dtest.ResultAnalyzerFactory;
 
-public class SimpleAnalyzerFactory extends ResultAnalyzerFactory {
-
+public class HiveResultAnalyzerFactory extends ResultAnalyzerFactory {
   @Override
   public ResultAnalyzer getAnalyzer() {
-    return new SimpleResultAnalyzer();
+    return new HiveResultAnalyzer();
   }
 }

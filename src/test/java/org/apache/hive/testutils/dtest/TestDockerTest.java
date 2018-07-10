@@ -20,10 +20,10 @@ package org.apache.hive.testutils.dtest;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.hive.testutils.dtest.impl.ContainerResult;
 import org.apache.hive.testutils.dtest.impl.DTestLogger;
-import org.apache.hive.testutils.dtest.impl.DockerClient;
+import org.apache.hive.testutils.dtest.hive.HiveDockerClient;
 import org.apache.hive.testutils.dtest.impl.ProcessResults;
-import org.apache.hive.testutils.dtest.impl.SimpleResultAnalyzer;
-import org.apache.hive.testutils.dtest.impl.TestSimpleResultAnalyzer;
+import org.apache.hive.testutils.dtest.hive.HiveResultAnalyzer;
+import org.apache.hive.testutils.dtest.hive.TestHiveResultAnalyzer;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -71,7 +71,7 @@ public class TestDockerTest {
         public ContainerResult runContainer(long toWait, ContainerCommand cmd, DTestLogger logger) throws
             IOException {
           String logs = "Ran: " + StringUtils.join(cmd.shellCommand(), " ") +
-              TestSimpleResultAnalyzer.LOG1;
+              TestHiveResultAnalyzer.LOG1;
           return new ContainerResult(cmd, 0, logs);
         }
       };
@@ -101,7 +101,7 @@ public class TestDockerTest {
         public ContainerResult runContainer(long toWait, ContainerCommand cmd, DTestLogger logger) throws
             IOException {
           String logs = "Ran: " + StringUtils.join(cmd.shellCommand(), " ") +
-              TestSimpleResultAnalyzer.LOG2;
+              TestHiveResultAnalyzer.LOG2;
           return new ContainerResult(cmd, 0, logs);
         }
       };
@@ -131,7 +131,7 @@ public class TestDockerTest {
         public ContainerResult runContainer(long toWait, ContainerCommand cmd, DTestLogger logger) throws
             IOException {
           String logs = "Ran: " + StringUtils.join(cmd.shellCommand(), " ") +
-              TestSimpleResultAnalyzer.LOG3;
+              TestHiveResultAnalyzer.LOG3;
           return new ContainerResult(cmd, 0, logs);
         }
 
@@ -162,7 +162,7 @@ public class TestDockerTest {
         public ContainerResult runContainer(long toWait, ContainerCommand cmd, DTestLogger logger) throws
             IOException {
           String logs = "Ran: " + StringUtils.join(cmd.shellCommand(), " ") +
-              TestSimpleResultAnalyzer.LOG1;
+              TestHiveResultAnalyzer.LOG1;
           return new ContainerResult(cmd, 130, logs);
         }
       };
@@ -221,7 +221,7 @@ public class TestDockerTest {
   public static class SpyingResultAnalyzerFactory extends ResultAnalyzerFactory {
     @Override
     public ResultAnalyzer getAnalyzer() {
-      final SimpleResultAnalyzer contained = new SimpleResultAnalyzer();
+      final HiveResultAnalyzer contained = new HiveResultAnalyzer();
       return new ResultAnalyzer() {
         @Override
         public void analyzeLog(ContainerResult result) {
@@ -357,7 +357,7 @@ public class TestDockerTest {
 
   @Test
   public void successfulImageBuild() throws IOException {
-    DockerClient.checkBuildSucceeded(new ProcessResults(
+    HiveDockerClient.checkBuildSucceeded(new ProcessResults(
         "2018-04-04T11:19:45,741  INFO [Thread-1] dtest.StreamPumper: [INFO] Hive Packaging .................................... SUCCESS [1.924s]\n" +
         "2018-04-04T11:19:45,741  INFO [Thread-1] dtest.StreamPumper: [INFO] ------------------------------------------------------------------------\n" +
         "2018-04-04T11:19:45,741  INFO [Thread-1] dtest.StreamPumper: [INFO] BUILD SUCCESS\n" +
@@ -381,7 +381,7 @@ public class TestDockerTest {
 
   @Test(expected = IOException.class)
   public void imageBuildSucceededButBuildFailed() throws IOException {
-    DockerClient.checkBuildSucceeded(new ProcessResults(
+    HiveDockerClient.checkBuildSucceeded(new ProcessResults(
         "2018-04-04T11:19:45,741  INFO [Thread-1] dtest.StreamPumper: [INFO] Hive Packaging .................................... SUCCESS [1.924s]\n" +
         "2018-04-04T11:19:45,741  INFO [Thread-1] dtest.StreamPumper: [INFO] ------------------------------------------------------------------------\n" +
         "2018-04-04T11:19:45,741  INFO [Thread-1] dtest.StreamPumper: [INFO] BUILD SUCCESS\n" +
@@ -414,7 +414,7 @@ public class TestDockerTest {
 
   @Test(expected = IOException.class)
   public void imageBuildSuccessfulButBothBuildsFailed() throws IOException {
-    DockerClient.checkBuildSucceeded(new ProcessResults(
+    HiveDockerClient.checkBuildSucceeded(new ProcessResults(
         "2018-04-04T13:37:34,371  INFO [Thread-1] dtest.StreamPumper: [INFO] Hive TestUtils .................................... SKIPPED\n" +
             "2018-04-04T13:37:34,371  INFO [Thread-1] dtest.StreamPumper: [INFO] Hive Packaging .................................... SKIPPED\n" +
             "2018-04-04T13:37:34,371  INFO [Thread-1] dtest.StreamPumper: [INFO] ------------------------------------------------------------------------\n" +
@@ -437,7 +437,7 @@ public class TestDockerTest {
 
   @Test(expected = IOException.class)
   public void imageBuildFailed() throws IOException {
-    DockerClient.checkBuildSucceeded(new ProcessResults(
+    HiveDockerClient.checkBuildSucceeded(new ProcessResults(
         "2018-04-04T11:19:45,741  INFO [Thread-1] dtest.StreamPumper: [INFO] Hive Packaging .................................... SUCCESS [1.924s]\n" +
             "2018-04-04T11:19:45,741  INFO [Thread-1] dtest.StreamPumper: [INFO] ------------------------------------------------------------------------\n" +
             "2018-04-04T11:19:45,741  INFO [Thread-1] dtest.StreamPumper: [INFO] BUILD SUCCESS\n" +

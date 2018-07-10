@@ -15,21 +15,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.hive.testutils.dtest;
+package org.apache.hive.testutils.dtest.simple;
 
-import org.apache.hive.testutils.dtest.impl.Utils;
+import org.junit.Test;
 
-import java.io.IOException;
+import java.io.InvalidObjectException;
 
-public abstract class ResultAnalyzerFactory {
-
-  static ResultAnalyzerFactory get() throws IOException {
-    Class<? extends ResultAnalyzerFactory> clazz =
-        Config.RESULT_ANALYZER_FACTORY.getAsClass(ResultAnalyzerFactory.class);
-    return Utils.newInstance(clazz);
+public class TestSimpleModuleDirectory {
+  @Test(expected = InvalidObjectException.class)
+  public void splitSingle() throws InvalidObjectException {
+    SimpleModuleDirectory dir = new SimpleModuleDirectory();
+    dir.setNeedsSplit(true);
+    dir.setSingleTest("a");
+    dir.validate();
   }
-
-  public abstract ResultAnalyzer getAnalyzer();
-
 
 }

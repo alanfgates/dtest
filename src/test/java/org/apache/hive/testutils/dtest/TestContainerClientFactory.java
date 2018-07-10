@@ -19,15 +19,11 @@ package org.apache.hive.testutils.dtest;
 
 import org.apache.hive.testutils.dtest.impl.ContainerResult;
 import org.apache.hive.testutils.dtest.impl.DTestLogger;
-import org.apache.hive.testutils.dtest.impl.DockerClientFactory;
+import org.apache.hive.testutils.dtest.hive.HiveDockerClientFactory;
 import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.IOException;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.TimeUnit;
 
 public class TestContainerClientFactory {
 
@@ -57,7 +53,7 @@ public class TestContainerClientFactory {
   public void defaultFactory() throws IOException {
     Config.CONTAINER_CLIENT_FACTORY.unset();
     ContainerClientFactory factory = ContainerClientFactory.get();
-    Assert.assertEquals(DockerClientFactory.class, factory.getClass());
+    Assert.assertEquals(HiveDockerClientFactory.class, factory.getClass());
   }
 
   @Test

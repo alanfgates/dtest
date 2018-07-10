@@ -18,7 +18,6 @@
 package org.apache.hive.testutils.dtest;
 
 import org.apache.hive.testutils.dtest.impl.DTestLogger;
-import org.apache.hive.testutils.dtest.impl.MvnCommandFactory;
 import org.apache.hive.testutils.dtest.impl.Utils;
 
 import java.io.IOException;

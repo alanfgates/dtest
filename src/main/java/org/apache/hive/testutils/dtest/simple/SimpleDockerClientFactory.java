@@ -15,16 +15,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.hive.testutils.dtest.impl;
+package org.apache.hive.testutils.dtest.simple;
 
 import org.apache.hive.testutils.dtest.BuildInfo;
 import org.apache.hive.testutils.dtest.ContainerClient;
 import org.apache.hive.testutils.dtest.ContainerClientFactory;
 
-public class DockerClientFactory extends ContainerClientFactory {
-
+public class SimpleDockerClientFactory extends ContainerClientFactory {
   @Override
   public ContainerClient getClient(BuildInfo info) {
-    return new DockerClient(info);
+    return new SimpleDockerClient(info);
   }
 }

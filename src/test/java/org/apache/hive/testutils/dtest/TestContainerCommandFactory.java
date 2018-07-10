@@ -18,8 +18,7 @@
 package org.apache.hive.testutils.dtest;
 
 import org.apache.hive.testutils.dtest.impl.DTestLogger;
-import org.apache.hive.testutils.dtest.impl.MvnCommandFactory;
-import org.apache.hive.testutils.dtest.impl.YamlMvnCommandFactory;
+import org.apache.hive.testutils.dtest.hive.HiveContainerCommandFactory;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -43,7 +42,7 @@ public class TestContainerCommandFactory {
   public void defaultFactory() throws IOException {
     Config.CONTAINER_COMMAND_FACTORY.unset();
     ContainerCommandFactory factory = ContainerCommandFactory.get();
-    Assert.assertEquals(YamlMvnCommandFactory.class, factory.getClass());
+    Assert.assertEquals(HiveContainerCommandFactory.class, factory.getClass());
   }
 
   @Test

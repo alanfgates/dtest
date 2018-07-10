@@ -15,10 +15,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.hive.testutils.dtest.impl;
+package org.apache.hive.testutils.dtest.simple;
 
 import org.apache.hive.testutils.dtest.Config;
 import org.apache.hive.testutils.dtest.ContainerCommand;
+import org.apache.hive.testutils.dtest.impl.Utils;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -28,64 +29,54 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
-class MvnCommand implements ContainerCommand {
+public class SimpleContainerCommand implements ContainerCommand {
 
-  private final String baseDir; // base directory for all commands
-  private final int cmdNumber;
-  private boolean isITest;
-  private List<String> tests; // set of tests to run
-  private List<String> excludedTests; // set of tests to NOT run
-  private List<String> qfiles; // set of qfiles to run
-  private Map<String, String> envs;
-  private Map<String, String> properties; // properties to pass to maven (-DX=Y) val can be null
-  private long testTimeout;
+  protected final String baseDir; // base directory for all commands
+  protected final int cmdNumber;
+  protected List<String> tests; // set of tests to run
+  protected List<String> excludedTests; // set of tests to NOT run
+  protected Map<String, String> envs;
+  protected Map<String, String> properties; // properties to pass to maven (-DX=Y) val can be null
+  protected long testTimeout;
 
-  MvnCommand(String baseDir, int cmdNumber) {
+  public SimpleContainerCommand(String baseDir, int cmdNumber) {
     this.baseDir = baseDir;
     this.cmdNumber = cmdNumber;
     tests = new ArrayList<>();
     excludedTests = new ArrayList<>();
-    qfiles = new ArrayList<>();
     envs = new HashMap<>();
     properties = new HashMap<>();
     testTimeout = Config.TEST_RUN_TIME.getAsTime(TimeUnit.SECONDS);
-    isITest = false;
   }
 
-  void addTest(String test) {
+  public void addTest(String test) {
     tests.add(test);
   }
 
-  void excludeTests(String[] toExclude) {
+  public void excludeTests(String[] toExclude) {
     Collections.addAll(excludedTests, toExclude);
   }
 
-  void addQfile(String qfile) {
-    qfiles.add(qfile);
-    isITest = true;
-  }
-
-  void setEnv(String envVar, String value) {
+  public void setEnv(String envVar, String value) {
     envs.put(envVar, value);
   }
 
-  void addEnvs(Map<String, String> envs) {
+  public void addEnvs(Map<String, String> envs) {
     this.envs.putAll(envs);
   }
 
-  void addProperties(Map<String, String> props) {
+  public void addProperties(Map<String, String> props) {
     properties.putAll(props);
   }
 
   @Override
   public String containerSuffix() {
-    return (isITest ? "itest" : "unittest") + "-" + cmdNumber;
+    return "unittest-" + cmdNumber;
   }
 
   @Override
   public String[] shellCommand() {
-    if (isITest) assert tests.size() == 1;
-    return Utils.shellCmdInRoot(baseDir, new MvnCommandSupplier());
+    return Utils.shellCmdInRoot(baseDir, new SimpleMvnCommandSupplier());
   }
 
   @Override
@@ -93,7 +84,7 @@ class MvnCommand implements ContainerCommand {
     return baseDir;
   }
 
-  private class MvnCommandSupplier implements Supplier<String> {
+  private class SimpleMvnCommandSupplier implements Supplier<String> {
     public String get() {
       StringBuilder buf = new StringBuilder();
       for (Map.Entry<String, String> e : envs.entrySet()) {
@@ -113,15 +104,6 @@ class MvnCommand implements ContainerCommand {
           if (first) first = false;
           else buf.append(',');
           buf.append(test);
-        }
-        if (isITest) {
-          buf.append(" -Dqfile=");
-          first = true;
-          for (String qfile : qfiles) {
-            if (first) first = false;
-            else buf.append(',');
-            buf.append(qfile.trim());
-          }
         }
       }
       if (!excludedTests.isEmpty()) {

@@ -18,32 +18,30 @@
 package org.apache.hive.testutils.dtest;
 
 import com.google.common.annotations.VisibleForTesting;
-import org.apache.hive.testutils.dtest.impl.DockerClientFactory;
-import org.apache.hive.testutils.dtest.impl.SimpleAnalyzerFactory;
+import org.apache.hive.testutils.dtest.hive.HiveDockerClientFactory;
+import org.apache.hive.testutils.dtest.simple.SimpleResultAnalyzerFactory;
 import org.apache.hive.testutils.dtest.impl.TimeInterval;
 import org.apache.hive.testutils.dtest.impl.Utils;
-import org.apache.hive.testutils.dtest.impl.YamlMvnCommandFactory;
+import org.apache.hive.testutils.dtest.hive.HiveContainerCommandFactory;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.Map;
-import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
 import static org.apache.hive.testutils.dtest.DockerTest.DTEST_HOME;
 
 public enum Config {
   // Implementation of ContainerClientFactory
-  CONTAINER_CLIENT_FACTORY("dtest.container.client.factory", DockerClientFactory.class.getName()),
+  CONTAINER_CLIENT_FACTORY("dtest.container.client.factory", HiveDockerClientFactory.class.getName()),
   // Implementation of ContainerCommandFactory
-  CONTAINER_COMMAND_FACTORY("dtest.container.command.factory", YamlMvnCommandFactory.class.getName()),
+  CONTAINER_COMMAND_FACTORY("dtest.container.command.factory", HiveContainerCommandFactory.class.getName()),
   // Maximum amount of time to wait for container to run
   CONTAINER_RUN_TIME("dtest.container.run.time", "3", TimeUnit.HOURS.name()),
   // Maximum amount of time to wait for image to build
   IMAGE_BUILD_TIME("dtest.image.build.time", "30", TimeUnit.MINUTES.name()),
   // Implementation of ResultAnalyzerFactory
-  RESULT_ANALYZER_FACTORY("dtest.result.analyzer.factory", SimpleAnalyzerFactory.class.getName()),
+  RESULT_ANALYZER_FACTORY("dtest.result.analyzer.factory", SimpleResultAnalyzerFactory.class.getName()),
   // Maximum amount of time to wait for a test to run
   TEST_RUN_TIME("dtest.test.run.time", "90", TimeUnit.MINUTES.name()),
   // Number of tests to run per container

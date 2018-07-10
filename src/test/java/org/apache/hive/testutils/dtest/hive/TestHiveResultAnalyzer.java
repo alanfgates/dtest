@@ -1,12 +1,12 @@
-package org.apache.hive.testutils.dtest.impl;
+package org.apache.hive.testutils.dtest.hive;
 
 import org.apache.hive.testutils.dtest.ContainerCommand;
+import org.apache.hive.testutils.dtest.hive.HiveResultAnalyzer;
+import org.apache.hive.testutils.dtest.impl.ContainerResult;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.util.Collections;
 import java.util.Iterator;
-import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
@@ -27,7 +27,7 @@ import java.util.TreeSet;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-public class TestSimpleResultAnalyzer {
+public class TestHiveResultAnalyzer {
 
   private static class SimpleContainerCommand implements ContainerCommand {
     private final String name;
@@ -56,7 +56,7 @@ public class TestSimpleResultAnalyzer {
 
   @Test
   public void unitTestLog() {
-    SimpleResultAnalyzer analyzer = new SimpleResultAnalyzer();
+    HiveResultAnalyzer analyzer = new HiveResultAnalyzer();
     ContainerResult cr = new ContainerResult(new SimpleContainerCommand("hive-dtest-1_unittests-hive-unit",
         "/Users/gates/git/hive/itests/hive-unit") , 0, LOG1);
     analyzer.analyzeLog(cr);
@@ -79,7 +79,7 @@ public class TestSimpleResultAnalyzer {
 
   @Test
   public void qtestLog() {
-    SimpleResultAnalyzer analyzer = new SimpleResultAnalyzer();
+    HiveResultAnalyzer analyzer = new HiveResultAnalyzer();
     ContainerResult cr = new ContainerResult(new SimpleContainerCommand(
         "hive-dtest-1_itests-qtest_TestNegativeCliDriver_a_LF_a-t_RT_._S_",
         "/Users/gates/git/hive/itests/qtest"), 1, LOG2);
@@ -101,7 +101,7 @@ public class TestSimpleResultAnalyzer {
 
   @Test
   public void timeoutLog() {
-    SimpleResultAnalyzer analyzer = new SimpleResultAnalyzer();
+    HiveResultAnalyzer analyzer = new HiveResultAnalyzer();
     analyzer.analyzeLog(new ContainerResult(new SimpleContainerCommand("bla", "bla"), 0, LOG3));
     Assert.assertTrue(analyzer.hadTimeouts());
     Assert.assertTrue(analyzer.runSucceeded());
@@ -109,7 +109,7 @@ public class TestSimpleResultAnalyzer {
 
   @Test
   public void failedRun() {
-    SimpleResultAnalyzer analyzer = new SimpleResultAnalyzer();
+    HiveResultAnalyzer analyzer = new HiveResultAnalyzer();
     analyzer.analyzeLog(new ContainerResult(new SimpleContainerCommand(
         "hive-dtest-1_itests-qtest_TestNegativeCliDriver_a_LF_a-t_RT_._S_",
         "/Users/gates/git/hive/itests/qtest"), 2, LOG2));

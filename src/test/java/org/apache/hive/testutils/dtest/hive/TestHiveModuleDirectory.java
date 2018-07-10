@@ -15,32 +15,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.hive.testutils.dtest.impl;
+package org.apache.hive.testutils.dtest.hive;
 
+import org.apache.hive.testutils.dtest.hive.HiveModuleDirectory;
 import org.junit.Test;
 
 import java.io.InvalidObjectException;
 
-public class TestModuleDirectory {
-
-  @Test(expected = InvalidObjectException.class)
-  public void splitSingle() throws InvalidObjectException {
-    ModuleDirectory dir = new ModuleDirectory();
-    dir.setNeedsSplit(true);
-    dir.setSingleTest("a");
-    dir.validate();
-  }
+public class TestHiveModuleDirectory {
 
   @Test(expected = InvalidObjectException.class)
   public void qfilesNonSingle() throws InvalidObjectException {
-    ModuleDirectory dir = new ModuleDirectory();
+    HiveModuleDirectory dir = new HiveModuleDirectory();
     dir.setQFiles(new String[] {"a", "b"});
     dir.validate();
   }
 
   @Test(expected = InvalidObjectException.class)
   public void qfilesAndQFilesDir() throws InvalidObjectException {
-    ModuleDirectory dir = new ModuleDirectory();
+    HiveModuleDirectory dir = new HiveModuleDirectory();
     dir.setQFiles(new String[] {"a", "b"});
     dir.setQFilesDir("a");
     dir.validate();
@@ -48,7 +41,7 @@ public class TestModuleDirectory {
 
   @Test(expected = InvalidObjectException.class)
   public void qfilesAndQFilesProperties() throws InvalidObjectException {
-    ModuleDirectory dir = new ModuleDirectory();
+    HiveModuleDirectory dir = new HiveModuleDirectory();
     dir.setQFiles(new String[] {"a", "b"});
     dir.setQFilesProperties(new String[] {"a", "b"});
     dir.validate();
@@ -56,7 +49,7 @@ public class TestModuleDirectory {
 
   @Test(expected = InvalidObjectException.class)
   public void qfilesPropertiesAndQFilesDir() throws InvalidObjectException {
-    ModuleDirectory dir = new ModuleDirectory();
+    HiveModuleDirectory dir = new HiveModuleDirectory();
     dir.setQFilesProperties(new String[] {"a", "b"});
     dir.setQFilesDir("a");
     dir.validate();

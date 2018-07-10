@@ -17,7 +17,6 @@
  */
 package org.apache.hive.testutils.dtest;
 
-import org.apache.hive.testutils.dtest.impl.DockerClientFactory;
 import org.apache.hive.testutils.dtest.impl.Utils;
 
 import java.io.IOException;

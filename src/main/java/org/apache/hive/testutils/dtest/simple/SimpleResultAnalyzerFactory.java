@@ -15,21 +15,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.hive.testutils.dtest;
+package org.apache.hive.testutils.dtest.simple;
 
-import org.apache.hive.testutils.dtest.impl.Utils;
+import org.apache.hive.testutils.dtest.ResultAnalyzer;
+import org.apache.hive.testutils.dtest.ResultAnalyzerFactory;
 
-import java.io.IOException;
+public class SimpleResultAnalyzerFactory extends ResultAnalyzerFactory {
 
-public abstract class ResultAnalyzerFactory {
-
-  static ResultAnalyzerFactory get() throws IOException {
-    Class<? extends ResultAnalyzerFactory> clazz =
-        Config.RESULT_ANALYZER_FACTORY.getAsClass(ResultAnalyzerFactory.class);
-    return Utils.newInstance(clazz);
+  @Override
+  public ResultAnalyzer getAnalyzer() {
+    return new SimpleResultAnalyzer();
   }
-
-  public abstract ResultAnalyzer getAnalyzer();
-
-
 }

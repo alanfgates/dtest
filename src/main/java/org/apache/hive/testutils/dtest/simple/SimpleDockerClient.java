@@ -15,12 +15,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.hive.testutils.dtest.impl;
+package org.apache.hive.testutils.dtest.simple;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.hive.testutils.dtest.BuildInfo;
 import org.apache.hive.testutils.dtest.ContainerClient;
 import org.apache.hive.testutils.dtest.ContainerCommand;
+import org.apache.hive.testutils.dtest.impl.ContainerResult;
+import org.apache.hive.testutils.dtest.impl.DTestLogger;
+import org.apache.hive.testutils.dtest.impl.ProcessResults;
+import org.apache.hive.testutils.dtest.impl.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,25 +34,21 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-@VisibleForTesting
-public class DockerClient implements ContainerClient {
-  private static final Logger LOG = LoggerFactory.getLogger(DockerClient.class);
+public class SimpleDockerClient implements ContainerClient {
+  private static final Logger LOG = LoggerFactory.getLogger(SimpleDockerClient.class);
   private static final String IMAGE_BASE = "dtest-image-";
   private static final Pattern IMAGE_SUCCESS = Pattern.compile("BUILD SUCCESS");
   private static final Pattern USING_CACHE = Pattern.compile("Using cache");
   private static final String BUILD_CONTAINER_NAME = "image_build";
-  static final String USER = "dtestuser";
-  private static final String HOME_DIR = File.separator + "home" + File.separator + USER;
 
   private final String label;
   private final String imageName;
   private boolean shouldCleanupAfter;
 
-  DockerClient(BuildInfo info) {
+  public SimpleDockerClient(BuildInfo info) {
     this.label = info.getLabel();
     imageName = IMAGE_BASE + label;
     shouldCleanupAfter = info.shouldCleanupAfter();
@@ -56,12 +56,11 @@ public class DockerClient implements ContainerClient {
 
   @Override
   public String getContainerBaseDir() {
-    return HOME_DIR + File.separator + "hive";
+    return getHomeDir() + File.separator + getProjectName();
   }
 
   @Override
   public void defineImage(String dir, String repo, String branch, String label) throws IOException {
-    if (label == null) label = UUID.randomUUID().toString();
     FileWriter writer = new FileWriter(dir + File.separatorChar + "Dockerfile");
     writer.write("FROM centos\n");
     writer.write("\n");
@@ -69,19 +68,16 @@ public class DockerClient implements ContainerClient {
     writer.write("    yum update -y && \\\n");
     writer.write("    yum install -y java-1.8.0-openjdk-devel unzip git maven\n");
     writer.write("\n");
-    writer.write("RUN useradd -m " + USER + "\n");
+    writer.write("RUN useradd -m " + getUser() + "\n");
     writer.write("\n");
-    writer.write("USER " + USER + "\n");
+    writer.write("USER " + getUser() + "\n");
     writer.write("\n");
     writer.write("RUN { \\\n");
-    writer.write("    cd " + HOME_DIR + "; \\\n");
+    writer.write("    cd " + getHomeDir() + "; \\\n");
     writer.write("    /usr/bin/git clone " + repo + "; \\\n");
-    writer.write("    cd hive; \\\n");
+    writer.write("    cd " + getProjectName() + "; \\\n");
     writer.write("    /usr/bin/git checkout " + branch + "; \\\n");
-    writer.write("    /usr/bin/mvn install -Dtest=TestMetastoreConf; \\\n"); // Need a quick test
-    // that actually runs so it downloads the surefire jar from maven
-    writer.write("    cd itests; \\\n");
-    writer.write("    /usr/bin/mvn install -DskipSparkTests -DskipTests; \\\n");
+    writer.write("    /usr/bin/mvn install -DskipTests; \\\n"); // Need a quick test
     writer.write("    echo This build is labeled " + label + "; \\\n");
     writer.write("}\n");
     writer.close();
@@ -157,5 +153,17 @@ public class DockerClient implements ContainerClient {
     } else {
       LOG.info("Skipping cleanup of image " + imageName + " since no-cleanup is set");
     }
+  }
+
+  protected String getUser() {
+    return "dtestuser";
+  }
+
+  protected String getHomeDir() {
+    return "~" + getUser();
+  }
+
+  protected String getProjectName() {
+    return "dtest";
   }
 }

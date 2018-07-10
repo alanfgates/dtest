@@ -15,21 +15,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.hive.testutils.dtest;
+package org.apache.hive.testutils.dtest.hive;
 
-import org.apache.hive.testutils.dtest.impl.Utils;
+import org.apache.hive.testutils.dtest.BuildInfo;
+import org.apache.hive.testutils.dtest.ContainerClient;
+import org.apache.hive.testutils.dtest.ContainerClientFactory;
+import org.apache.hive.testutils.dtest.hive.HiveDockerClient;
 
-import java.io.IOException;
+public class HiveDockerClientFactory extends ContainerClientFactory {
 
-public abstract class ResultAnalyzerFactory {
-
-  static ResultAnalyzerFactory get() throws IOException {
-    Class<? extends ResultAnalyzerFactory> clazz =
-        Config.RESULT_ANALYZER_FACTORY.getAsClass(ResultAnalyzerFactory.class);
-    return Utils.newInstance(clazz);
+  @Override
+  public ContainerClient getClient(BuildInfo info) {
+    return new HiveDockerClient(info);
   }
-
-  public abstract ResultAnalyzer getAnalyzer();
-
-
 }

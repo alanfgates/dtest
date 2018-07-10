@@ -15,10 +15,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.hive.testutils.dtest.impl;
+package org.apache.hive.testutils.dtest.simple;
 
-import com.google.common.annotations.VisibleForTesting;
 import org.apache.hive.testutils.dtest.ResultAnalyzer;
+import org.apache.hive.testutils.dtest.impl.ContainerResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,7 +29,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-@VisibleForTesting
 public class SimpleResultAnalyzer implements ResultAnalyzer {
   private static final Logger LOG = LoggerFactory.getLogger(SimpleResultAnalyzer.class);
 
@@ -42,11 +41,8 @@ public class SimpleResultAnalyzer implements ResultAnalyzer {
   private final Pattern errorLine;
   private final Pattern unitTestError;
   private final Pattern unitTestFailure;
-  private final Pattern qTestError;
-  private final Pattern qTestFailure;
   private final Pattern timeout;
 
-  @VisibleForTesting
   public SimpleResultAnalyzer() {
     // Access to these does not need to be synchronized because they only go from start state to
     // the opposite state (eg hadTimeouts starts at false and can move to true, but can never
@@ -65,10 +61,6 @@ public class SimpleResultAnalyzer implements ResultAnalyzer {
         Pattern.compile("\\[ERROR\\] ([A-Za-z0-9_]+).*\\.(Test[A-Za-z0-9_]+).*ERROR!");
     unitTestFailure =
         Pattern.compile("\\[ERROR\\] ([A-Za-z0-9_]+).*\\.(Test[A-Za-z0-9_]+).*FAILURE!");
-    qTestFailure =
-        Pattern.compile("\\[ERROR\\] testCliDriver\\[([A-Za-z0-9_]+)\\].*\\.(Test[A-Za-z0-9_]+).*FAILURE!");
-    qTestError =
-        Pattern.compile("\\[ERROR\\] testCliDriver\\[([A-Za-z0-9_]+)\\].*\\.(Test[A-Za-z0-9_]+).*ERROR!");
     timeout =
         Pattern.compile("\\[ERROR\\] Failed to execute goal .* There was a timeout or other error in the fork.*");
   }
@@ -94,7 +86,11 @@ public class SimpleResultAnalyzer implements ResultAnalyzer {
   public void analyzeLog(ContainerResult result) {
     String[] lines = result.getLogs().split("\n");
     boolean sawTimeout = false;
-    for (String line : lines) sawTimeout |= analyzeLogLine(result, line);
+    for (String line : lines) {
+      count(line, successLine);
+      count(line, errorLine);
+      sawTimeout |= analyzeLogLine(result, line);
+    }
     if (sawTimeout) {
       hadTimeouts = true;
       result.setAnalysisResult(ContainerResult.ContainerStatus.TIMED_OUT);
@@ -117,24 +113,18 @@ public class SimpleResultAnalyzer implements ResultAnalyzer {
   }
 
   // Returns true if it sees a timeout
-  private boolean analyzeLogLine(ContainerResult result, String line) {
-    count(line, successLine);
-    count(line, errorLine);
-    // Look first to see if it matches the qtest pattern, if not use the more general pattern.
-    if (!findErrorsAndFailures(result, line, qTestError, qTestFailure)) {
-      // Ok, now see if it matches the unit test pattern
-      if (!findErrorsAndFailures(result, line, unitTestError, unitTestFailure)) {
-        // Finally, look for timeouts
-        Matcher m = timeout.matcher(line);
-        if (m.matches()) {
-          return true;
-        }
+  protected boolean analyzeLogLine(ContainerResult result, String line) {
+    if (!findErrorsAndFailures(result, line, unitTestError, unitTestFailure)) {
+      // Finally, look for timeouts
+      Matcher m = timeout.matcher(line);
+      if (m.matches()) {
+        return true;
       }
     }
     return false;
   }
 
-  private void count(String line, Pattern pattern) {
+  protected void count(String line, Pattern pattern) {
     Matcher m = pattern.matcher(line);
     if (m.matches()) {
       int total = Integer.parseInt(m.group(1));
@@ -144,7 +134,7 @@ public class SimpleResultAnalyzer implements ResultAnalyzer {
     }
   }
 
-  private boolean findErrorsAndFailures(ContainerResult result, String line, Pattern error,
+  protected boolean findErrorsAndFailures(ContainerResult result, String line, Pattern error,
                                         Pattern failure) {
     Matcher errorLine = error.matcher(line);
     if (errorLine.matches()) {
@@ -165,7 +155,7 @@ public class SimpleResultAnalyzer implements ResultAnalyzer {
   }
 
   private void findLogFiles(ContainerResult result, String line, String testName) {
-    Pattern p = Pattern.compile(".*(org\\.apache\\..*\\." + testName + ").*");
+    Pattern p = Pattern.compile(".*(" + getTestClassPrefix() + testName + ").*");
     Matcher m = p.matcher(line);
     if (!m.matches()) {
       throw new RuntimeException("Failed to find the full name of the failed test.");
@@ -174,5 +164,9 @@ public class SimpleResultAnalyzer implements ResultAnalyzer {
     result.addLogFileToFetch(result.getCmd().containerDirectory() + "/target/tmp/log/hive.log");
     result.addLogFileToFetch(result.getCmd().containerDirectory() + "/target/surefire-reports/" + m.group(1) + ".txt");
     result.addLogFileToFetch(result.getCmd().containerDirectory() + "/target/surefire-reports/" + m.group(1) + "-output.txt");
+  }
+
+  protected String getTestClassPrefix() {
+    return "org\\.dtest\\.";
   }
 }

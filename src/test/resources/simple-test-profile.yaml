@@ -1,0 +1,24 @@
+---
+dir: beeline
+---
+dir: cli
+skippedTests:
+  - TestCliDriverMethods
+---
+dir: standalone-metastore
+needsSplit: true
+mvnProperties:
+  test.groups: '""'
+---
+dir: ql
+needsSplit: true
+testsPerContainer: 4
+skippedTests:
+  - TestWorker
+isolatedTests:
+  - TestCleaner2
+---
+dir: itests/qtest
+singleTest: TestContribCliDriver
+mvnProperties:
+  skipSparkTests: null

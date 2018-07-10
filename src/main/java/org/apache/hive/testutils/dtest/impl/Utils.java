@@ -82,7 +82,7 @@ public class Utils {
    *                     directories and should assume that it runs in the container root.
    * @return arguments for an exec call.
    */
-  static String[] shellCmdInRoot(String dir, Supplier<String> cmdGenerator) {
+  public static String[] shellCmdInRoot(String dir, Supplier<String> cmdGenerator) {
     String[] cmd = new String[3];
     cmd[0] = "/bin/bash";
     cmd[1] = "-c";
@@ -90,7 +90,14 @@ public class Utils {
     return cmd;
   }
 
-  static String buildContainerName(String label, String name) {
+  /**
+   * Build the name of the container.  This should always be used when naming a container to make
+   * sure you name it correctly.
+   * @param label label of this build
+   * @param name unique name for this container
+   * @return the container name
+   */
+  public static String buildContainerName(String label, String name) {
     return CONTAINER_BASE + label + "_" + name;
   }
 
