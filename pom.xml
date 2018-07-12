@@ -61,18 +61,6 @@ limitations under the License.
       <artifactId>log4j-slf4j-impl</artifactId>
       <version>${log4j2.version}</version>
     </dependency>
-    <!--
-  <dependency>
-    <groupId>org.apache.logging.log4j</groupId>
-    <artifactId>log4j-1.2-api</artifactId>
-    <version>${log4j2.version}</version>
-  </dependency>
-  <dependency>
-    <groupId>org.slf4j</groupId>
-    <artifactId>slf4j-api</artifactId>
-    <version>${slf4j.version}</version>
-  </dependency>
--->
     <dependency>
       <groupId>junit</groupId>
         <artifactId>junit</artifactId>
@@ -105,6 +93,7 @@ limitations under the License.
             <DTEST_HOME>${project.build.directory}</DTEST_HOME>
           </environmentVariables>
           <reuseForks>false</reuseForks>
+          <failIfNoTests>false</failIfNoTests>
         </configuration>
       </plugin>
     </plugins>

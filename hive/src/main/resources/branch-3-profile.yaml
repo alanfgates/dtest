@@ -117,7 +117,7 @@ mvnProperties:
 ---
 dir: itests/qtest
 singleTest: TestBeeLineDriver
-qfilesProperties:
+includedQFilesProperties:
   - beeline.positive.include
 mvnProperties:
   skipSparkTests: null
@@ -140,11 +140,11 @@ mvnProperties:
 dir: itests/qtest
 singleTest: TestMiniDruidCliDriver
 testsPerContainer: 5
-qfilesProperties:
+includedQFilesProperties:
   - druid.query.files
 mvnProperties:
   skipSparkTests: null
-skippedQFiles:
+excludedQFiles:
   - druidkafkamini_basic.q
 ---
 dir: itests/qtest
@@ -164,19 +164,31 @@ mvnProperties:
 dir: itests/qtest
 singleTest: TestCliDriver
 qfilesDir: ql/src/test/queries/clientpositive
+excludedQFilesProperties:
+  - minillap.query.files
+  - minillaplocal.query.files
+  - minimr.query.files
+  - minitez.query.files
+  - encrypted.query.files
+  - spark.only.query.files
+  - miniSparkOnYarn.only.query.files
+  - disabled.query.files
+  - localSpark.only.query.files
+  - druid.query.files
 isolatedQFiles:
   - authorization_show_grant.q
-skippedQFiles:
+excludedQFiles:
   - masking_5.q
   - orc_merge10.q
+  - fouter_join_ppr.q # Disabled in HIVE-19509
 mvnProperties:
   skipSparkTests: null
 ---
 dir: itests/qtest
 singleTest: TestEncryptedHDFSCliDriver
-qfilesProperties:
+includedQFilesProperties:
   - encrypted.query.files
-skippedQFiles:
+excludedQFiles:
   - encryption_with_trash.q
 mvnProperties:
   skipSparkTests: null
@@ -184,6 +196,12 @@ mvnProperties:
 dir: itests/qtest
 singleTest: TestNegativeCliDriver
 qfilesDir: ql/src/test/queries/clientnegative
+excludedQFilesProperties:
+  - minimr.query.negative.files
+excludedQFiles:
+  - authorization_uri_import.q
+  - spark_job_max_tasks.q
+  - spark_stage_max_tasks.q
 mvnProperties:
   skipSparkTests: null
 ---
@@ -195,15 +213,18 @@ mvnProperties:
 ---
 dir: itests/qtest
 singleTest: TestMiniTezCliDriver
-qfilesProperties:
+includedQFilesProperties:
   - minitez.query.files
   - minitez.query.files.shared
+excludedQFilesProperties:
+  - minillap.query.files
+  - minillap.shared.query.files
 mvnProperties:
   skipSparkTests: null
 ---
 dir: itests/qtest
 singleTest: TestMiniLlapCliDriver
-qfilesProperties:
+includedQFilesProperties:
   - minillap.query.files
   - minillap.shared.query.files
 env:
@@ -213,11 +234,18 @@ mvnProperties:
 ---
 dir: itests/qtest
 singleTest: TestMiniLlapLocalCliDriver
-qfilesProperties:
+includedQFilesProperties:
   - minillaplocal.query.files
   - minillaplocal.shared.query.files
-skippedQFiles:
+excludedQFiles:
   - vector_udf_inline.q
+  - bucket_map_join_tez1.q             # Disabled in HIVE-19509
+  - special_character_in_tabnames_1.q  # Disabled in HIVE-19509
+  - sysdb.q                            # Disabled in HIVE-19509
+  - tez_smb_1.q                        # Disabled in HIVE-19509
+  - union_fast_stats.q                 # Disabled in HIVE-19509
+  - schema_evol_orc_acidvec_part.q     # Disabled in HIVE-19509
+  - schema_evol_orc_vec_part_llap_io.q # Disabled in HIVE-19509
 env:
   USER: dtestuser
 mvnProperties:

@@ -25,9 +25,11 @@ mvnProperties:
 ---
 dir: itests/qtest
 singleTest: TestMiniLlapLocalCliDriver
-qfilesProperties:
+includedQFilesProperties:
   - minillap.query.files
   - minillap.shared.query.files
+excludedQFilesProperties:
+  - minitez.query.files
 env:
   USER: dtestuser
 mvnProperties:
@@ -39,7 +41,11 @@ qfilesDir: ql/src/test/queries/clientpositive
 testsPerContainer: 4
 isolatedQFiles:
   - authorization_show_grant.q
-skippedQFiles:
+excludedQFilesProperties:
+  - minillap.query.files
+  - minillap.shared.query.files
+  - minitez.query.files
+excludedQFiles:
   - masking_5.q
   - orc_merge10.q
 mvnProperties:

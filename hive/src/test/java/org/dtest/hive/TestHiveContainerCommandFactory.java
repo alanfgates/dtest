@@ -58,9 +58,11 @@ public class TestHiveContainerCommandFactory {
     mDir = mDirs.get(5);
     Assert.assertEquals("itests/qtest", mDir.getDir());
     Assert.assertEquals("TestMiniLlapLocalCliDriver", mDir.getSingleTest());
-    Assert.assertEquals(2, mDir.getQFilesProperties().length);
-    Assert.assertEquals("minillap.query.files", mDir.getQFilesProperties()[0]);
-    Assert.assertEquals("minillap.shared.query.files", mDir.getQFilesProperties()[1]);
+    Assert.assertEquals(2, mDir.getIncludedQFilesProperties().length);
+    Assert.assertEquals("minillap.query.files", mDir.getIncludedQFilesProperties()[0]);
+    Assert.assertEquals("minillap.shared.query.files", mDir.getIncludedQFilesProperties()[1]);
+    Assert.assertEquals(1, mDir.getExcludedQFilesProperties().length);
+    Assert.assertEquals("minitez.query.files", mDir.getExcludedQFilesProperties()[0]);
     Assert.assertEquals(1, mDir.getEnv().size());
     Assert.assertEquals("dtestuser", mDir.getEnv().get("USER"));
     Assert.assertEquals(1, mDir.getMvnProperties().size());
@@ -72,9 +74,13 @@ public class TestHiveContainerCommandFactory {
     Assert.assertEquals(4, mDir.getTestsPerContainer());
     Assert.assertEquals(1, mDir.getIsolatedQFiles().length);
     Assert.assertEquals("authorization_show_grant.q", mDir.getIsolatedQFiles()[0]);
-    Assert.assertEquals(2, mDir.getSkippedQFiles().length);
-    Assert.assertEquals("masking_5.q", mDir.getSkippedQFiles()[0]);
-    Assert.assertEquals("orc_merge10.q", mDir.getSkippedQFiles()[1]);
+    Assert.assertEquals(3, mDir.getExcludedQFilesProperties().length);
+    Assert.assertEquals("minillap.query.files", mDir.getExcludedQFilesProperties()[0]);
+    Assert.assertEquals("minillap.shared.query.files", mDir.getExcludedQFilesProperties()[1]);
+    Assert.assertEquals("minitez.query.files", mDir.getExcludedQFilesProperties()[2]);
+    Assert.assertEquals(2, mDir.getExcludedQFiles().length);
+    Assert.assertEquals("masking_5.q", mDir.getExcludedQFiles()[0]);
+    Assert.assertEquals("orc_merge10.q", mDir.getExcludedQFiles()[1]);
   }
 
   @Test
@@ -136,7 +142,10 @@ public class TestHiveContainerCommandFactory {
         return new ContainerResult(cmd, 0, "minillap.query.files=acid_bucket_pruning.q,\\\n" +
             "  bucket6.q\n" +
             "minillap.shared.query.files=insert_into1.q,\\\n" +
-            " llapdecider.q\n");
+            " llapdecider.q\n" +
+            "minitez.query.files=acid_vectorization_original_tez.q,\\\n" +
+            "  explainuser_3.q,\\\n" +
+            "  explainanalyze_1.q");
       } else if (shellCmd.contains("standalone-metastore") && shellCmd.contains("find")) {
         return new ContainerResult(cmd, 0, "standalone-metastore/src/test/java//org/apache/hadoop/hive/metastore/TestRetriesInRetryingHMSHandler.java\n" +
             "standalone-metastore/src/test/java//org/apache/hadoop/hive/metastore/TestRetryingHMSHandler.java\n" +
@@ -158,13 +167,16 @@ public class TestHiveContainerCommandFactory {
             "ql/src/test/org/apache/hadoop/hive/ql/txn//compactor/TestWorker.java\n" +
             "ql/src/test/org/apache/hadoop/hive/ql/txn//compactor/TestWorker2.java\n");
       } else if (shellCmd.contains("find") && shellCmd.contains("clientpositive")) {
-        return new ContainerResult(cmd, 0, "ql/src/test/queries/clientpositive//authorization_show_grant.q\n" +
-            "ql/src/test/queries/clientpositive//masking_5.q\n" +
-            "ql/src/test/queries/clientpositive//masking_6.q\n" +
-            "ql/src/test/queries/clientpositive//masking_7.q\n" +
-            "ql/src/test/queries/clientpositive//masking_8.q\n" +
-            "ql/src/test/queries/clientpositive//masking_9.q\n" +
-            "ql/src/test/queries/clientpositive//masking_acid_no_masking.q\n");
+        return new ContainerResult(cmd, 0, "ql/src/test/queries/clientpositive/authorization_show_grant.q\n" +
+            "ql/src/test/queries/clientpositive/masking_5.q\n" +
+            "ql/src/test/queries/clientpositive/masking_6.q\n" +
+            "ql/src/test/queries/clientpositive/masking_7.q\n" +
+            "ql/src/test/queries/clientpositive/masking_8.q\n" +
+            "ql/src/test/queries/clientpositive/masking_9.q\n" +
+            "ql/src/test/queries/clientpositive/masking_acid_no_masking.q\n" +
+            "ql/src/test/queries/clientpositive/acid_vectorization_original_tez.q\n" +
+            "ql/src/test/queries/clientpositive/explainuser_3.q\n" +
+            "ql/src/test/queries/clientpositive/explainanalyze_1.q\n");
       } else {
         throw new RuntimeException("Unexpected cmd " + shellCmd);
       }

@@ -23,13 +23,18 @@ import java.io.InvalidObjectException;
  * A container for information about tests to be run in a maven module.
  */
 public class HiveModuleDirectory extends SimpleModuleDirectory {
-  private String[] qFiles;             // list of qfiles to run
-  private String[] skippedQFiles;      // list of qfiles to skip
-  private String[] qFilesProperties;   // if set, the list of qfiles will be determined by
-                                       // reading the testconfigurations.properties file
-                                       // more than one property can be read from the file
-  private String   qFilesDir;          // if set, all qfiles in this directory will be used
-  private String[] isolatedQFiles;     // Any qfiles that need to be run alone
+  private String[] qFiles;                   // list of qfiles to run
+  private String[] excludedQFiles;           // list of qfiles to exclude
+  private String[] includedQFilesProperties; // if set, the list of included qfiles will be
+                                             // determined by reading the testconfigurations
+                                             // .properties file more than one property can be
+                                             // read from the file
+  private String[] excludedQFilesProperties; // if set, the list of excluded qfiles will be
+                                             // determined by reading the testconfigurations
+                                             // .properties file more than one property can be
+                                             // read from the file
+  private String   qFilesDir;                // if set, all qfiles in this directory will be used
+  private String[] isolatedQFiles;           // Any qfiles that need to be run alone
 
   public String[] getQFiles() {
     return qFiles;
@@ -37,35 +42,47 @@ public class HiveModuleDirectory extends SimpleModuleDirectory {
 
   // If this can get qfile in any way, this will return true
   public boolean hasQFiles() {
-    return qFiles != null || qFilesDir != null || qFilesProperties != null;
+    return qFiles != null || qFilesDir != null || includedQFilesProperties != null;
   }
 
   public void setQFiles(String[] qFiles) {
     this.qFiles = qFiles;
   }
 
-  public String[] getSkippedQFiles() {
-    return skippedQFiles;
+  public String[] getExcludedQFiles() {
+    return excludedQFiles;
   }
 
-  public boolean isSetSkippedQFiles() {
-    return skippedQFiles != null;
+  public boolean isSetExcludedQFiles() {
+    return excludedQFiles != null;
   }
 
-  public void setSkippedQFiles(String[] skippedQFiles) {
-    this.skippedQFiles = skippedQFiles;
+  public void setExcludedQFiles(String[] skippedQFiles) {
+    this.excludedQFiles = skippedQFiles;
   }
 
-  public String[] getQFilesProperties() {
-    return qFilesProperties;
+  public String[] getIncludedQFilesProperties() {
+    return includedQFilesProperties;
   }
 
-  public boolean isSetQFilesProperties() {
-    return qFilesProperties != null;
+  public boolean isSetIncludedQFilesProperties() {
+    return includedQFilesProperties != null;
   }
 
-  public void setQFilesProperties(String[] qFilesProperties) {
-    this.qFilesProperties = qFilesProperties;
+  public void setIncludedQFilesProperties(String[] includedQFilesProperties) {
+    this.includedQFilesProperties = includedQFilesProperties;
+  }
+
+  public String[] getExcludedQFilesProperties() {
+    return excludedQFilesProperties;
+  }
+
+  public boolean isSetExcludedQFilesProperties() {
+    return excludedQFilesProperties != null;
+  }
+
+  public void setExcludedQFilesProperties(String[] excludedQFilesProperties) {
+    this.excludedQFilesProperties = excludedQFilesProperties;
   }
 
   public String getQFilesDir() {
@@ -109,13 +126,13 @@ public class HiveModuleDirectory extends SimpleModuleDirectory {
       throw new InvalidObjectException("You cannot specify a list of qfiles and a directory to " +
           "read qfiles from, " + getDir());
     }
-    if (qFiles != null && qFilesProperties != null) {
-      throw new InvalidObjectException("You cannot specify a list of qfiles and a list of " +
+    if (qFiles != null && includedQFilesProperties != null) {
+      throw new InvalidObjectException("You cannot specify a list of qfiles and a set of " +
           "properties to read qfiles from, " + getDir());
     }
-    if (qFilesDir != null && qFilesProperties != null) {
-      throw new InvalidObjectException("You cannot specify a directory to read qfiles from and a " +
-          "list of properties to read qfiles from, " + getDir());
+    if (qFilesDir != null && includedQFilesProperties != null) {
+      throw new InvalidObjectException("You cannot specify a qfile directory and a set of " +
+          "properties to read qfiles from, " + getDir());
     }
   }
 }

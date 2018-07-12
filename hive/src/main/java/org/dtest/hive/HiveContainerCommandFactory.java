@@ -24,19 +24,24 @@ import org.dtest.core.simple.SimpleModuleDirectory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
 public class HiveContainerCommandFactory extends SimpleContainerCommandFactory {
   private static final Logger LOG = LoggerFactory.getLogger(HiveContainerCommandFactory.class);
   private Properties testProperties;
+  private Map<String, Set<String>> filesFromDirs = new HashMap<>();
 
   @Override
   public void setup(ContainerClient containerClient, BuildInfo buildInfo, DTestLogger logger)
@@ -62,21 +67,14 @@ public class HiveContainerCommandFactory extends SimpleContainerCommandFactory {
     assert simple instanceof HiveModuleDirectory;
     HiveModuleDirectory mDir = (HiveModuleDirectory)simple;
     Set<String> qfiles;
-    Set<String> excludedQFiles = new HashSet<>();
-    // Figure out qfiles we need to skip
-    if (mDir.isSetSkippedQFiles()) Collections.addAll(excludedQFiles, mDir.getSkippedQFiles());
-    if (mDir.isSetQFilesDir()) {
-      // If we're supposed to read the qfiles from a directory, do that
-      qfiles = findQFilesInDir(containerClient, buildInfo.getLabel(), logger, mDir.getQFilesDir());
-    } else if (mDir.isSetQFilesProperties()) {
-      // If we're supposed to read them from a properties list, do that
-      qfiles = findQFilesFromProperties(mDir.getQFilesProperties());
+    if (mDir.isSetQFilesDir() || mDir.isSetIncludedQFilesProperties()) {
+      // If we're supposed to read the qfiles from a directory and/or properties, do that
+      qfiles = findQFiles(containerClient, buildInfo.getLabel(), logger, mDir);
     } else {
       // Or if we've been given a list of qfiles, use that
       qfiles = new HashSet<>();
       Collections.addAll(qfiles, mDir.getQFiles());
     }
-    qfiles.removeAll(excludedQFiles);
     // Deal with any tests that need to be run alone
     if (mDir.isSetIsolatedQFiles()) {
       for (String test : mDir.getIsolatedQFiles()) {
@@ -125,20 +123,42 @@ public class HiveContainerCommandFactory extends SimpleContainerCommandFactory {
     return qfiles;
   }
 
-  private Set<String> findQFilesInDir(ContainerClient containerClient, String label,
-                                      DTestLogger logger, String qfileDir) throws IOException {
-    // Find all of the qfile tests
-    String allPositiveQfiles = runContainer(containerClient, qfileDir, label,
-        "qfile-finder-" + containerNumber++, "find . -name \\*.q -maxdepth 1", logger);
+  private Set<String> findQFiles(ContainerClient containerClient, String label, DTestLogger logger,
+                                 HiveModuleDirectory mDir) throws IOException {
+    // Find all of the qfile tests.  The logic here is that if a specific set of included files
+    // have been listed, then use those.  Otherwise read all the files from the indicated
+    // directory.  In either case apply any excludes from properties or specifically excluded files.
+    Set<String> qfiles;
+
+    if (mDir.isSetIncludedQFilesProperties()) {
+      qfiles = findQFilesFromProperties(mDir.getIncludedQFilesProperties());
+    } else {
+      qfiles = filesFromDirs.computeIfAbsent(mDir.getDir(), s -> {
+        try {
+          String allQFiles = runContainer(containerClient, mDir.getQFilesDir(), label,
+              "qfile-finder-" + containerNumber++, "find . -name \\*.q -maxdepth 1", logger);
 
 
-    Set<String> runnableQfiles = new HashSet<>();
-    for (String line : allPositiveQfiles.split("\n")) {
-      String testPath = line.trim();
-      String[] pathElements = testPath.split("/");
-      String testName = pathElements[pathElements.length - 1];
-      runnableQfiles.add(testName);
+          Set<String> runnableQfiles = new HashSet<>();
+          for (String line : allQFiles.split("\n")) {
+            String testPath = line.trim();
+            String[] pathElements = testPath.split(File.separator);
+            String testName = pathElements[pathElements.length - 1];
+            runnableQfiles.add(testName);
+          }
+          return runnableQfiles;
+        } catch (IOException e) {
+          LOG.error("Unable to find files for directory " + mDir.getDir(), e);
+          throw new RuntimeException(e);
+        }
+      });
     }
-    return runnableQfiles;
+    if (mDir.isSetExcludedQFilesProperties()) {
+      qfiles.removeAll(findQFilesFromProperties(mDir.getExcludedQFilesProperties()));
+    }
+    if (mDir.isSetExcludedQFiles()) {
+      qfiles.removeAll(Arrays.asList(mDir.getExcludedQFiles()));
+    }
+    return qfiles;
   }
 }

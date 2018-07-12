@@ -31,6 +31,7 @@ public class TestHiveModuleDirectory {
   @Test(expected = InvalidObjectException.class)
   public void qfilesAndQFilesDir() throws InvalidObjectException {
     HiveModuleDirectory dir = new HiveModuleDirectory();
+    dir.setSingleTest("a");
     dir.setQFiles(new String[] {"a", "b"});
     dir.setQFilesDir("a");
     dir.validate();
@@ -39,15 +40,17 @@ public class TestHiveModuleDirectory {
   @Test(expected = InvalidObjectException.class)
   public void qfilesAndQFilesProperties() throws InvalidObjectException {
     HiveModuleDirectory dir = new HiveModuleDirectory();
+    dir.setSingleTest("a");
     dir.setQFiles(new String[] {"a", "b"});
-    dir.setQFilesProperties(new String[] {"a", "b"});
+    dir.setIncludedQFilesProperties(new String[] {"a", "b"});
     dir.validate();
   }
 
   @Test(expected = InvalidObjectException.class)
   public void qfilesPropertiesAndQFilesDir() throws InvalidObjectException {
     HiveModuleDirectory dir = new HiveModuleDirectory();
-    dir.setQFilesProperties(new String[] {"a", "b"});
+    dir.setSingleTest("a");
+    dir.setIncludedQFilesProperties(new String[] {"a", "b"});
     dir.setQFilesDir("a");
     dir.validate();
   }
