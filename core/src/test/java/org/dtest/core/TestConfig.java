@@ -30,9 +30,12 @@ public class TestConfig {
     File confDir = new File(System.getenv(DockerTest.DTEST_HOME), Config.CONF_DIR);
     confDir.mkdir();
     File propertiesFile = new File(confDir, Config.PROPERTIES_FILE);
+    Config.NUMBER_OF_CONTAINERS.set("5");
     try {
       FileWriter writer = new FileWriter(propertiesFile);
       writer.write(Config.CONTAINER_RUN_TIME.getProperty() + " = 2\n");
+      // Make sure we don't overwrite existing properites
+      writer.write(Config.NUMBER_OF_CONTAINERS.getProperty() + " = 10\n");
       writer.close();
 
       Config.IMAGE_BUILD_TIME.set("15");
@@ -41,6 +44,7 @@ public class TestConfig {
       Assert.assertEquals(15, Config.IMAGE_BUILD_TIME.getAsInt());
       Assert.assertEquals(2, Config.CONTAINER_RUN_TIME.getAsInt());
       Assert.assertEquals(10, Config.TESTS_PER_CONTAINER.getAsInt());
+      Assert.assertEquals(5, Config.NUMBER_OF_CONTAINERS.getAsInt());
 
       Config.IMAGE_BUILD_TIME.resetValue();
       Config.CONTAINER_RUN_TIME.resetValue();

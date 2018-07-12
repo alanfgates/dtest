@@ -25,6 +25,7 @@ import org.dtest.core.simple.SimpleResultAnalyzerFactory;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
 public enum Config {
@@ -36,6 +37,8 @@ public enum Config {
   CONTAINER_RUN_TIME("dtest.container.run.time", "3", TimeUnit.HOURS.name()),
   // Maximum amount of time to wait for image to build
   IMAGE_BUILD_TIME("dtest.image.build.time", "30", TimeUnit.MINUTES.name()),
+  // Simultaneous number of containers to run
+  NUMBER_OF_CONTAINERS("dtest.number.containers", "2"),
   // Implementation of ResultAnalyzerFactory
   RESULT_ANALYZER_FACTORY("dtest.result.analyzer.factory", SimpleResultAnalyzerFactory.class.getName()),
   // Maximum amount of time to wait for a test to run
@@ -129,7 +132,10 @@ public enum Config {
     }
     String filename = dtestHome + File.separator + CONF_DIR + File.separator + PROPERTIES_FILE;
     FileInputStream input = new FileInputStream(filename);
-    System.getProperties().load(input);
+    Properties p = new Properties();
+    p.load(input);
+    // Only set the value if it doesn't override an existing value
+    for (Object key : p.keySet()) System.getProperties().putIfAbsent(key, p.get(key));
     input.close();
 
   }

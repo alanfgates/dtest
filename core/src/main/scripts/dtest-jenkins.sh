@@ -22,8 +22,6 @@ then
     exit 1
 fi
 
-NUM_CONTAINERS=${DTEST_NUM_CONTAINERS:-10}
-
 build_branch=$1
 build_label=$2
 build_repository=$3
@@ -31,6 +29,6 @@ profile=$4
 shift; shift; shift; shift;
 
 
-$DTEST_HOME/bin/dtest -b $build_branch -c $NUM_CONTAINERS -d $WORKSPACE -l $build_label -r $build_repository -p $profile $@
+$DTEST_HOME/bin/dtest -b $build_branch -d $WORKSPACE -l $build_label -r $build_repository -p $profile $@
 exit $?
 

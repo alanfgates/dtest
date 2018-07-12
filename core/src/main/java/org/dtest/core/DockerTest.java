@@ -78,7 +78,9 @@ public class DockerTest {
 
     opts.addOption(OptionBuilder
         .withLongOpt("num-containers")
-        .withDescription("number of simultaneous containers to run, defaults to 1")
+        .withDescription("DEPRECATED, set via config file or system property " +
+                Config.NUMBER_OF_CONTAINERS.getProperty() +
+                " - number of simultaneous containers to run.")
         .hasArg()
         .create("c"));
 
@@ -125,7 +127,8 @@ public class DockerTest {
       return null;
     }
 
-    numContainers = cmd.hasOption("c") ? Integer.parseInt(cmd.getOptionValue("c")) : 1;
+    if (cmd.hasOption("c")) Config.NUMBER_OF_CONTAINERS.set(cmd.getOptionValue("c"));
+    numContainers = Config.NUMBER_OF_CONTAINERS.getAsInt();
     baseDir = cmd.getOptionValue("d");
     try {
       containerClientFactory = ContainerClientFactory.get();
@@ -338,6 +341,14 @@ public class DockerTest {
    * @param args command line arguments.
    */
   public static void main(String[] args) {
+    // Read the config file
+    try {
+      Config.fromConfigFile();
+    } catch (IOException e) {
+      System.err.println("Failed to read config file: " + e.getMessage());
+      System.exit(-1);
+    }
+
     DockerTest test = new DockerTest(System.out, System.err);
     BuildInfo build = test.parseArgs(args);
     int rc = (build == null) ? 1 : test.runBuild(build);
