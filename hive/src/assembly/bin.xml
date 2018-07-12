@@ -51,7 +51,7 @@ limitations under the License.
     </fileSet>
 
     <fileSet>
-      <directory>${project.parent.basedir}/src/main/resources/</directory>
+      <directory>${project.parent.basedir}/core/src/main/resources/</directory>
       <fileMode>644</fileMode>
       <includes>
         <include>dtest-log4j2.properties</include>
