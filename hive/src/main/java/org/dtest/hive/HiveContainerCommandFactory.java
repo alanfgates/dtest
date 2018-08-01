@@ -133,7 +133,7 @@ public class HiveContainerCommandFactory extends SimpleContainerCommandFactory {
     if (mDir.isSetIncludedQFilesProperties()) {
       qfiles = findQFilesFromProperties(mDir.getIncludedQFilesProperties());
     } else {
-      qfiles = filesFromDirs.computeIfAbsent(mDir.getDir(), s -> {
+      qfiles = filesFromDirs.computeIfAbsent(mDir.getQFilesDir(), s -> {
         try {
           String allQFiles = runContainer(containerClient, mDir.getQFilesDir(), label,
               "qfile-finder-" + containerNumber++, "find . -name \\*.q -maxdepth 1", logger);
@@ -148,7 +148,7 @@ public class HiveContainerCommandFactory extends SimpleContainerCommandFactory {
           }
           return runnableQfiles;
         } catch (IOException e) {
-          LOG.error("Unable to find files for directory " + mDir.getDir(), e);
+          LOG.error("Unable to find files for directory " + mDir.getQFilesDir(), e);
           throw new RuntimeException(e);
         }
       });
