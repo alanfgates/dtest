@@ -98,6 +98,17 @@ public class TestHiveResultAnalyzer {
   }
 
   @Test
+  public void logWithSkip() {
+    HiveResultAnalyzer analyzer = new HiveResultAnalyzer();
+    ContainerResult cr = new ContainerResult(new SimpleContainerCommand(
+        "unittest-7", "/Users/gates/git/hive/jdbc"), 1, LOG4);
+    analyzer.analyzeLog(cr);
+    Assert.assertEquals(26, analyzer.getSucceeded());
+    Assert.assertEquals(0, analyzer.getErrors().size());
+    Assert.assertEquals(0, analyzer.getFailed().size());
+  }
+
+  @Test
   public void timeoutLog() {
     HiveResultAnalyzer analyzer = new HiveResultAnalyzer();
     analyzer.analyzeLog(new ContainerResult(new SimpleContainerCommand("bla", "bla"), 0, LOG3));
@@ -190,4 +201,29 @@ public class TestHiveResultAnalyzer {
       "[INFO] Final Memory: 54M/849M\n" +
       "[INFO] ------------------------------------------------------------------------\n" +
       "[ERROR] Failed to execute goal org.apache.maven.plugins:maven-surefire-plugin:2.20.1:test (default-test) on project hive-standalone-metastore: There was a timeout or other error in the fork -> [Help 1]";
+
+  private static final String LOG4 =
+      "[INFO] -------------------------------------------------------\n" +
+      "[INFO]  T E S T S\n" +
+      "[INFO] -------------------------------------------------------\n" +
+      "[INFO] Running org.apache.hive.storage.jdbc.TestQueryConditionBuilder\n" +
+      "[INFO] Tests run: 8, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 3.819 s - in org.apache.hive.storage.jdbc.TestQueryConditionBuilder\n" +
+      "[INFO] Running org.apache.hive.storage.jdbc.dao.TestGenericJdbcDatabaseAccessor\n" +
+      "[INFO] Tests run: 12, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 4.695 s - in org.apache.hive.storage.jdbc.dao.TestGenericJdbcDatabaseAccessor\n" +
+      "[INFO] Running org.apache.hive.storage.jdbc.TestJdbcInputFormat\n" +
+      "[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 3.116 s - in org.apache.hive.storage.jdbc.TestJdbcInputFormat\n" +
+      "[INFO] Running org.apache.hive.config.TestJdbcStorageConfigManager\n" +
+      "[WARNING] Tests run: 4, Failures: 0, Errors: 0, Skipped: 1, Time elapsed: 2.468 s - in org.apache.hive.config.TestJdbcStorageConfigManager\n" +
+      "[INFO]\n" +
+      "[INFO] Results:\n" +
+      "[INFO]\n" +
+      "[WARNING] Tests run: 26, Failures: 0, Errors: 0, Skipped: 1\n" +
+      "[INFO]\n" +
+      "[INFO] ------------------------------------------------------------------------\n" +
+      "[INFO] BUILD SUCCESS\n" +
+      "[INFO] ------------------------------------------------------------------------\n" +
+      "[INFO] Total time: 38.484s\n" +
+      "[INFO] Finished at: Wed Aug 01 00:37:35 UTC 2018\n" +
+      "[INFO] Final Memory: 56M/2370M\n" +
+      "[INFO] ------------------------------------------------------------------------";
 }
