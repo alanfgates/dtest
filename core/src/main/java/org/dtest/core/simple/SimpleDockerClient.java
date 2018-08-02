@@ -158,7 +158,7 @@ public class SimpleDockerClient implements ContainerClient {
   }
 
   protected String getHomeDir() {
-    return "~" + getUser();
+    return "/home/" + getUser();
   }
 
   protected String getProjectName() {
