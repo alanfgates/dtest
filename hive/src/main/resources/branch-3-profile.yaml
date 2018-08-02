@@ -181,6 +181,7 @@ excludedQFiles:
   - masking_5.q
   - orc_merge10.q
   - fouter_join_ppr.q # Disabled in HIVE-19509
+  - mm_all.q
 mvnProperties:
   skipSparkTests: null
 ---
@@ -227,6 +228,8 @@ singleTest: TestMiniLlapCliDriver
 includedQFilesProperties:
   - minillap.query.files
   - minillap.shared.query.files
+excludedQFiles:
+  - mm_all.q
 env:
   USER: dtestuser
 mvnProperties:
@@ -246,6 +249,7 @@ excludedQFiles:
   - union_fast_stats.q                 # Disabled in HIVE-19509
   - schema_evol_orc_acidvec_part.q     # Disabled in HIVE-19509
   - schema_evol_orc_vec_part_llap_io.q # Disabled in HIVE-19509
+  - results_cache_with_masking.q
 env:
   USER: dtestuser
 mvnProperties:
