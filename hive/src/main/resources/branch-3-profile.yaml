@@ -240,6 +240,8 @@ singleTest: TestMiniLlapLocalCliDriver
 includedQFilesProperties:
   - minillaplocal.query.files
   - minillaplocal.shared.query.files
+isolatedQFiles:
+  - hybridgrace_hashjoin_2.q
 excludedQFiles:
   - vector_udf_inline.q
   - bucket_map_join_tez1.q             # Disabled in HIVE-19509
