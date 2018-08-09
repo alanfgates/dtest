@@ -46,6 +46,7 @@ public class HiveDockerClient extends SimpleDockerClient {
     writer.write("USER " + getUser() + "\n");
     writer.write("\n");
     writer.write("RUN { \\\n");
+    writer.write("    echo This build is labeled " + label + "; \\\n");
     writer.write("    cd " + getHomeDir() + "; \\\n");
     writer.write("    /usr/bin/git clone " + repo + "; \\\n");
     writer.write("    cd " + getProjectName() + "; \\\n");
@@ -54,7 +55,6 @@ public class HiveDockerClient extends SimpleDockerClient {
     // that actually runs so it downloads the surefire jar from maven
     writer.write("    cd itests; \\\n");
     writer.write("    /usr/bin/mvn install -DskipSparkTests -DskipTests; \\\n");
-    writer.write("    echo This build is labeled " + label + "; \\\n");
     writer.write("}\n");
     writer.close();
 
