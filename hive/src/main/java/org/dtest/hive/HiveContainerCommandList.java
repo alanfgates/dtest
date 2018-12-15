@@ -19,8 +19,8 @@ import org.dtest.core.BuildInfo;
 import org.dtest.core.ContainerClient;
 import org.dtest.core.ContainerCommand;
 import org.dtest.core.DTestLogger;
-import org.dtest.core.simple.SimpleContainerCommandFactory;
-import org.dtest.core.simple.SimpleModuleDirectory;
+import org.dtest.core.BaseContainerCommandList;
+import org.dtest.core.BaseModuleDirectory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,8 +38,8 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
-public class HiveContainerCommandFactory extends SimpleContainerCommandFactory {
-  private static final Logger LOG = LoggerFactory.getLogger(HiveContainerCommandFactory.class);
+public class HiveContainerCommandList extends BaseContainerCommandList {
+  private static final Logger LOG = LoggerFactory.getLogger(HiveContainerCommandList.class);
   private Properties testProperties;
   private Map<String, Set<String>> filesFromDirs = new HashMap<>();
 
@@ -54,16 +54,15 @@ public class HiveContainerCommandFactory extends SimpleContainerCommandFactory {
   }
 
   @Override
-  protected boolean subclassShouldHandle(SimpleModuleDirectory simple) {
+  protected boolean subclassShouldHandle(BaseModuleDirectory simple) {
     assert simple instanceof HiveModuleDirectory;
     HiveModuleDirectory mDir = (HiveModuleDirectory)simple;
     return mDir.isSetSingleTest() && mDir.hasQFiles();
   }
 
   @Override
-  protected void handle(SimpleModuleDirectory simple, ContainerClient containerClient,
-                        BuildInfo buildInfo, DTestLogger logger, List<ContainerCommand> cmds,
-                        int testsPerContainer) throws IOException {
+  protected void handle(BaseModuleDirectory simple, ContainerClient containerClient,
+                        BuildInfo buildInfo, DTestLogger logger, int testsPerContainer) throws IOException {
     assert simple instanceof HiveModuleDirectory;
     HiveModuleDirectory mDir = (HiveModuleDirectory)simple;
     Set<String> qfiles;
@@ -78,7 +77,7 @@ public class HiveContainerCommandFactory extends SimpleContainerCommandFactory {
     // Deal with any tests that need to be run alone
     if (mDir.isSetIsolatedQFiles()) {
       for (String test : mDir.getIsolatedQFiles()) {
-        cmds.add(buildOneQFilesCmd(containerClient, Collections.singleton(test), mDir));
+        add(buildOneQFilesCmd(containerClient, Collections.singleton(test), mDir));
         qfiles.remove(test);
       }
     }
@@ -89,13 +88,13 @@ public class HiveContainerCommandFactory extends SimpleContainerCommandFactory {
         if (oneSet.size() >= testsPerContainer) break;
         oneSet.add(qFile);
       }
-      cmds.add(buildOneQFilesCmd(containerClient, oneSet, mDir));
+      add(buildOneQFilesCmd(containerClient, oneSet, mDir));
       qfiles.removeAll(oneSet);
     }
   }
 
   @Override
-  protected Class<? extends SimpleModuleDirectory> getModuleDirectoryClass() {
+  protected Class<? extends BaseModuleDirectory> getModuleDirectoryClass() {
     return HiveModuleDirectory.class;
   }
 

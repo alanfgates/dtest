@@ -40,6 +40,7 @@ public class Utils {
     }
   }
 
+  /*
   public static <T> T newInstance(Class<T> theClass) throws IOException {
     try {
       return theClass.newInstance();
@@ -47,6 +48,7 @@ public class Utils {
       throw new IOException("Unable to instantiate " + theClass.getName(), e);
     }
   }
+  */
 
   public static ProcessResults runProcess(String containerId, long secondsToWait,
                                           DTestLogger logger, String... cmd) throws IOException {

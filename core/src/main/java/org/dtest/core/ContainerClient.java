@@ -17,7 +17,17 @@ package org.dtest.core;
 
 import java.io.IOException;
 
-public interface ContainerClient {
+public abstract class ContainerClient {
+
+  protected BuildInfo buildInfo;
+
+  /**
+   * Pass in the build information.  This must be called before any of the other calls.
+   * @param buildInfo build information
+   */
+  public void setBuildInfo(BuildInfo buildInfo) {
+    this.buildInfo = buildInfo;
+  }
 
   /**
    * Define the container.  Usually this will mean writing a Dockerfile.
@@ -27,13 +37,13 @@ public interface ContainerClient {
    * @param label identifying value for this build
    * @throws IOException if we fail to write the docker file
    */
-  void defineImage(String dir, String repo, String branch, String label) throws IOException;
+  public abstract void defineImage(String dir, String repo, String branch, String label) throws IOException;
 
   /**
    * Return the directory in the container that commands should operate in.
    * @return container directory.
    */
-  String getContainerBaseDir();
+  public abstract String getContainerBaseDir();
 
   /**
    * Build an image
@@ -43,9 +53,7 @@ public interface ContainerClient {
    * @param logger output log for tests
    * @throws IOException if the image fails to build
    */
-  default void buildImage(String dir, long toWait, DTestLogger logger) throws IOException {
-
-  }
+  public abstract void buildImage(String dir, long toWait, DTestLogger logger) throws IOException;
 
   /**
    * Run a container and return a string containing the logs
@@ -55,8 +63,7 @@ public interface ContainerClient {
    * @return results from the container
    * @throws IOException if the container fails to run
    */
-  ContainerResult runContainer(long toWait, ContainerCommand cmd, DTestLogger logger)
-      throws IOException;
+  public abstract ContainerResult runContainer(long toWait, ContainerCommand cmd, DTestLogger logger) throws IOException;
 
   /**
    * Print the contents failed test logs to the log.
@@ -65,10 +72,8 @@ public interface ContainerClient {
    * @param logger output log for tests
    * @throws IOException if the copy of the log files fails
    */
-  default void copyLogFiles(ContainerResult result, String targetDir, DTestLogger logger)
-      throws IOException {
-
-  }
+  public abstract void copyLogFiles(ContainerResult result, String targetDir, DTestLogger logger)
+      throws IOException;
 
   /**
    * Remove a container.
@@ -76,17 +81,14 @@ public interface ContainerClient {
    * @param logger output log for tests
    * @throws IOException if the remove fails
    */
-  default void removeContainer(ContainerResult result, DTestLogger logger) throws IOException {
-
-  }
+  public abstract void removeContainer(ContainerResult result, DTestLogger logger) throws IOException;
 
   /**
    * Remove the docker image
    * @param logger output log for tests
    * @throws IOException if the remove fails
    */
-  default void removeImage(DTestLogger logger) throws IOException {
+  public abstract void removeImage(DTestLogger logger) throws IOException;
 
-  }
 
 }

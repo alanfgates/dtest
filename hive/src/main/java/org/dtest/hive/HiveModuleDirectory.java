@@ -15,14 +15,14 @@
  */
 package org.dtest.hive;
 
-import org.dtest.core.simple.SimpleModuleDirectory;
+import org.dtest.core.BaseModuleDirectory;
 
 import java.io.InvalidObjectException;
 
 /**
  * A container for information about tests to be run in a maven module.
  */
-public class HiveModuleDirectory extends SimpleModuleDirectory {
+public class HiveModuleDirectory extends BaseModuleDirectory {
   private String[] qFiles;                   // list of qfiles to run
   private String[] excludedQFiles;           // list of qfiles to exclude
   private String[] includedQFilesProperties; // if set, the list of included qfiles will be

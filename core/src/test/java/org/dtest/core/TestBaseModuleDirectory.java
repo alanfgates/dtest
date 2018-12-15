@@ -13,14 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.dtest.hive;
+package org.dtest.core;
 
-import org.dtest.core.ResultAnalyzer;
-import org.dtest.core.ResultAnalyzerFactory;
+import org.dtest.core.BaseModuleDirectory;
+import org.junit.Test;
 
-public class HiveResultAnalyzerFactory extends ResultAnalyzerFactory {
-  @Override
-  public ResultAnalyzer getAnalyzer() {
-    return new HiveResultAnalyzer();
+import java.io.InvalidObjectException;
+
+public class TestBaseModuleDirectory {
+  @Test(expected = InvalidObjectException.class)
+  public void splitSingle() throws InvalidObjectException {
+    BaseModuleDirectory dir = new BaseModuleDirectory();
+    dir.setNeedsSplit(true);
+    dir.setSingleTest("a");
+    dir.validate();
   }
+
 }

@@ -16,11 +16,11 @@
 package org.dtest.hive;
 
 import org.dtest.core.ContainerResult;
-import org.dtest.core.simple.SimpleResultAnalyzer;
+import org.dtest.core.BaseResultAnalyzer;
 
 import java.util.regex.Pattern;
 
-public class HiveResultAnalyzer extends SimpleResultAnalyzer {
+public class HiveResultAnalyzer extends BaseResultAnalyzer {
 
   private final Pattern qTestError;
   private final Pattern qTestFailure;

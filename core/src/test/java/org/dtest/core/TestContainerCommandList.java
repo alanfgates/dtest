@@ -13,9 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.dtest.core.simple;
+package org.dtest.core;
 
 import org.apache.commons.lang3.StringUtils;
+import org.dtest.core.BaseContainerCommandList;
+import org.dtest.core.BaseModuleDirectory;
 import org.dtest.core.BuildInfo;
 import org.dtest.core.ContainerClient;
 import org.dtest.core.ContainerCommand;
@@ -27,14 +29,14 @@ import org.junit.Test;
 import java.io.IOException;
 import java.util.List;
 
-public class TestSimpleContainerCommandFactory {
+public class TestContainerCommandList {
 
   @Test
   public void parseYaml() throws IOException {
-    SimpleContainerCommandFactory factory = new SimpleContainerCommandFactory();
-    List<SimpleModuleDirectory> mDirs = factory.readYaml("test-profile.yaml", SimpleModuleDirectory.class);
+    BaseContainerCommandList factory = new BaseContainerCommandList();
+    List<BaseModuleDirectory> mDirs = factory.readYaml("test-profile.yaml", BaseModuleDirectory.class);
     Assert.assertEquals(5, mDirs.size());
-    SimpleModuleDirectory mDir = mDirs.get(0);
+    BaseModuleDirectory mDir = mDirs.get(0);
     Assert.assertEquals("beeline", mDir.getDir());
     mDir = mDirs.get(1);
     Assert.assertEquals("cli", mDir.getDir());
@@ -59,18 +61,17 @@ public class TestSimpleContainerCommandFactory {
 
   @Test(expected = IOException.class)
   public void nonExistentYamlFile() throws IOException {
-    SimpleContainerCommandFactory factory = new SimpleContainerCommandFactory();
-    List<SimpleModuleDirectory> mDirs = factory.readYaml("nosuch-profile.yaml", SimpleModuleDirectory.class);
+    BaseContainerCommandList factory = new BaseContainerCommandList();
+    List<BaseModuleDirectory> mDirs = factory.readYaml("nosuch-profile.yaml", BaseModuleDirectory.class);
   }
 
   @Test
   public void buildCommands() throws IOException {
-    SimpleContainerCommandFactory factory = new SimpleContainerCommandFactory();
+    BaseContainerCommandList cmds = new BaseContainerCommandList();
     BuildInfo buildInfo = new BuildInfo("mybranch", "http://myrepo.com/repo.git", "mylabel",
         "test-profile.yaml");
     DTestLogger logger = new DTestLogger(".");
-    List<ContainerCommand> cmds = factory.getContainerCommands(new TestContainerClient(),
-        buildInfo, logger);
+    cmds.buildContainerCommands(new TestContainerClient(), buildInfo, logger);
     Assert.assertEquals(7, cmds.size());
     Assert.assertEquals("/bin/bash -c ( cd /tmp/beeline; /usr/bin/mvn test -Dsurefire.timeout=5400)", StringUtils.join(cmds.get(0).shellCommand(), " "));
     Assert.assertEquals("/bin/bash -c ( cd /tmp/cli; /usr/bin/mvn test -Dsurefire.timeout=5400 -Dtest.excludes.additional=**/TestCliDriverMethods)", StringUtils.join(cmds.get(1).shellCommand(), " "));
@@ -81,7 +82,28 @@ public class TestSimpleContainerCommandFactory {
     Assert.assertEquals("/bin/bash -c ( cd /tmp/itests/qtest; /usr/bin/mvn test -Dsurefire.timeout=5400 -Dtest=TestContribCliDriver -DskipSparkTests)", StringUtils.join(cmds.get(6).shellCommand(), " "));
   }
 
-  private static class TestContainerClient implements ContainerClient {
+  private static class TestContainerClient extends ContainerClient {
+
+    @Override
+    public void buildImage(String dir, long toWait, DTestLogger logger) throws IOException {
+
+    }
+
+    @Override
+    public void copyLogFiles(ContainerResult result, String targetDir, DTestLogger logger) throws IOException {
+
+    }
+
+    @Override
+    public void removeContainer(ContainerResult result, DTestLogger logger) throws IOException {
+
+    }
+
+    @Override
+    public void removeImage(DTestLogger logger) throws IOException {
+
+    }
+
     @Override
     public void defineImage(String dir, String repo, String branch, String label) throws
         IOException {

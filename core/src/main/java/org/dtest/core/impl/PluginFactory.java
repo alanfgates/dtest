@@ -13,15 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.dtest.core.simple;
+package org.dtest.core.impl;
 
-import org.dtest.core.BuildInfo;
-import org.dtest.core.ContainerClient;
-import org.dtest.core.ContainerClientFactory;
+import java.io.IOException;
 
-public class SimpleDockerClientFactory extends ContainerClientFactory {
-  @Override
-  public ContainerClient getClient(BuildInfo info) {
-    return new SimpleDockerClient(info);
+/**
+ * A generic factory for plugin classes.
+ */
+public class PluginFactory {
+
+  public static <T> T getInstance(Class<? extends T> theClass) throws IOException {
+    try {
+      return theClass.newInstance();
+    } catch (InstantiationException|IllegalAccessException e) {
+      throw new IOException("Unable to instantiate " + theClass.getName(), e);
+    }
   }
 }

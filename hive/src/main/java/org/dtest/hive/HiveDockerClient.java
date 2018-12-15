@@ -16,7 +16,7 @@
 package org.dtest.hive;
 
 import org.dtest.core.BuildInfo;
-import org.dtest.core.simple.SimpleDockerClient;
+import org.dtest.core.BaseDockerClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,13 +24,9 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 
-public class HiveDockerClient extends SimpleDockerClient {
+public class HiveDockerClient extends BaseDockerClient {
   private static final Logger LOG = LoggerFactory.getLogger(HiveDockerClient.class);
 
-
-  HiveDockerClient(BuildInfo info) {
-    super(info);
-  }
 
   @Override
   public void defineImage(String dir, String repo, String branch, String label) throws IOException {

@@ -17,9 +17,6 @@ package org.dtest.core;
 
 import org.apache.commons.lang3.StringUtils;
 import org.dtest.core.impl.ProcessResults;
-import org.dtest.core.simple.SimpleDockerClient;
-import org.dtest.core.simple.SimpleResultAnalyzer;
-import org.dtest.core.simple.TestSimpleResultAnalyzer;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -30,7 +27,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 public class TestDockerTest {
@@ -44,33 +40,43 @@ public class TestDockerTest {
   private PrintStream out;
   private PrintStream err;
 
-  public static class SuccessfulClientFactory extends ContainerClientFactory {
+  public static class SuccessfulClient extends ContainerClient {
     @Override
-    public ContainerClient getClient(BuildInfo info) {
-      return new ContainerClient() {
-        @Override
-        public void defineImage(String dir, String repo, String branch, String label) throws IOException {
+    public void defineImage(String dir, String repo, String branch, String label) throws IOException {
 
-        }
+    }
 
-        @Override
-        public String getContainerBaseDir() {
-          return null;
-        }
+    @Override
+    public String getContainerBaseDir() {
+      return null;
+    }
 
-        @Override
-        public void buildImage(String dir, long toWait, DTestLogger logger) throws IOException {
-          imageBuilt = true;
-        }
+    @Override
+    public void buildImage(String dir, long toWait, DTestLogger logger) throws IOException {
+      imageBuilt = true;
+    }
 
-        @Override
-        public ContainerResult runContainer(long toWait, ContainerCommand cmd, DTestLogger logger) throws
-            IOException {
-          String logs = "Ran: " + StringUtils.join(cmd.shellCommand(), " ") +
-              TestSimpleResultAnalyzer.LOG1;
-          return new ContainerResult(cmd, 0, logs);
-        }
-      };
+    @Override
+    public ContainerResult runContainer(long toWait, ContainerCommand cmd, DTestLogger logger) throws
+        IOException {
+      String logs = "Ran: " + StringUtils.join(cmd.shellCommand(), " ") +
+          TestBaseResultAnalyzer.LOG1;
+      return new ContainerResult(cmd, 0, logs);
+    }
+
+    @Override
+    public void copyLogFiles(ContainerResult result, String targetDir, DTestLogger logger) throws IOException {
+
+    }
+
+    @Override
+    public void removeContainer(ContainerResult result, DTestLogger logger) throws IOException {
+
+    }
+
+    @Override
+    public void removeImage(DTestLogger logger) throws IOException {
+
     }
   }
 
@@ -99,7 +105,7 @@ public class TestDockerTest {
         public ContainerResult runContainer(long toWait, ContainerCommand cmd, DTestLogger logger) throws
             IOException {
           String logs = "Ran: " + StringUtils.join(cmd.shellCommand(), " ") +
-              TestSimpleResultAnalyzer.LOG2;
+              TestBaseResultAnalyzer.LOG2;
           return new ContainerResult(cmd, 0, logs);
         }
       };
@@ -107,74 +113,93 @@ public class TestDockerTest {
   }
   */
 
-  public static class TimingOutClientFactory extends ContainerClientFactory {
+  public static class TimingOutClient extends ContainerClient {
     @Override
-    public ContainerClient getClient(BuildInfo info) {
-      return new ContainerClient() {
-        @Override
-        public void defineImage(String dir, String repo, String branch, String label) throws IOException {
+    public void defineImage(String dir, String repo, String branch, String label) throws IOException {
 
-        }
+    }
 
-        @Override
-        public String getContainerBaseDir() {
-          return null;
-        }
+    @Override
+    public String getContainerBaseDir() {
+      return null;
+    }
 
-        @Override
-        public void buildImage(String dir, long toWait, DTestLogger logger) throws IOException {
-          imageBuilt = true;
-        }
+    @Override
+    public void buildImage(String dir, long toWait, DTestLogger logger) throws IOException {
+      imageBuilt = true;
+    }
 
-        @Override
-        public ContainerResult runContainer(long toWait, ContainerCommand cmd, DTestLogger logger) throws
-            IOException {
-          String logs = "Ran: " + StringUtils.join(cmd.shellCommand(), " ") +
-              TestSimpleResultAnalyzer.LOG3;
-          return new ContainerResult(cmd, 0, logs);
-        }
+    @Override
+    public ContainerResult runContainer(long toWait, ContainerCommand cmd, DTestLogger logger) throws
+        IOException {
+      String logs = "Ran: " + StringUtils.join(cmd.shellCommand(), " ") +
+          TestBaseResultAnalyzer.LOG3;
+      return new ContainerResult(cmd, 0, logs);
+    }
 
-      };
+    @Override
+    public void copyLogFiles(ContainerResult result, String targetDir, DTestLogger logger) throws IOException {
+
+    }
+
+    @Override
+    public void removeContainer(ContainerResult result, DTestLogger logger) throws IOException {
+
+    }
+
+    @Override
+    public void removeImage(DTestLogger logger) throws IOException {
+
     }
   }
 
-  public static class FailingClientFactory extends ContainerClientFactory {
+  public static class FailingClient extends ContainerClient {
     @Override
-    public ContainerClient getClient(BuildInfo info) {
-      return new ContainerClient() {
-        @Override
-        public void defineImage(String dir, String repo, String branch, String label) throws IOException {
+    public void defineImage(String dir, String repo, String branch, String label) throws IOException {
 
-        }
+    }
 
-        @Override
-        public String getContainerBaseDir() {
-          return null;
-        }
+    @Override
+    public String getContainerBaseDir() {
+      return null;
+    }
 
-        @Override
-        public void buildImage(String dir, long toWait, DTestLogger logger) throws IOException {
-          imageBuilt = true;
-        }
+    @Override
+    public void buildImage(String dir, long toWait, DTestLogger logger) throws IOException {
+      imageBuilt = true;
+    }
 
-        @Override
-        public ContainerResult runContainer(long toWait, ContainerCommand cmd, DTestLogger logger) throws
-            IOException {
-          String logs = "Ran: " + StringUtils.join(cmd.shellCommand(), " ") +
-              TestSimpleResultAnalyzer.LOG1;
-          return new ContainerResult(cmd, 130, logs);
-        }
-      };
+    @Override
+    public ContainerResult runContainer(long toWait, ContainerCommand cmd, DTestLogger logger) throws
+        IOException {
+      String logs = "Ran: " + StringUtils.join(cmd.shellCommand(), " ") +
+          TestBaseResultAnalyzer.LOG1;
+      return new ContainerResult(cmd, 130, logs);
+    }
+
+    @Override
+    public void copyLogFiles(ContainerResult result, String targetDir, DTestLogger logger) throws IOException {
+
+    }
+
+    @Override
+    public void removeContainer(ContainerResult result, DTestLogger logger) throws IOException {
+
+    }
+
+    @Override
+    public void removeImage(DTestLogger logger) throws IOException {
+
     }
   }
 
 
-  public static class HelloWorldCommandFactory extends ContainerCommandFactory {
+  public static class HelloWorldCommandList extends ContainerCommandList {
     @Override
-    public List<ContainerCommand> getContainerCommands(ContainerClient containerClient,
+    public void buildContainerCommands(ContainerClient containerClient,
                                                        BuildInfo label,
                                                        DTestLogger logger) throws IOException {
-      return Collections.singletonList(new ContainerCommand() {
+      add(new ContainerCommand() {
         @Override
         public String containerSuffix() {
           return "friendly";
@@ -193,12 +218,12 @@ public class TestDockerTest {
     }
   }
 
-  public static class ItestCommandFactory extends ContainerCommandFactory {
+  public static class ItestCommandList extends ContainerCommandList {
     @Override
-    public List<ContainerCommand> getContainerCommands(ContainerClient containerClient,
-                                                       BuildInfo label,
-                                                       DTestLogger logger) throws IOException {
-      return Collections.singletonList(new ContainerCommand() {
+    public void buildContainerCommands(ContainerClient containerClient,
+                                       BuildInfo label,
+                                       DTestLogger logger) throws IOException {
+      add(new ContainerCommand() {
         @Override
         public String containerSuffix() {
           return "friendly-itests-qtest";
@@ -217,46 +242,41 @@ public class TestDockerTest {
     }
   }
 
-  public static class SpyingResultAnalyzerFactory extends ResultAnalyzerFactory {
+  public static class SpyingResultAnalyzer implements ResultAnalyzer {
+    BaseResultAnalyzer contained = new BaseResultAnalyzer();
     @Override
-    public ResultAnalyzer getAnalyzer() {
-      final SimpleResultAnalyzer contained = new SimpleResultAnalyzer();
-      return new ResultAnalyzer() {
-        @Override
-        public void analyzeLog(ContainerResult result) {
-          contained.analyzeLog(result);
-        }
+    public void analyzeLog(ContainerResult result) {
+      contained.analyzeLog(result);
+    }
 
-        @Override
-        public int getSucceeded() {
-          succeeded = contained.getSucceeded();
-          return succeeded;
-        }
+    @Override
+    public int getSucceeded() {
+      succeeded = contained.getSucceeded();
+      return succeeded;
+    }
 
-        @Override
-        public List<String> getFailed() {
-          failures = contained.getFailed();
-          return failures;
-        }
+    @Override
+    public List<String> getFailed() {
+      failures = contained.getFailed();
+      return failures;
+    }
 
-        @Override
-        public List<String> getErrors() {
-          errors = contained.getErrors();
-          return errors;
-        }
+    @Override
+    public List<String> getErrors() {
+      errors = contained.getErrors();
+      return errors;
+    }
 
-        @Override
-        public boolean hadTimeouts() {
-          hadTimeouts = contained.hadTimeouts();
-          return hadTimeouts;
-        }
+    @Override
+    public boolean hadTimeouts() {
+      hadTimeouts = contained.hadTimeouts();
+      return hadTimeouts;
+    }
 
-        @Override
-        public boolean runSucceeded() {
-          runSucceeded = contained.runSucceeded();
-          return runSucceeded;
-        }
-      };
+    @Override
+    public boolean runSucceeded() {
+      runSucceeded = contained.runSucceeded();
+      return runSucceeded;
     }
   }
 
@@ -274,9 +294,9 @@ public class TestDockerTest {
 
   @Test
   public void successfulRunAllTestsPass() {
-    Config.CONTAINER_CLIENT_FACTORY.set(SuccessfulClientFactory.class.getName());
-    Config.CONTAINER_COMMAND_FACTORY.set(HelloWorldCommandFactory.class.getName());
-    Config.RESULT_ANALYZER_FACTORY.set(SpyingResultAnalyzerFactory.class.getName());
+    Config.CONTAINER_CLIENT.set(SuccessfulClient.class.getName());
+    Config.CONTAINER_COMMAND_LIST.set(HelloWorldCommandList.class.getName());
+    Config.RESULT_ANALYZER.set(SpyingResultAnalyzer.class.getName());
     DockerTest test = new DockerTest(out, err);
     BuildInfo build = test.parseArgs(new String[] {"-b", "successful",
                                                    "-d", System.getProperty("java.io.tmpdir"),
@@ -322,9 +342,9 @@ public class TestDockerTest {
 
   @Test
   public void timeout() {
-    Config.CONTAINER_CLIENT_FACTORY.set(TimingOutClientFactory.class.getName());
-    Config.CONTAINER_COMMAND_FACTORY.set(HelloWorldCommandFactory.class.getName());
-    Config.RESULT_ANALYZER_FACTORY.set(SpyingResultAnalyzerFactory.class.getName());
+    Config.CONTAINER_CLIENT.set(TimingOutClient.class.getName());
+    Config.CONTAINER_COMMAND_LIST.set(HelloWorldCommandList.class.getName());
+    Config.RESULT_ANALYZER.set(SpyingResultAnalyzer.class.getName());
     DockerTest test = new DockerTest(out, err);
     BuildInfo build = test.parseArgs(new String[] {"-b", "failure",
                                                    "-d", System.getProperty("java.io.tmpdir"),
@@ -340,9 +360,9 @@ public class TestDockerTest {
 
   @Test
   public void failedRun() {
-    Config.CONTAINER_CLIENT_FACTORY.set(FailingClientFactory.class.getName());
-    Config.CONTAINER_COMMAND_FACTORY.set(HelloWorldCommandFactory.class.getName());
-    Config.RESULT_ANALYZER_FACTORY.set(SpyingResultAnalyzerFactory.class.getName());
+    Config.CONTAINER_CLIENT.set(FailingClient.class.getName());
+    Config.CONTAINER_COMMAND_LIST.set(HelloWorldCommandList.class.getName());
+    Config.RESULT_ANALYZER.set(SpyingResultAnalyzer.class.getName());
     DockerTest test = new DockerTest(out, err);
     BuildInfo build = test.parseArgs(new String[] {"-b", "failure",
                                                    "-d", System.getProperty("java.io.tmpdir"),
@@ -358,7 +378,7 @@ public class TestDockerTest {
 
   @Test
   public void successfulImageBuild() throws IOException {
-    SimpleDockerClient.checkBuildSucceeded(new ProcessResults(
+    BaseDockerClient.checkBuildSucceeded(new ProcessResults(
         "2018-04-04T11:19:45,741  INFO [Thread-1] dtest.StreamPumper: [INFO] Hive Packaging .................................... SUCCESS [1.924s]\n" +
         "2018-04-04T11:19:45,741  INFO [Thread-1] dtest.StreamPumper: [INFO] ------------------------------------------------------------------------\n" +
         "2018-04-04T11:19:45,741  INFO [Thread-1] dtest.StreamPumper: [INFO] BUILD SUCCESS\n" +
@@ -382,7 +402,7 @@ public class TestDockerTest {
 
   @Test(expected = IOException.class)
   public void imageBuildSucceededButBuildFailed() throws IOException {
-    SimpleDockerClient.checkBuildSucceeded(new ProcessResults(
+    BaseDockerClient.checkBuildSucceeded(new ProcessResults(
         "2018-04-04T11:19:45,741  INFO [Thread-1] dtest.StreamPumper: [INFO] Hive Packaging .................................... SUCCESS [1.924s]\n" +
         "2018-04-04T11:19:45,741  INFO [Thread-1] dtest.StreamPumper: [INFO] ------------------------------------------------------------------------\n" +
         "2018-04-04T11:19:45,741  INFO [Thread-1] dtest.StreamPumper: [INFO] BUILD SUCCESS\n" +
@@ -415,7 +435,7 @@ public class TestDockerTest {
 
   @Test(expected = IOException.class)
   public void imageBuildSuccessfulButBothBuildsFailed() throws IOException {
-    SimpleDockerClient.checkBuildSucceeded(new ProcessResults(
+    BaseDockerClient.checkBuildSucceeded(new ProcessResults(
         "2018-04-04T13:37:34,371  INFO [Thread-1] dtest.StreamPumper: [INFO] Hive TestUtils .................................... SKIPPED\n" +
             "2018-04-04T13:37:34,371  INFO [Thread-1] dtest.StreamPumper: [INFO] Hive Packaging .................................... SKIPPED\n" +
             "2018-04-04T13:37:34,371  INFO [Thread-1] dtest.StreamPumper: [INFO] ------------------------------------------------------------------------\n" +
@@ -438,7 +458,7 @@ public class TestDockerTest {
 
   @Test(expected = IOException.class)
   public void imageBuildFailed() throws IOException {
-    SimpleDockerClient.checkBuildSucceeded(new ProcessResults(
+    BaseDockerClient.checkBuildSucceeded(new ProcessResults(
         "2018-04-04T11:19:45,741  INFO [Thread-1] dtest.StreamPumper: [INFO] Hive Packaging .................................... SUCCESS [1.924s]\n" +
             "2018-04-04T11:19:45,741  INFO [Thread-1] dtest.StreamPumper: [INFO] ------------------------------------------------------------------------\n" +
             "2018-04-04T11:19:45,741  INFO [Thread-1] dtest.StreamPumper: [INFO] BUILD SUCCESS\n" +

@@ -22,6 +22,7 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.OptionBuilder;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
+import org.dtest.core.impl.PluginFactory;
 import org.dtest.core.impl.ProcessResults;
 import org.dtest.core.impl.Utils;
 import org.slf4j.Logger;
@@ -46,9 +47,6 @@ public class DockerTest {
   public static final String EXEC_LOG = "dtest-exec"; // for log entries by dtest
 
   private ContainerClient docker;
-  private ContainerCommandFactory commandFactory;
-  private ResultAnalyzerFactory analyzerFactory;
-  private ContainerClientFactory containerClientFactory;
   private int numContainers;
   private PrintStream out;
   private PrintStream err;
@@ -131,16 +129,6 @@ public class DockerTest {
     numContainers = Config.NUMBER_OF_CONTAINERS.getAsInt();
     baseDir = cmd.getOptionValue("d");
     try {
-      containerClientFactory = ContainerClientFactory.get();
-      commandFactory = ContainerCommandFactory.get();
-      analyzerFactory = ResultAnalyzerFactory.get();
-    } catch (IOException e) {
-      String msg = "Failed to instantiate one of the factories.";
-      err.println(msg + "  See log for details.");
-      LOG.error(msg, e);
-      return null;
-    }
-    try {
       BuildInfo info = new BuildInfo(cmd.getOptionValue("b"), cmd.getOptionValue("r"),
           cmd.getOptionValue("l").toLowerCase(), cmd.getOptionValue("p"));
       info.setCleanupAfter(!cmd.hasOption("m"));
@@ -153,10 +141,11 @@ public class DockerTest {
   }
 
   public int runBuild(BuildInfo info) {
-    docker = containerClientFactory.getClient(info);
     DTestLogger logger = null;
     int rc;
     try {
+      docker = PluginFactory.getInstance(Config.CONTAINER_CLIENT.getAsClass(ContainerClient.class));
+      docker.setBuildInfo(info);
       String dir = info.buildDir(baseDir);
       logger = new DTestLogger(dir);
       try {
@@ -227,11 +216,12 @@ public class DockerTest {
 
   private int runContainers(final BuildInfo info, final DTestLogger logger, int numContainers)
       throws IOException {
-    List<ContainerCommand> taskCmds = commandFactory.getContainerCommands(docker, info, logger);
+    ContainerCommandList taskCmds = PluginFactory.getInstance(Config.CONTAINER_COMMAND_LIST.getAsClass(ContainerCommandList.class));
+    taskCmds.buildContainerCommands(docker, info, logger);
 
     final long timeout = Config.CONTAINER_RUN_TIME.getAsTime(TimeUnit.SECONDS);
 
-    final ResultAnalyzer analyzer = analyzerFactory.getAnalyzer();
+    final ResultAnalyzer analyzer = PluginFactory.getInstance(Config.RESULT_ANALYZER.getAsClass(ResultAnalyzer.class));
     // I don't need the return value, but by having one I can use the Callable interface instead
     // of Runnable, and Callable catches exceptions for me and passes them back.
     List <Future<Integer>> tasks = new ArrayList<>(taskCmds.size());

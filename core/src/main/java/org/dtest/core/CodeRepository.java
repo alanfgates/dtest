@@ -13,16 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.dtest.hive;
 
-import org.dtest.core.BuildInfo;
-import org.dtest.core.ContainerClient;
-import org.dtest.core.ContainerClientFactory;
+package org.dtest.core;
 
-public class HiveDockerClientFactory extends ContainerClientFactory {
+import java.util.List;
 
-  @Override
-  public ContainerClient getClient(BuildInfo info) {
-    return new HiveDockerClient(info);
-  }
+public interface CodeRepository {
+
+  /**
+   * Pass in the argument from the command line for the build system.
+   * @param arg command line input
+   */
+  void setCmdlineArg(String arg);
+
+  /**
+   * Get the list of commands that should be executed during image creation to checkout the appropriate source code
+   * @return list of shell commands
+   */
+  List<String> repoCommands();
 }

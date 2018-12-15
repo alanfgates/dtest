@@ -15,19 +15,18 @@
  */
 package org.dtest.core;
 
-import org.dtest.core.impl.Utils;
-
 import java.io.IOException;
+import java.util.ArrayList;
 
-public abstract class ResultAnalyzerFactory {
-
-  static ResultAnalyzerFactory get() throws IOException {
-    Class<? extends ResultAnalyzerFactory> clazz =
-        Config.RESULT_ANALYZER_FACTORY.getAsClass(ResultAnalyzerFactory.class);
-    return Utils.newInstance(clazz);
-  }
-
-  public abstract ResultAnalyzer getAnalyzer();
-
-
+public abstract class ContainerCommandList extends ArrayList<ContainerCommand> {
+  /**
+   * Build the list of commands.
+   * @param containerClient container client, in case any containers are needed for determining
+   *                        commands to run.
+   * @param buildInfo information for this build
+   * @param logger logger
+   * @throws IOException unable to generate command list.
+   */
+  public abstract void buildContainerCommands(ContainerClient containerClient, BuildInfo buildInfo, DTestLogger logger)
+      throws IOException;
 }

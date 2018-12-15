@@ -13,14 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.dtest.core.simple;
+package org.dtest.core;
 
 import com.google.common.annotations.VisibleForTesting;
-import org.dtest.core.BuildInfo;
-import org.dtest.core.ContainerClient;
-import org.dtest.core.ContainerCommand;
-import org.dtest.core.ContainerResult;
-import org.dtest.core.DTestLogger;
 import org.dtest.core.impl.ProcessResults;
 import org.dtest.core.impl.Utils;
 import org.slf4j.Logger;
@@ -35,21 +30,19 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class SimpleDockerClient implements ContainerClient {
-  private static final Logger LOG = LoggerFactory.getLogger(SimpleDockerClient.class);
+public class BaseDockerClient extends ContainerClient {
+  private static final Logger LOG = LoggerFactory.getLogger(BaseDockerClient.class);
   private static final String IMAGE_BASE = "dtest-image-";
   private static final Pattern IMAGE_SUCCESS = Pattern.compile("BUILD SUCCESS");
   private static final Pattern USING_CACHE = Pattern.compile("Using cache");
   private static final String BUILD_CONTAINER_NAME = "image_build";
 
-  private final String label;
-  private final String imageName;
-  private boolean shouldCleanupAfter;
+  private String imageName;
 
-  public SimpleDockerClient(BuildInfo info) {
-    this.label = info.getLabel();
-    imageName = IMAGE_BASE + label;
-    shouldCleanupAfter = info.shouldCleanupAfter();
+  @Override
+  public void setBuildInfo(BuildInfo buildInfo) {
+    super.setBuildInfo(buildInfo);
+    imageName = IMAGE_BASE + buildInfo.getLabel();
   }
 
   @Override
@@ -94,7 +87,7 @@ public class SimpleDockerClient implements ContainerClient {
   public ContainerResult runContainer(long toWait, ContainerCommand cmd,
                                       DTestLogger logger) throws IOException {
     List<String> runCmd = new ArrayList<>();
-    String containerName = Utils.buildContainerName(label, cmd.containerSuffix());
+    String containerName = Utils.buildContainerName(buildInfo.getLabel(), cmd.containerSuffix());
     Collections.addAll(runCmd, "docker", "run", "--name", containerName, imageName);
     Collections.addAll(runCmd, cmd.shellCommand());
     ProcessResults res = Utils.runProcess(cmd.containerSuffix(), toWait, logger,
@@ -105,7 +98,7 @@ public class SimpleDockerClient implements ContainerClient {
   @Override
   public void copyLogFiles(ContainerResult result, String targetDir, DTestLogger logger)
       throws IOException {
-    String containerName = Utils.buildContainerName(label, result.getCmd().containerSuffix());
+    String containerName = Utils.buildContainerName(buildInfo.getLabel(), result.getCmd().containerSuffix());
     for (String file : result.getLogFilesToFetch()) {
       ProcessResults res = Utils.runProcess("copying-files-for-" + containerName, 60, logger,
           "docker", "cp", containerName + ":" + file, targetDir);
@@ -129,8 +122,8 @@ public class SimpleDockerClient implements ContainerClient {
 
   @Override
   public void removeContainer(ContainerResult result, DTestLogger logger) throws IOException {
-    String containerName = Utils.buildContainerName(label, result.getCmd().containerSuffix());
-    if (shouldCleanupAfter) {
+    String containerName = Utils.buildContainerName(buildInfo.getLabel(), result.getCmd().containerSuffix());
+    if (buildInfo.shouldCleanupAfter()) {
       ProcessResults res = Utils.runProcess("cleanup", 300, logger, "docker", "rm", containerName);
       if (res.rc != 0) {
         LOG.warn("Failed to cleanup containers: " + res.stderr);
@@ -142,7 +135,7 @@ public class SimpleDockerClient implements ContainerClient {
 
   @Override
   public void removeImage(DTestLogger logger) throws IOException {
-    if (shouldCleanupAfter) {
+    if (buildInfo.shouldCleanupAfter()) {
       ProcessResults res =
           Utils.runProcess("cleanup", 300, logger, "docker", "image", "rm", imageName);
       if (res.rc != 0) {

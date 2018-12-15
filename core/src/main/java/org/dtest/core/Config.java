@@ -18,9 +18,6 @@ package org.dtest.core;
 import com.google.common.annotations.VisibleForTesting;
 import org.dtest.core.impl.TimeInterval;
 import org.dtest.core.impl.Utils;
-import org.dtest.core.simple.SimpleContainerCommandFactory;
-import org.dtest.core.simple.SimpleDockerClientFactory;
-import org.dtest.core.simple.SimpleResultAnalyzerFactory;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -29,18 +26,18 @@ import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
 public enum Config {
-  // Implementation of ContainerClientFactory
-  CONTAINER_CLIENT_FACTORY("dtest.container.client.factory", SimpleDockerClientFactory.class.getName()),
-  // Implementation of ContainerCommandFactory
-  CONTAINER_COMMAND_FACTORY("dtest.container.command.factory", SimpleContainerCommandFactory.class.getName()),
+  // Implementation of ContainerClient
+  CONTAINER_CLIENT("dtest.container.client", BaseDockerClient.class.getName()),
+  // Implementation of ContainerCommandList
+  CONTAINER_COMMAND_LIST("dtest.container.command.list", BaseContainerCommandList.class.getName()),
   // Maximum amount of time to wait for container to run
   CONTAINER_RUN_TIME("dtest.container.run.time", "3", TimeUnit.HOURS.name()),
   // Maximum amount of time to wait for image to build
   IMAGE_BUILD_TIME("dtest.image.build.time", "30", TimeUnit.MINUTES.name()),
   // Simultaneous number of containers to run
   NUMBER_OF_CONTAINERS("dtest.number.containers", "2"),
-  // Implementation of ResultAnalyzerFactory
-  RESULT_ANALYZER_FACTORY("dtest.result.analyzer.factory", SimpleResultAnalyzerFactory.class.getName()),
+  // Implementation of ResultAnalyzer
+  RESULT_ANALYZER("dtest.result.analyzer", BaseResultAnalyzer.class.getName()),
   // Maximum amount of time to wait for a test to run
   TEST_RUN_TIME("dtest.test.run.time", "90", TimeUnit.MINUTES.name()),
   // Number of tests to run per container

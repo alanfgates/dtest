@@ -27,11 +27,11 @@ import org.junit.Test;
 import java.io.IOException;
 import java.util.List;
 
-public class TestHiveContainerCommandFactory {
+public class TestHiveContainerCommandList {
 
   @Test
   public void parseYaml() throws IOException {
-    HiveContainerCommandFactory factory = new HiveContainerCommandFactory();
+    HiveContainerCommandList factory = new HiveContainerCommandList();
     List<HiveModuleDirectory> mDirs = factory.readYaml("test-profile.yaml", HiveModuleDirectory.class);
     Assert.assertEquals(7, mDirs.size());
     HiveModuleDirectory mDir = mDirs.get(0);
@@ -86,7 +86,7 @@ public class TestHiveContainerCommandFactory {
   @Test
   public void parseMasterYamlProfile() throws IOException {
     // I won't verify the contents but at least parse it
-    HiveContainerCommandFactory factory = new HiveContainerCommandFactory();
+    HiveContainerCommandList factory = new HiveContainerCommandList();
     List<HiveModuleDirectory> mDirs = factory.readYaml("master", HiveModuleDirectory.class);
     Assert.assertTrue(mDirs.size() > 0);
   }
@@ -94,19 +94,18 @@ public class TestHiveContainerCommandFactory {
   @Test
   public void parseBranch3YamlProfile() throws IOException {
     // I won't verify the contents but at least parse it
-    HiveContainerCommandFactory factory = new HiveContainerCommandFactory();
+    HiveContainerCommandList factory = new HiveContainerCommandList();
     List<HiveModuleDirectory> mDirs = factory.readYaml("branch-3-profile.yaml", HiveModuleDirectory.class);
     Assert.assertTrue(mDirs.size() > 0);
   }
 
   @Test
   public void buildCommands() throws IOException {
-    HiveContainerCommandFactory factory = new HiveContainerCommandFactory();
+    HiveContainerCommandList cmds = new HiveContainerCommandList();
     BuildInfo buildInfo = new BuildInfo("mybranch", "http://myrepo.com/repo.git", "mylabel",
         "test-profile.yaml");
     DTestLogger logger = new DTestLogger(".");
-    List<ContainerCommand> cmds = factory.getContainerCommands(new TestContainerClient(),
-        buildInfo, logger);
+    cmds.buildContainerCommands(new TestContainerClient(), buildInfo, logger);
     Assert.assertEquals(11, cmds.size());
     Assert.assertEquals("/bin/bash -c ( cd /tmp/beeline; /usr/bin/mvn test -Dsurefire.timeout=5400)", StringUtils.join(cmds.get(0).shellCommand(), " "));
     Assert.assertEquals("/bin/bash -c ( cd /tmp/cli; /usr/bin/mvn test -Dsurefire.timeout=5400 -Dtest.excludes.additional=**/TestCliDriverMethods)", StringUtils.join(cmds.get(1).shellCommand(), " "));
@@ -121,7 +120,7 @@ public class TestHiveContainerCommandFactory {
     Assert.assertEquals("/bin/bash -c ( cd /tmp/itests/qtest; /usr/bin/mvn test -Dsurefire.timeout=5400 -Dtest=TestCliDriver -Dqfile=masking_7.q -DskipSparkTests)", StringUtils.join(cmds.get(10).shellCommand(), " "));
   }
 
-  private static class TestContainerClient implements ContainerClient {
+  private static class TestContainerClient extends ContainerClient {
     @Override
     public void defineImage(String dir, String repo, String branch, String label) throws
         IOException {
@@ -180,6 +179,26 @@ public class TestHiveContainerCommandFactory {
       } else {
         throw new RuntimeException("Unexpected cmd " + shellCmd);
       }
+    }
+
+    @Override
+    public void buildImage(String dir, long toWait, DTestLogger logger) throws IOException {
+
+    }
+
+    @Override
+    public void copyLogFiles(ContainerResult result, String targetDir, DTestLogger logger) throws IOException {
+
+    }
+
+    @Override
+    public void removeContainer(ContainerResult result, DTestLogger logger) throws IOException {
+
+    }
+
+    @Override
+    public void removeImage(DTestLogger logger) throws IOException {
+
     }
   }
 

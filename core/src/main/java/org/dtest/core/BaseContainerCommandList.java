@@ -13,20 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.dtest.core.simple;
+package org.dtest.core;
 
 import com.fasterxml.jackson.databind.MappingIterator;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.google.common.annotations.VisibleForTesting;
-import org.dtest.core.BuildInfo;
-import org.dtest.core.Config;
-import org.dtest.core.ContainerClient;
-import org.dtest.core.ContainerCommand;
-import org.dtest.core.ContainerCommandFactory;
-import org.dtest.core.ContainerResult;
-import org.dtest.core.DTestLogger;
 import org.dtest.core.impl.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,45 +28,42 @@ import java.io.IOException;
 import java.io.InvalidObjectException;
 import java.net.URL;
 import java.util.ArrayDeque;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Deque;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-public class SimpleContainerCommandFactory extends ContainerCommandFactory {
-  private static final Logger LOG = LoggerFactory.getLogger(SimpleContainerCommandFactory.class);
+public class BaseContainerCommandList extends ContainerCommandList {
+  private static final Logger LOG = LoggerFactory.getLogger(BaseContainerCommandList.class);
   protected int containerNumber;
 
-  public SimpleContainerCommandFactory() {
+  public BaseContainerCommandList() {
     containerNumber = 0;
 
   }
 
   @Override
-  public List<ContainerCommand> getContainerCommands(ContainerClient containerClient,
-                                                     BuildInfo buildInfo,
-                                                     DTestLogger logger) throws IOException {
+  public void buildContainerCommands(ContainerClient containerClient, BuildInfo buildInfo, DTestLogger logger)
+      throws IOException {
     setup(containerClient, buildInfo, logger);
 
-    List<SimpleModuleDirectory> mDirs = readYaml(buildInfo.getProfile(), getModuleDirectoryClass());
-    List<ContainerCommand> cmds = new ArrayList<>();
-    for (SimpleModuleDirectory mDir : mDirs) {
+    List<BaseModuleDirectory> mDirs = readYaml(buildInfo.getProfile(), getModuleDirectoryClass());
+    for (BaseModuleDirectory mDir : mDirs) {
       mDir.validate();
       int testsPerContainer = mDir.isSetTestsPerContainer() ?
           mDir.getTestsPerContainer() :
           Config.TESTS_PER_CONTAINER .getAsInt();
       if (subclassShouldHandle(mDir)) {
-        handle(mDir, containerClient, buildInfo, logger, cmds, testsPerContainer);
+        handle(mDir, containerClient, buildInfo, logger, testsPerContainer);
       } else if (!mDir.getNeedsSplit() && !mDir.isSetSingleTest()) {
         // This is the simple case.  Remove any skipped tests and set any environment variables
         // and we're good
-        SimpleContainerCommand mvn = new SimpleContainerCommand(containerClient.getContainerBaseDir()
+        BaseContainerCommand mvn = new BaseContainerCommand(containerClient.getContainerBaseDir()
             + "/" + mDir.getDir(), containerNumber++);
         setEnvsAndProperties(mDir, mvn);
         if (mDir.isSetSkippedTests()) mvn.excludeTests(mDir.getSkippedTests());
-        cmds.add(mvn);
+        add(mvn);
       } else if (mDir.getNeedsSplit()) {
         // Tests that need split
         Set<String> excludedTests = new HashSet<>();
@@ -94,20 +84,20 @@ public class SimpleContainerCommandFactory extends ContainerCommandFactory {
         // deal with isolated tests
         if (mDir.isSetIsolatedTests()) {
           for (String test : mDir.getIsolatedTests()) {
-            SimpleContainerCommand mvn =
-                new SimpleContainerCommand(containerClient.getContainerBaseDir() + "/" +
+            BaseContainerCommand mvn =
+                new BaseContainerCommand(containerClient.getContainerBaseDir() + "/" +
                     mDir.getDir(), containerNumber++);
             setEnvsAndProperties(mDir, mvn);
             mvn.addTest(test);
             LOG.debug("Isolating test " + test + " in container " + (containerNumber - 1));
-            cmds.add(mvn);
+            add(mvn);
             tests.remove(test);
           }
         }
 
         while (!tests.isEmpty()) {
-          SimpleContainerCommand mvn =
-              new SimpleContainerCommand(containerClient.getContainerBaseDir() + "/" +
+          BaseContainerCommand mvn =
+              new BaseContainerCommand(containerClient.getContainerBaseDir() + "/" +
               mDir.getDir(), containerNumber++);
           setEnvsAndProperties(mDir, mvn);
           for (int i = 0; i < testsPerContainer && !tests.isEmpty(); i++) {
@@ -115,23 +105,22 @@ public class SimpleContainerCommandFactory extends ContainerCommandFactory {
             LOG.debug("Adding test " + single + " to container " + (containerNumber - 1));
             mvn.addTest(single);
           }
-          cmds.add(mvn);
+          add(mvn);
         }
       } else if (mDir.isSetSingleTest()) {
         // Running a single test
-        SimpleContainerCommand mvn =
-            new SimpleContainerCommand(containerClient.getContainerBaseDir() + "/" + mDir.getDir(),
+        BaseContainerCommand mvn =
+            new BaseContainerCommand(containerClient.getContainerBaseDir() + "/" + mDir.getDir(),
             containerNumber++);
         mvn.addTest(mDir.getSingleTest());
         setEnvsAndProperties(mDir, mvn);
-        cmds.add(mvn);
+        add(mvn);
       } else {
           throw new InvalidObjectException("Help, I don't understand what you want me to do for " +
               "directory " + mDir.getDir());
       }
     }
 
-    return cmds;
   }
 
   /**
@@ -148,12 +137,12 @@ public class SimpleContainerCommandFactory extends ContainerCommandFactory {
 
   /**
    * Check if a subclass should handle this instead of the main class.  If this is true then
-   * @link {@link #handle(SimpleModuleDirectory, ContainerClient, BuildInfo, DTestLogger, List, int)}
+   * @link {@link #handle(BaseModuleDirectory, ContainerClient, BuildInfo, DTestLogger, int)}
    * will be called.
    * @param mDir information on this directory
    * @return true if the subclass should handle it.
    */
-  protected boolean subclassShouldHandle(SimpleModuleDirectory mDir) {
+  protected boolean subclassShouldHandle(BaseModuleDirectory mDir) {
     return false;
   }
 
@@ -164,26 +153,24 @@ public class SimpleContainerCommandFactory extends ContainerCommandFactory {
    * @param containerClient container client handle
    * @param buildInfo build information
    * @param logger dtest logger to write details to
-   * @param cmds ContainerCommands to execute
    * @param testsPerContainer number tests to run in this container
    * @throws IOException if it fails to read a file or something else it needs
    */
-  protected void handle(SimpleModuleDirectory mDir, ContainerClient containerClient,
-                        BuildInfo buildInfo, DTestLogger logger, List<ContainerCommand> cmds,
-                        int testsPerContainer) throws IOException {
+  protected void handle(BaseModuleDirectory mDir, ContainerClient containerClient,
+                        BuildInfo buildInfo, DTestLogger logger, int testsPerContainer) throws IOException {
   }
 
   /**
    * A chance for the subclass to change the ModuleDirectory class used parse the yaml.
    * @return class
    */
-  protected Class<? extends SimpleModuleDirectory> getModuleDirectoryClass() {
-    return SimpleModuleDirectory.class;
+  protected Class<? extends BaseModuleDirectory> getModuleDirectoryClass() {
+    return BaseModuleDirectory.class;
   }
 
   @VisibleForTesting
   public <T> List<T> readYaml(String filename,
-                              Class<? extends SimpleModuleDirectory> clazz)
+                              Class<? extends BaseModuleDirectory> clazz)
       throws IOException {
     if (!filename.endsWith("-profile.yaml")) filename = filename + "-profile.yaml";
     URL yamlFile = getClass().getClassLoader().getResource(filename);
@@ -196,7 +183,7 @@ public class SimpleContainerCommandFactory extends ContainerCommandFactory {
     return iter.readAll();
   }
 
-  protected void setEnvsAndProperties(SimpleModuleDirectory mDir, SimpleContainerCommand mvn) {
+  protected void setEnvsAndProperties(BaseModuleDirectory mDir, BaseContainerCommand mvn) {
     if (mDir.getEnv() != null) mvn.addEnvs(mDir.getEnv());
     if (mDir.getMvnProperties() != null) mvn.addProperties(mDir.getMvnProperties());
   }

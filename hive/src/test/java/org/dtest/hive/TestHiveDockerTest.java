@@ -19,14 +19,12 @@ import org.apache.commons.lang3.StringUtils;
 import org.dtest.core.BuildInfo;
 import org.dtest.core.Config;
 import org.dtest.core.ContainerClient;
-import org.dtest.core.ContainerClientFactory;
 import org.dtest.core.ContainerCommand;
-import org.dtest.core.ContainerCommandFactory;
+import org.dtest.core.ContainerCommandList;
 import org.dtest.core.ContainerResult;
 import org.dtest.core.DTestLogger;
 import org.dtest.core.DockerTest;
 import org.dtest.core.ResultAnalyzer;
-import org.dtest.core.ResultAnalyzerFactory;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -51,42 +49,50 @@ public class TestHiveDockerTest {
   private PrintStream out;
   private PrintStream err;
 
-  public static class SuccessfulWithFailingTestsClientFactory extends ContainerClientFactory {
+  public static class SuccessfulWithFailingTestsClient extends ContainerClient {
     @Override
-    public ContainerClient getClient(BuildInfo info) {
-      return new ContainerClient() {
-        @Override
-        public void defineImage(String dir, String repo, String branch, String label) throws IOException {
+    public void defineImage(String dir, String repo, String branch, String label) throws IOException {
 
-        }
+    }
 
-        @Override
-        public String getContainerBaseDir() {
-          return null;
-        }
+    @Override
+    public String getContainerBaseDir() {
+      return null;
+    }
 
-        @Override
-        public void buildImage(String dir, long toWait, DTestLogger logger) throws IOException {
-          imageBuilt = true;
-        }
+    @Override
+    public void buildImage(String dir, long toWait, DTestLogger logger) throws IOException {
+      imageBuilt = true;
+    }
 
-        @Override
-        public ContainerResult runContainer(long toWait, ContainerCommand cmd, DTestLogger logger) throws
-            IOException {
-          String logs = "Ran: " + StringUtils.join(cmd.shellCommand(), " ") +
-              TestHiveResultAnalyzer.LOG2;
-          return new ContainerResult(cmd, 0, logs);
-        }
-      };
+    @Override
+    public ContainerResult runContainer(long toWait, ContainerCommand cmd, DTestLogger logger) throws
+        IOException {
+      String logs = "Ran: " + StringUtils.join(cmd.shellCommand(), " ") +
+          TestHiveResultAnalyzer.LOG2;
+      return new ContainerResult(cmd, 0, logs);
+    }
+
+    @Override
+    public void copyLogFiles(ContainerResult result, String targetDir, DTestLogger logger) throws IOException {
+
+    }
+
+    @Override
+    public void removeContainer(ContainerResult result, DTestLogger logger) throws IOException {
+
+    }
+
+    @Override
+    public void removeImage(DTestLogger logger) throws IOException {
+
     }
   }
 
-  public static class ItestCommandFactory extends ContainerCommandFactory {
+  public static class ItestCommandList extends ContainerCommandList {
     @Override
-    public List<ContainerCommand> getContainerCommands(ContainerClient containerClient,
-                                                       BuildInfo label,
-                                                       DTestLogger logger) throws IOException {
-      return Collections.singletonList(new ContainerCommand() {
+    public void buildContainerCommands(ContainerClient containerClient, BuildInfo label, DTestLogger logger) throws IOException {
+      add(new ContainerCommand() {
         @Override
         public String containerSuffix() {
           return "friendly-itests-qtest";
@@ -105,46 +111,41 @@ public class TestHiveDockerTest {
     }
   }
 
-  public static class SpyingResultAnalyzerFactory extends ResultAnalyzerFactory {
+  public static class SpyingResultAnalyzer implements ResultAnalyzer {
+    final HiveResultAnalyzer contained = new HiveResultAnalyzer();
     @Override
-    public ResultAnalyzer getAnalyzer() {
-      final HiveResultAnalyzer contained = new HiveResultAnalyzer();
-      return new ResultAnalyzer() {
-        @Override
-        public void analyzeLog(ContainerResult result) {
-          contained.analyzeLog(result);
-        }
+    public void analyzeLog(ContainerResult result) {
+      contained.analyzeLog(result);
+    }
 
-        @Override
-        public int getSucceeded() {
-          succeeded = contained.getSucceeded();
-          return succeeded;
-        }
+    @Override
+    public int getSucceeded() {
+      succeeded = contained.getSucceeded();
+      return succeeded;
+    }
 
-        @Override
-        public List<String> getFailed() {
-          failures = contained.getFailed();
-          return failures;
-        }
+    @Override
+    public List<String> getFailed() {
+      failures = contained.getFailed();
+      return failures;
+    }
 
-        @Override
-        public List<String> getErrors() {
-          errors = contained.getErrors();
-          return errors;
-        }
+    @Override
+    public List<String> getErrors() {
+      errors = contained.getErrors();
+      return errors;
+    }
 
-        @Override
-        public boolean hadTimeouts() {
-          hadTimeouts = contained.hadTimeouts();
-          return hadTimeouts;
-        }
+    @Override
+    public boolean hadTimeouts() {
+      hadTimeouts = contained.hadTimeouts();
+      return hadTimeouts;
+    }
 
-        @Override
-        public boolean runSucceeded() {
-          runSucceeded = contained.runSucceeded();
-          return runSucceeded;
-        }
-      };
+    @Override
+    public boolean runSucceeded() {
+      runSucceeded = contained.runSucceeded();
+      return runSucceeded;
     }
   }
 
@@ -162,9 +163,9 @@ public class TestHiveDockerTest {
 
   @Test
   public void successfulRunSomeTestsFail() {
-    Config.CONTAINER_CLIENT_FACTORY.set(SuccessfulWithFailingTestsClientFactory.class.getName());
-    Config.CONTAINER_COMMAND_FACTORY.set(ItestCommandFactory.class.getName());
-    Config.RESULT_ANALYZER_FACTORY.set(SpyingResultAnalyzerFactory.class.getName());
+    Config.CONTAINER_CLIENT.set(SuccessfulWithFailingTestsClient.class.getName());
+    Config.CONTAINER_COMMAND_LIST.set(ItestCommandList.class.getName());
+    Config.RESULT_ANALYZER.set(SpyingResultAnalyzer.class.getName());
     DockerTest test = new DockerTest(out, err);
     BuildInfo build = test.parseArgs(new String[] {"-b", "successful",
                                                    "-d", System.getProperty("java.io.tmpdir"),

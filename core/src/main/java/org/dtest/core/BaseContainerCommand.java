@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.dtest.core.simple;
+package org.dtest.core;
 
 import org.dtest.core.Config;
 import org.dtest.core.ContainerCommand;
@@ -27,7 +27,7 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
-public class SimpleContainerCommand implements ContainerCommand {
+public class BaseContainerCommand implements ContainerCommand {
 
   protected final String baseDir; // base directory for all commands
   protected final int cmdNumber;
@@ -37,7 +37,7 @@ public class SimpleContainerCommand implements ContainerCommand {
   protected Map<String, String> properties; // properties to pass to maven (-DX=Y) val can be null
   protected long testTimeout;
 
-  public SimpleContainerCommand(String baseDir, int cmdNumber) {
+  public BaseContainerCommand(String baseDir, int cmdNumber) {
     this.baseDir = baseDir;
     this.cmdNumber = cmdNumber;
     tests = new ArrayList<>();

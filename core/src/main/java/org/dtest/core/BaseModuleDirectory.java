@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.dtest.core.simple;
+package org.dtest.core;
 
 import java.io.InvalidObjectException;
 import java.util.Map;
 
-public class SimpleModuleDirectory {
+public class BaseModuleDirectory {
   private String   dir;                // build directory
   private boolean  needsSplit;         // if false, run all tests in single container, else split them up
   private int      testsPerContainer;  // if needsSplit = true, how many tests per container to run

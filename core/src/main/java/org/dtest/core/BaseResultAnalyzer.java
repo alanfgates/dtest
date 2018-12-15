@@ -13,10 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.dtest.core.simple;
+package org.dtest.core;
 
-import org.dtest.core.ContainerResult;
-import org.dtest.core.ResultAnalyzer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,8 +25,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class SimpleResultAnalyzer implements ResultAnalyzer {
-  private static final Logger LOG = LoggerFactory.getLogger(SimpleResultAnalyzer.class);
+public class BaseResultAnalyzer implements ResultAnalyzer {
+  private static final Logger LOG = LoggerFactory.getLogger(BaseResultAnalyzer.class);
 
   private boolean hadTimeouts;
   private boolean runSucceeded;
@@ -41,7 +39,7 @@ public class SimpleResultAnalyzer implements ResultAnalyzer {
   private final Pattern unitTestFailure;
   private final Pattern timeout;
 
-  public SimpleResultAnalyzer() {
+  public BaseResultAnalyzer() {
     // Access to these does not need to be synchronized because they only go from start state to
     // the opposite state (eg hadTimeouts starts at false and can move to true, but can never
     // move back to false).
