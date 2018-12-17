@@ -15,12 +15,17 @@
  */
 package org.dtest.core;
 
+import com.google.common.annotations.VisibleForTesting;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class BuildInfo implements Comparable<BuildInfo> {
+  @VisibleForTesting
+  public static final String CFG_BUILD_BASE_DIR = "dtest.build.base.dir";
+
   private final Pattern dockerable = Pattern.compile("[A-Za-z0-9_\\-]+");
   private final CodeSource src;
   private final String label;
@@ -48,12 +53,18 @@ public class BuildInfo implements Comparable<BuildInfo> {
    * @return directory name
    * @throws IOException if the directory can't be built.
    */
-  String buildDir(String baseDir) throws IOException {
+  String buildDir() throws IOException {
     if (dir != null) return dir;
-    File d = new File(baseDir, label);
+    File d = new File(getBaseDir(), label);
     d.mkdir();
     dir = d.getAbsolutePath();
     return dir;
+  }
+
+  public String getBaseDir() throws IOException {
+    String baseDir = Config.getAsString(CFG_BUILD_BASE_DIR);
+    if (baseDir == null) throw new IOException(CFG_BUILD_BASE_DIR + " not set, required");
+    return baseDir;
   }
 
   public CodeSource getSrc() {

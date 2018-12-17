@@ -313,9 +313,9 @@ public class TestDockerTest {
     Config.set(ResultAnalyzer.CFG_RESULT_ANALYZER, SpyingResultAnalyzer.class.getName());
     Config.set(GitSource.CFG_GIT_BRANCH, "successful");
     Config.set(GitSource.CFG_GIT_REPO, "repo");
+    Config.set(BuildInfo.CFG_BUILD_BASE_DIR, System.getProperty("java.io.tmpdir"));
     DockerTest test = new DockerTest(out, err);
-    BuildInfo build = test.parseArgs(new String[] {"-d", System.getProperty("java.io.tmpdir"),
-                                                   "-l", "firstTry",
+    BuildInfo build = test.parseArgs(new String[] {"-l", "firstTry",
                                                    "-p", "profile1"});
     test.runBuild(build);
     Assert.assertTrue(imageBuilt);
@@ -361,9 +361,9 @@ public class TestDockerTest {
     Config.set(ResultAnalyzer.CFG_RESULT_ANALYZER, SpyingResultAnalyzer.class.getName());
     Config.set(GitSource.CFG_GIT_BRANCH, "failure");
     Config.set(GitSource.CFG_GIT_REPO, "repo");
+    Config.set(BuildInfo.CFG_BUILD_BASE_DIR, System.getProperty("java.io.tmpdir"));
     DockerTest test = new DockerTest(out, err);
-    BuildInfo build = test.parseArgs(new String[] {"-d", System.getProperty("java.io.tmpdir"),
-                                                   "-l", "will-time-out",
+    BuildInfo build = test.parseArgs(new String[] {"-l", "will-time-out",
                                                    "-p", "profile1"});
     test.runBuild(build);
     Assert.assertTrue(imageBuilt);
@@ -379,9 +379,9 @@ public class TestDockerTest {
     Config.set(ResultAnalyzer.CFG_RESULT_ANALYZER, SpyingResultAnalyzer.class.getName());
     Config.set(GitSource.CFG_GIT_BRANCH, "failure");
     Config.set(GitSource.CFG_GIT_REPO, "repo");
+    Config.set(BuildInfo.CFG_BUILD_BASE_DIR, System.getProperty("java.io.tmpdir"));
     DockerTest test = new DockerTest(out, err);
-    BuildInfo build = test.parseArgs(new String[] {"-d", System.getProperty("java.io.tmpdir"),
-                                                   "-l", "take2",
+    BuildInfo build = test.parseArgs(new String[] {"-l", "take2",
                                                    "-p", "profile1"});
     test.runBuild(build);
     Assert.assertTrue(imageBuilt);

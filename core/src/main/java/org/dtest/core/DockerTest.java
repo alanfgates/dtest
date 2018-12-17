@@ -22,7 +22,6 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.OptionBuilder;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
-import org.dtest.core.impl.PluginFactory;
 import org.dtest.core.impl.ProcessResults;
 import org.dtest.core.impl.Utils;
 import org.slf4j.Logger;
@@ -38,7 +37,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
 
 public class DockerTest {
   private static final Logger LOG = LoggerFactory.getLogger(DockerTest.class);
@@ -53,10 +51,8 @@ public class DockerTest {
   }
 
   private ContainerClient docker;
-  private int numContainers;
   private PrintStream out;
   private PrintStream err;
-  private String baseDir;
 
   public DockerTest(PrintStream out, PrintStream err) {
     this.out = out;
@@ -73,13 +69,6 @@ public class DockerTest {
     CommandLineParser parser = new GnuParser();
 
     Options opts = new Options();
-
-    opts.addOption(OptionBuilder
-        .withLongOpt("base-directory")
-        .withDescription("directory to build dockerfile in")
-        .isRequired()
-        .hasArg()
-        .create("d"));
 
     opts.addOption(OptionBuilder
         .withLongOpt("build-label")
@@ -110,8 +99,6 @@ public class DockerTest {
       return null;
     }
 
-    numContainers = Config.getAsInt(DockerTest.CFG_NUM_CONTAINERS);
-    baseDir = cmd.getOptionValue("d");
     try {
       CodeSource codeSource = CodeSource.getInstance();
       BuildInfo info = new BuildInfo(codeSource, cmd.getOptionValue("l").toLowerCase(), cmd.getOptionValue("p"));
@@ -130,7 +117,7 @@ public class DockerTest {
     try {
       docker = ContainerClient.getInstance();
       docker.setBuildInfo(info);
-      String dir = info.buildDir(baseDir);
+      String dir = info.buildDir();
       logger = new DTestLogger(dir);
       try {
         buildDockerImage(info, logger);
@@ -141,7 +128,7 @@ public class DockerTest {
         return 1;
       }
       try {
-        rc = runContainers(info, logger, numContainers);
+        rc = runContainers(info, logger);
         packageLogsAndCleanup(info, logger);
       } catch (IOException e) {
         String msg = "Failed to run one or more of the containers.";
@@ -197,7 +184,7 @@ public class DockerTest {
     docker.buildImage(info.getDir(), logger);
   }
 
-  private int runContainers(final BuildInfo info, final DTestLogger logger, int numContainers)
+  private int runContainers(final BuildInfo info, final DTestLogger logger)
       throws IOException {
     ContainerCommandList taskCmds = ContainerCommandList.getInstance();
     taskCmds.buildContainerCommands(docker, info, logger);
@@ -206,7 +193,7 @@ public class DockerTest {
     // I don't need the return value, but by having one I can use the Callable interface instead
     // of Runnable, and Callable catches exceptions for me and passes them back.
     List <Future<Integer>> tasks = new ArrayList<>(taskCmds.size());
-    ExecutorService executor = Executors.newFixedThreadPool(numContainers);
+    ExecutorService executor = Executors.newFixedThreadPool(Config.getAsInt(CFG_NUM_CONTAINERS));
     for (ContainerCommand taskCmd : taskCmds) {
       tasks.add(executor.submit(() -> {
         ContainerResult result = docker.runContainer(taskCmd, logger);
@@ -298,7 +285,7 @@ public class DockerTest {
 
   private void packageLogsAndCleanup(BuildInfo info, DTestLogger logger) throws IOException {
     ProcessResults res = Utils.runProcess("tar", 60, logger, "tar", "zcf",
-        info.getLabel() + ".tgz", "-C", baseDir, info.getLabel());
+        info.getLabel() + ".tgz", "-C", info.getBaseDir(), info.getLabel());
     if (res.rc != 0) {
       throw new IOException("Failed to tar up logs, error " + res.rc + " msg: " + res.stderr);
     }

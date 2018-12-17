@@ -174,9 +174,9 @@ public class TestHiveDockerTest {
     Config.set(ResultAnalyzer.CFG_RESULT_ANALYZER, SpyingResultAnalyzer.class.getName());
     Config.set(GitSource.CFG_GIT_BRANCH, "successful");
     Config.set(GitSource.CFG_GIT_REPO, "repo");
+    Config.set(BuildInfo.CFG_BUILD_BASE_DIR, System.getProperty("java.io.tmpdir"));
     DockerTest test = new DockerTest(out, err);
-    BuildInfo build = test.parseArgs(new String[] {"-d", System.getProperty("java.io.tmpdir"),
-                                                   "-l", "secondTry",
+    BuildInfo build = test.parseArgs(new String[] {"-l", "secondTry",
                                                    "-p", "profile1"});
     test.runBuild(build);
     Assert.assertTrue(imageBuilt);
