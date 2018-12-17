@@ -23,6 +23,7 @@ import org.dtest.core.ContainerClient;
 import org.dtest.core.ContainerCommand;
 import org.dtest.core.ContainerResult;
 import org.dtest.core.DTestLogger;
+import org.dtest.core.git.GitSource;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -68,24 +69,23 @@ public class TestContainerCommandList {
   @Test
   public void buildCommands() throws IOException {
     BaseContainerCommandList cmds = new BaseContainerCommandList();
-    BuildInfo buildInfo = new BuildInfo("mybranch", "http://myrepo.com/repo.git", "mylabel",
-        "test-profile.yaml");
+    BuildInfo buildInfo = new BuildInfo(new GitSource(), "mylabel", "test-profile.yaml");
     DTestLogger logger = new DTestLogger(".");
     cmds.buildContainerCommands(new TestContainerClient(), buildInfo, logger);
     Assert.assertEquals(7, cmds.size());
-    Assert.assertEquals("/bin/bash -c ( cd /tmp/beeline; /usr/bin/mvn test -Dsurefire.timeout=5400)", StringUtils.join(cmds.get(0).shellCommand(), " "));
-    Assert.assertEquals("/bin/bash -c ( cd /tmp/cli; /usr/bin/mvn test -Dsurefire.timeout=5400 -Dtest.excludes.additional=**/TestCliDriverMethods)", StringUtils.join(cmds.get(1).shellCommand(), " "));
-    Assert.assertEquals("/bin/bash -c ( cd /tmp/standalone-metastore; /usr/bin/mvn test -Dsurefire.timeout=5400 -Dtest=TestRetriesInRetryingHMSHandler,TestRetryingHMSHandler,TestSetUGIOnBothClientServer,TestSetUGIOnOnlyClient,TestSetUGIOnOnlyServer,TestStats,TestMetastoreSchemaTool,TestSchemaToolForMetastore,TestTxnHandlerNegative,TestTxnUtils -Dtest.groups=\"\")", StringUtils.join(cmds.get(2).shellCommand(), " "));
-    Assert.assertEquals("/bin/bash -c ( cd /tmp/standalone-metastore; /usr/bin/mvn test -Dsurefire.timeout=5400 -Dtest=TestHdfsUtils,TestMetaStoreUtils -Dtest.groups=\"\")", StringUtils.join(cmds.get(3).shellCommand(), " "));
-    Assert.assertEquals("/bin/bash -c ( cd /tmp/ql; /usr/bin/mvn test -Dsurefire.timeout=5400 -Dtest=TestCleaner2)", StringUtils.join(cmds.get(4).shellCommand(), " "));
-    Assert.assertEquals("/bin/bash -c ( cd /tmp/ql; /usr/bin/mvn test -Dsurefire.timeout=5400 -Dtest=CompactorTest,TestCleaner,TestInitiator,TestWorker2)", StringUtils.join(cmds.get(5).shellCommand(), " "));
-    Assert.assertEquals("/bin/bash -c ( cd /tmp/itests/qtest; /usr/bin/mvn test -Dsurefire.timeout=5400 -Dtest=TestContribCliDriver -DskipSparkTests)", StringUtils.join(cmds.get(6).shellCommand(), " "));
+    Assert.assertEquals("/bin/bash -c ( cd /tmp/beeline; /usr/bin/mvn test -Dsurefire.timeout=300)", StringUtils.join(cmds.get(0).shellCommand(), " "));
+    Assert.assertEquals("/bin/bash -c ( cd /tmp/cli; /usr/bin/mvn test -Dsurefire.timeout=300 -Dtest.excludes.additional=**/TestCliDriverMethods)", StringUtils.join(cmds.get(1).shellCommand(), " "));
+    Assert.assertEquals("/bin/bash -c ( cd /tmp/standalone-metastore; /usr/bin/mvn test -Dsurefire.timeout=300 -Dtest=TestRetriesInRetryingHMSHandler,TestRetryingHMSHandler,TestSetUGIOnBothClientServer,TestSetUGIOnOnlyClient,TestSetUGIOnOnlyServer,TestStats,TestMetastoreSchemaTool,TestSchemaToolForMetastore,TestTxnHandlerNegative,TestTxnUtils -Dtest.groups=\"\")", StringUtils.join(cmds.get(2).shellCommand(), " "));
+    Assert.assertEquals("/bin/bash -c ( cd /tmp/standalone-metastore; /usr/bin/mvn test -Dsurefire.timeout=300 -Dtest=TestHdfsUtils,TestMetaStoreUtils -Dtest.groups=\"\")", StringUtils.join(cmds.get(3).shellCommand(), " "));
+    Assert.assertEquals("/bin/bash -c ( cd /tmp/ql; /usr/bin/mvn test -Dsurefire.timeout=300 -Dtest=TestCleaner2)", StringUtils.join(cmds.get(4).shellCommand(), " "));
+    Assert.assertEquals("/bin/bash -c ( cd /tmp/ql; /usr/bin/mvn test -Dsurefire.timeout=300 -Dtest=CompactorTest,TestCleaner,TestInitiator,TestWorker2)", StringUtils.join(cmds.get(5).shellCommand(), " "));
+    Assert.assertEquals("/bin/bash -c ( cd /tmp/itests/qtest; /usr/bin/mvn test -Dsurefire.timeout=300 -Dtest=TestContribCliDriver -DskipSparkTests)", StringUtils.join(cmds.get(6).shellCommand(), " "));
   }
 
   private static class TestContainerClient extends ContainerClient {
 
     @Override
-    public void buildImage(String dir, long toWait, DTestLogger logger) throws IOException {
+    public void buildImage(String dir, DTestLogger logger) throws IOException {
 
     }
 
@@ -105,8 +105,7 @@ public class TestContainerCommandList {
     }
 
     @Override
-    public void defineImage(String dir, String repo, String branch, String label) throws
-        IOException {
+    public void defineImage() throws IOException {
 
     }
 
@@ -116,7 +115,7 @@ public class TestContainerCommandList {
     }
 
     @Override
-    public ContainerResult runContainer(long toWait, ContainerCommand cmd,
+    public ContainerResult runContainer(ContainerCommand cmd,
                                         DTestLogger logger) throws IOException {
       // Doing our own mocking here
       String shellCmd = StringUtils.join(cmd.shellCommand(), " ");
@@ -143,6 +142,11 @@ public class TestContainerCommandList {
       } else {
         throw new RuntimeException("Unexpected cmd " + shellCmd);
       }
+    }
+
+    @Override
+    public String getProjectName() {
+      return null;
     }
   }
 

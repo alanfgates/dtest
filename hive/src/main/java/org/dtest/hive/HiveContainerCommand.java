@@ -15,12 +15,14 @@
  */
 package org.dtest.hive;
 
+import org.dtest.core.Config;
 import org.dtest.core.impl.Utils;
 import org.dtest.core.BaseContainerCommand;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
 public class HiveContainerCommand extends BaseContainerCommand {
@@ -46,7 +48,7 @@ public class HiveContainerCommand extends BaseContainerCommand {
   @Override
   public String[] shellCommand() {
     if (isITest) assert tests.size() == 1;
-    return Utils.shellCmdInRoot(baseDir, new HiveMvnCommandSupplier());
+    return Utils.shellCmdInRoot(buildDir, new HiveMvnCommandSupplier());
   }
 
 
@@ -61,7 +63,7 @@ public class HiveContainerCommand extends BaseContainerCommand {
       }
 
       buf.append("/usr/bin/mvn test -Dsurefire.timeout=")
-          .append(testTimeout);
+          .append(Config.getAsTime(CFG_TEST_RUN_TIME, TimeUnit.SECONDS));
 
       if (!tests.isEmpty()) {
         buf.append(" -Dtest=");

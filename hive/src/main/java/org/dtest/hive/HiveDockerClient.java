@@ -29,8 +29,8 @@ public class HiveDockerClient extends BaseDockerClient {
 
 
   @Override
-  public void defineImage(String dir, String repo, String branch, String label) throws IOException {
-    FileWriter writer = new FileWriter(dir + File.separatorChar + "Dockerfile");
+  public void defineImage() throws IOException {
+    FileWriter writer = new FileWriter(buildInfo.getDir() + File.separatorChar + "Dockerfile");
     writer.write("FROM centos\n");
     writer.write("\n");
     writer.write("RUN yum upgrade -y && \\\n");
@@ -42,13 +42,10 @@ public class HiveDockerClient extends BaseDockerClient {
     writer.write("USER " + getUser() + "\n");
     writer.write("\n");
     writer.write("RUN { \\\n");
-    writer.write("    echo This build is labeled " + label + "; \\\n");
+    writer.write("    echo This build is labeled " + buildInfo.getLabel() + "; \\\n");
     writer.write("    cd " + getHomeDir() + "; \\\n");
-    writer.write("    /usr/bin/git clone " + repo + "; \\\n");
-    writer.write("    cd " + getProjectName() + "; \\\n");
-    writer.write("    /usr/bin/git checkout " + branch + "; \\\n");
-    writer.write("    /usr/bin/mvn install -Dtest=TestMetastoreConf; \\\n"); // Need a quick test
-    // that actually runs so it downloads the surefire jar from maven
+    for (String line : buildInfo.getSrc().srcCommands(this)) writer.write(line);
+    writer.write("    /usr/bin/mvn install -DskipTests; \\\n");
     writer.write("    cd itests; \\\n");
     writer.write("    /usr/bin/mvn install -DskipSparkTests -DskipTests; \\\n");
     writer.write("}\n");
@@ -57,7 +54,7 @@ public class HiveDockerClient extends BaseDockerClient {
   }
 
   @Override
-  protected String getProjectName() {
+  public String getProjectName() {
     return "hive";
   }
 }

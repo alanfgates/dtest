@@ -15,6 +15,7 @@
  */
 package org.dtest.core;
 
+import org.dtest.core.git.GitSource;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -23,16 +24,16 @@ public class TestBuildInfo {
 
   @Test
   public void simple() throws IOException {
-    new BuildInfo("a", "b", "patch1", "profile1");
+    new BuildInfo(new GitSource(), "patch1", "profile1");
   }
 
   @Test
   public void withDash() throws IOException {
-    new BuildInfo("a", "b", "patch1-run2", "profile1");
+    new BuildInfo(new GitSource(), "patch1-run2", "profile1");
   }
 
   @Test(expected = IOException.class)
   public void withSlash() throws IOException {
-    new BuildInfo("a", "b", "patch1/run2", "profile1");
+    new BuildInfo(new GitSource(), "patch1/run2", "profile1");
   }
 }

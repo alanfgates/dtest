@@ -15,9 +15,27 @@
  */
 package org.dtest.core;
 
+import com.google.common.annotations.VisibleForTesting;
+import org.dtest.core.impl.PluginFactory;
+
 import java.io.IOException;
 
 public abstract class ContainerClient {
+
+  @VisibleForTesting
+  // Implementation of ContainerClient
+  public static final String CFG_CONTAINER_CLIENT = "dtest.container.client";
+  // Maximum amount of time to wait for container to run
+  public static final String CFG_CONTAINER_RUN_TIME = "dtest.container.run.time";
+  // Maximum amount of time to wait for image to build
+  public static final String CFG_IMAGE_BUILD_TIME = "dtest.image.build.time";
+
+  static {
+    Config.setDefaultValue(CFG_CONTAINER_CLIENT, BaseDockerClient.class.getName());
+    Config.setDefaultValue(CFG_CONTAINER_RUN_TIME, "30min");
+    Config.setDefaultValue(CFG_IMAGE_BUILD_TIME, "3hour");
+
+  }
 
   protected BuildInfo buildInfo;
 
@@ -31,13 +49,9 @@ public abstract class ContainerClient {
 
   /**
    * Define the container.  Usually this will mean writing a Dockerfile.
-   * @param dir Directory for the build.
-   * @param repo git repository to pull from
-   * @param branch git branch to use
-   * @param label identifying value for this build
    * @throws IOException if we fail to write the docker file
    */
-  public abstract void defineImage(String dir, String repo, String branch, String label) throws IOException;
+  public abstract void defineImage() throws IOException;
 
   /**
    * Return the directory in the container that commands should operate in.
@@ -49,21 +63,19 @@ public abstract class ContainerClient {
    * Build an image
    * @param dir directory to build in, must either be absolute path or relative to CWD of the
    *            process.
-   * @param toWait how long to wait for this command in seconds
    * @param logger output log for tests
    * @throws IOException if the image fails to build
    */
-  public abstract void buildImage(String dir, long toWait, DTestLogger logger) throws IOException;
+  public abstract void buildImage(String dir, DTestLogger logger) throws IOException;
 
   /**
    * Run a container and return a string containing the logs
-   * @param toWait how long to wait for this run in seconds
    * @param cmd command to run along with any arguments
    * @param logger output log for tests
    * @return results from the container
    * @throws IOException if the container fails to run
    */
-  public abstract ContainerResult runContainer(long toWait, ContainerCommand cmd, DTestLogger logger) throws IOException;
+  public abstract ContainerResult runContainer(ContainerCommand cmd, DTestLogger logger) throws IOException;
 
   /**
    * Print the contents failed test logs to the log.
@@ -89,6 +101,16 @@ public abstract class ContainerClient {
    * @throws IOException if the remove fails
    */
   public abstract void removeImage(DTestLogger logger) throws IOException;
+
+  /**
+   * Get the name of the project.
+   * @return name of the project.
+   */
+  public abstract String getProjectName();
+
+  static ContainerClient getInstance() throws IOException {
+    return PluginFactory.getInstance(Config.getAsClass(ContainerClient.CFG_CONTAINER_CLIENT, ContainerClient.class));
+  }
 
 
 }

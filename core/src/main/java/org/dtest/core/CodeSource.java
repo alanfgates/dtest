@@ -16,19 +16,28 @@
 
 package org.dtest.core;
 
+import org.dtest.core.git.GitSource;
+import org.dtest.core.impl.PluginFactory;
+
+import java.io.IOException;
 import java.util.List;
 
-public interface CodeRepository {
+public abstract class CodeSource {
 
-  /**
-   * Pass in the argument from the command line for the build system.
-   * @param arg command line input
-   */
-  void setCmdlineArg(String arg);
+  private static final String CFG_CODE_SOURCE_CLASS = "dtest.code.source.class";
+
+  static {
+    Config.setDefaultValue(CFG_CODE_SOURCE_CLASS, GitSource.class.getName());
+  }
 
   /**
    * Get the list of commands that should be executed during image creation to checkout the appropriate source code
+   * @param client container client instance
    * @return list of shell commands
    */
-  List<String> repoCommands();
+  public abstract List<String> srcCommands(ContainerClient client) throws IOException;
+
+  static CodeSource getInstance() throws IOException {
+    return PluginFactory.getInstance(Config.getAsClass(CodeSource.CFG_CODE_SOURCE_CLASS, CodeSource.class));
+  }
 }

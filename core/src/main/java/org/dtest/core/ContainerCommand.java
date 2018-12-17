@@ -15,7 +15,18 @@
  */
 package org.dtest.core;
 
-public interface ContainerCommand {
+public abstract class ContainerCommand {
+
+  // Maximum amount of time to wait for a test to run
+  protected static final String CFG_TEST_RUN_TIME = "dtest.test.run.time";
+  protected static final String CFG_BASE_DIR = "dtest.base.dir";
+  // Number of tests to run per container
+  protected static final String CFG_TESTS_PER_CONTAINER = "dtest.tests.per.container";
+
+  static {
+    Config.setDefaultValue(CFG_TEST_RUN_TIME, "5min");
+    Config.setDefaultValue(CFG_TESTS_PER_CONTAINER, "10");
+  }
 
   /**
    * Get a unique suffix for the container name for this command.  This must return the same value
@@ -23,19 +34,19 @@ public interface ContainerCommand {
    * container name (generally means it uses only letters, numbers, underscore, and dash).
    * @return unique name.
    */
-  String containerSuffix();
+  public abstract String containerSuffix();
 
   /**
    * Build a shell command.  The command itself should be the first element in the array, with
    * any arguments as subsequent elements.
    * @return the command.
    */
-  String[] shellCommand();
+  public abstract String[] shellCommand();
 
   /**
    * Get the directory the container will execute in.
    * @return container directory
    */
-  String containerDirectory();
+  public abstract String containerDirectory();
 
 }

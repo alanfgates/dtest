@@ -23,6 +23,7 @@ import java.io.IOException;
 public class PluginFactory {
 
   public static <T> T getInstance(Class<? extends T> theClass) throws IOException {
+    if (theClass == null) return null;
     try {
       return theClass.newInstance();
     } catch (InstantiationException|IllegalAccessException e) {

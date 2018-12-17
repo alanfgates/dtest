@@ -15,46 +15,60 @@
  */
 package org.dtest.core;
 
+import com.google.common.annotations.VisibleForTesting;
+import org.dtest.core.impl.PluginFactory;
+
+import java.io.IOException;
 import java.util.List;
 
-public interface ResultAnalyzer {
+public abstract class ResultAnalyzer {
+  @VisibleForTesting
+  // Implementation of ResultAnalyzer
+  public final static String CFG_RESULT_ANALYZER = "dtest.result.analyzer";
+
+  static {
+    Config.setDefaultValue(CFG_RESULT_ANALYZER, BaseResultAnalyzer.class.getName());
+  }
 
   /**
    * Analyze a log.
    * @param containerResult the result from the container run.  Information in the result will be
    *                       appended by this method.
    */
-  void analyzeLog(ContainerResult containerResult);
+  public abstract void analyzeLog(ContainerResult containerResult);
 
   /**
    * Get aggregate count of succeeded tests.
    * @return number of tests that succeeded.
    */
-  int getSucceeded();
+  public abstract int getSucceeded();
 
   /**
    * Get list of tests that failed.
    * @return name of each test that failed.
    */
-  List<String> getFailed();
+  public abstract List<String> getFailed();
 
   /**
    * Get list of tests that ended in error.
    * @return name of each test that produced an error.
    */
-  List<String> getErrors();
+  public abstract List<String> getErrors();
 
   /**
    * True if at least one test timed out.
    * @return true if any tests timed out.
    */
-  boolean hadTimeouts();
+  public abstract boolean hadTimeouts();
 
   /**
    * True if the test run succeeded.  Note that this does not mean all tests passed, but that all
    * tests were run and the container exited normally.  Some tests may have failed or timed out.
    * @return true if success.
    */
-  boolean runSucceeded();
+  public abstract boolean runSucceeded();
 
+  static ResultAnalyzer getInstance() throws IOException {
+    return PluginFactory.getInstance(Config.getAsClass(ResultAnalyzer.CFG_RESULT_ANALYZER, ResultAnalyzer.class));
+  }
 }

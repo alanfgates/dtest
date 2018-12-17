@@ -16,105 +16,102 @@
 package org.dtest.core;
 
 import com.google.common.annotations.VisibleForTesting;
-import org.dtest.core.impl.TimeInterval;
 import org.dtest.core.impl.Utils;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
-public enum Config {
-  // Implementation of ContainerClient
-  CONTAINER_CLIENT("dtest.container.client", BaseDockerClient.class.getName()),
-  // Implementation of ContainerCommandList
-  CONTAINER_COMMAND_LIST("dtest.container.command.list", BaseContainerCommandList.class.getName()),
-  // Maximum amount of time to wait for container to run
-  CONTAINER_RUN_TIME("dtest.container.run.time", "3", TimeUnit.HOURS.name()),
-  // Maximum amount of time to wait for image to build
-  IMAGE_BUILD_TIME("dtest.image.build.time", "30", TimeUnit.MINUTES.name()),
-  // Simultaneous number of containers to run
-  NUMBER_OF_CONTAINERS("dtest.number.containers", "2"),
-  // Implementation of ResultAnalyzer
-  RESULT_ANALYZER("dtest.result.analyzer", BaseResultAnalyzer.class.getName()),
-  // Maximum amount of time to wait for a test to run
-  TEST_RUN_TIME("dtest.test.run.time", "90", TimeUnit.MINUTES.name()),
-  // Number of tests to run per container
-  TESTS_PER_CONTAINER("dtest.tests.per.container", "10");
+/**
+ * This class creates a static global configuration object.  It contains two maps, both of which map keys (strings)
+ * to values (objects).  The first map maps keys to values, the second keys to default values.  The first map is always
+ * checked first, and the second only used if there is no entry for the key in the first.
+ *
+ * The class provides a set of getter methods that allow the user to fetch that value as string, int,
+ * time value, etc.
+ *
+ * Keys for the configuration values are defined in the classes that read those keys.  While other classes can set
+ * values for those keys, no other classes should read them.  This is because until those classes are invoked the
+ * default values will not be set up.
+ */
+public class Config {
+
+  private static final Map<String, String> entries = new HashMap<>();
+  private static final Map<String, String> defaultEntries = new HashMap<>();
+  private static final Pattern TIME_UNIT_SUFFIX = Pattern.compile("([0-9]+)([a-zA-Z]+)");
+
+  private Config() {
+
+  }
 
   @VisibleForTesting
   static final String CONF_DIR = "conf";
   @VisibleForTesting
   static final String PROPERTIES_FILE = "dtest.properties";
 
-  private final String property;
-  private final String defaultValue;
-  private final String defaultTimeUnit;
-  private Object value;
-
-  Config(String property, String defaultValue) {
-    this(property, defaultValue, null);
+  public static <T> Class<? extends T> getAsClass(String key, Class<T> clazz) throws IOException {
+    String val = find(key);
+    return val == null ? null : Utils.getClass(val, clazz);
   }
 
-  Config(String property, String defaultValue, String defaultTimeUnit) {
-    this.property = property;
-    this.defaultValue = defaultValue;
-    this.defaultTimeUnit = defaultTimeUnit;
+  public static int getAsInt(String key) {
+    String val = find(key);
+    return val == null ? 0 : Integer.valueOf(val);
   }
 
-  public <T> Class<? extends T> getAsClass(Class<T> clazz) throws IOException {
-    if (value == null) {
-      String className = System.getProperty(property, defaultValue);
-      value = Utils.getClass(className, clazz);
+  /**
+   * Get the value as a time.
+   * @param key key to look up
+   * @param outUnit time unit to return this as
+   * @return time as a long
+   */
+  public static long getAsTime(String key, TimeUnit outUnit) {
+    String val = find(key);
+    if (val == null) return 0;
+    Matcher m = TIME_UNIT_SUFFIX.matcher(val);
+    if (m.matches()) {
+      long duration = Long.parseLong(m.group(1));
+      String unit = m.group(2).toLowerCase();
+
+      // If/else chain arranged in likely order of frequency for performance
+      if (unit.equals("s") || unit.startsWith("sec")) {
+        return outUnit.convert(duration, TimeUnit.SECONDS);
+      } else if (unit.equals("ms") || unit.equals("u") || unit.startsWith("msec")) {
+        return outUnit.convert(duration, TimeUnit.MILLISECONDS);
+      } else if (unit.equals("m") || unit.startsWith("min")) {
+        return outUnit.convert(duration, TimeUnit.MINUTES);
+      } else if (unit.equals("us") || unit.startsWith("usec")) {
+        return outUnit.convert(duration, TimeUnit.MICROSECONDS);
+      } else if (unit.equals("ns") || unit.startsWith("nsec")) {
+        return outUnit.convert(duration, TimeUnit.NANOSECONDS);
+      } else if (unit.equals("h") || unit.startsWith("hour")) {
+        return outUnit.convert(duration, TimeUnit.HOURS);
+      } else if (unit.equals("d") || unit.startsWith("day")) {
+        return outUnit.convert(duration, TimeUnit.DAYS);
+      } else {
+        throw new IllegalArgumentException("Invalid time unit " + unit);
+      }
+    } else {
+      throw new IllegalArgumentException("Invalid time unit " + val);
     }
-    return (Class<? extends T>)value;
   }
 
-  public int getAsInt() {
-    if (value == null) {
-      value = Integer.valueOf(System.getProperty(property, defaultValue));
-    }
-    return (int)value;
+  public static String getAsString(String key) throws IOException {
+    return find(key);
   }
 
-  public long getAsTime(TimeUnit unit) {
-    if (value == null) {
-      String timeUnitName = System.getProperty(property + ".unit", defaultTimeUnit);
-      String durationStr = System.getProperty(property, defaultValue);
-      value = new TimeInterval(Long.valueOf(durationStr), TimeUnit.valueOf(timeUnitName));
-    }
-    return unit.convert(((TimeInterval)value).duration, ((TimeInterval)value).unit);
-
+  public static void set(String key, String newVal) {
+    entries.put(key, newVal);
   }
 
-  public String getAsString() {
-    if (value == null) {
-      value = System.getProperty(property, defaultValue);
-    }
-    return value.toString();
-  }
-
-  @VisibleForTesting
-  public void set(String newVal) {
-    value = null;
-    System.setProperty(property, newVal);
-  }
-
-  @VisibleForTesting
-  String getProperty() {
-    return property;
-  }
-
-  @VisibleForTesting
-  void resetValue() {
-    value = null;
-  }
-
-  @VisibleForTesting
-  void unset() {
-    value = null;
-    System.getProperties().remove(property);
+  public static void setDefaultValue(String key, String defaultVal) {
+    defaultEntries.put(key, defaultVal);
   }
 
   /**
@@ -131,10 +128,19 @@ public enum Config {
     FileInputStream input = new FileInputStream(filename);
     Properties p = new Properties();
     p.load(input);
-    // Only set the value if it doesn't override an existing value
-    for (Object key : p.keySet()) System.getProperties().putIfAbsent(key, p.get(key));
+    for (Object key : p.keySet()) {
+      // Only set the value if it doesn't override an existing value
+      entries.putIfAbsent(key.toString(), p.getProperty(key.toString()));
+    }
     input.close();
+  }
 
+  private static String find(String key) {
+    String entry = entries.get(key);
+    if (entry == null) {
+      entry = defaultEntries.get(key);
+    }
+    return entry;
   }
 
 }

@@ -45,6 +45,12 @@ public class DockerTest {
   private static final String SUMMARY_LOG = "summary";
   static final String DTEST_HOME = "DTEST_HOME";
   public static final String EXEC_LOG = "dtest-exec"; // for log entries by dtest
+  // Simultaneous number of containers to run
+  protected static final String CFG_NUM_CONTAINERS = "dtest.number.containers";
+
+  static {
+    Config.setDefaultValue(CFG_NUM_CONTAINERS, "2");
+  }
 
   private ContainerClient docker;
   private int numContainers;
@@ -67,20 +73,6 @@ public class DockerTest {
     CommandLineParser parser = new GnuParser();
 
     Options opts = new Options();
-    opts.addOption(OptionBuilder
-        .withLongOpt("branch")
-        .withDescription("git branch to use")
-        .hasArg()
-        .isRequired()
-        .create("b"));
-
-    opts.addOption(OptionBuilder
-        .withLongOpt("num-containers")
-        .withDescription("DEPRECATED, set via config file or system property " +
-                Config.NUMBER_OF_CONTAINERS.getProperty() +
-                " - number of simultaneous containers to run.")
-        .hasArg()
-        .create("c"));
 
     opts.addOption(OptionBuilder
         .withLongOpt("base-directory")
@@ -109,13 +101,6 @@ public class DockerTest {
         .withDescription("do not cleanup docker containers and image after build")
         .create("m"));
 
-    opts.addOption(OptionBuilder
-        .withLongOpt("repo")
-        .withDescription("git repository to use")
-        .hasArg()
-        .isRequired()
-        .create("r"));
-
     CommandLine cmd;
     try {
       cmd = parser.parse(opts, args);
@@ -125,12 +110,11 @@ public class DockerTest {
       return null;
     }
 
-    if (cmd.hasOption("c")) Config.NUMBER_OF_CONTAINERS.set(cmd.getOptionValue("c"));
-    numContainers = Config.NUMBER_OF_CONTAINERS.getAsInt();
+    numContainers = Config.getAsInt(DockerTest.CFG_NUM_CONTAINERS);
     baseDir = cmd.getOptionValue("d");
     try {
-      BuildInfo info = new BuildInfo(cmd.getOptionValue("b"), cmd.getOptionValue("r"),
-          cmd.getOptionValue("l").toLowerCase(), cmd.getOptionValue("p"));
+      CodeSource codeSource = CodeSource.getInstance();
+      BuildInfo info = new BuildInfo(codeSource, cmd.getOptionValue("l").toLowerCase(), cmd.getOptionValue("p"));
       info.setCleanupAfter(!cmd.hasOption("m"));
       return info;
     } catch (IOException e) {
@@ -144,7 +128,7 @@ public class DockerTest {
     DTestLogger logger = null;
     int rc;
     try {
-      docker = PluginFactory.getInstance(Config.CONTAINER_CLIENT.getAsClass(ContainerClient.class));
+      docker = ContainerClient.getInstance();
       docker.setBuildInfo(info);
       String dir = info.buildDir(baseDir);
       logger = new DTestLogger(dir);
@@ -209,26 +193,23 @@ public class DockerTest {
 
   private void buildDockerImage(BuildInfo info, DTestLogger logger)
       throws IOException {
-    long timeout = Config.IMAGE_BUILD_TIME.getAsTime(TimeUnit.SECONDS);
-    docker.defineImage(info.getDir(), info.getRepo(), info.getBranch(), info.getLabel());
-    docker.buildImage(info.getDir(), timeout, logger);
+    docker.defineImage();
+    docker.buildImage(info.getDir(), logger);
   }
 
   private int runContainers(final BuildInfo info, final DTestLogger logger, int numContainers)
       throws IOException {
-    ContainerCommandList taskCmds = PluginFactory.getInstance(Config.CONTAINER_COMMAND_LIST.getAsClass(ContainerCommandList.class));
+    ContainerCommandList taskCmds = ContainerCommandList.getInstance();
     taskCmds.buildContainerCommands(docker, info, logger);
 
-    final long timeout = Config.CONTAINER_RUN_TIME.getAsTime(TimeUnit.SECONDS);
-
-    final ResultAnalyzer analyzer = PluginFactory.getInstance(Config.RESULT_ANALYZER.getAsClass(ResultAnalyzer.class));
+    final ResultAnalyzer analyzer = ResultAnalyzer.getInstance();
     // I don't need the return value, but by having one I can use the Callable interface instead
     // of Runnable, and Callable catches exceptions for me and passes them back.
     List <Future<Integer>> tasks = new ArrayList<>(taskCmds.size());
     ExecutorService executor = Executors.newFixedThreadPool(numContainers);
     for (ContainerCommand taskCmd : taskCmds) {
       tasks.add(executor.submit(() -> {
-        ContainerResult result = docker.runContainer(timeout, taskCmd, logger);
+        ContainerResult result = docker.runContainer(taskCmd, logger);
         analyzer.analyzeLog(result);
         StringBuilder statusMsg = new StringBuilder("Task ")
             .append(result.getCmd().containerSuffix())

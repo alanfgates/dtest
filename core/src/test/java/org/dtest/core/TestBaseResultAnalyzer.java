@@ -27,7 +27,7 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 
 public class TestBaseResultAnalyzer {
-  private static class SimpleContainerCommand implements ContainerCommand {
+  private static class SimpleContainerCommand extends ContainerCommand {
     private final String name;
     private final String dir;
 

@@ -15,6 +15,7 @@
  */
 package org.dtest.core;
 
+import org.dtest.core.git.GitSource;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -30,38 +31,27 @@ public class TestConfig {
     File confDir = new File(System.getenv(DockerTest.DTEST_HOME), Config.CONF_DIR);
     confDir.mkdir();
     File propertiesFile = new File(confDir, Config.PROPERTIES_FILE);
-    Config.NUMBER_OF_CONTAINERS.set("5");
     try {
       FileWriter writer = new FileWriter(propertiesFile);
-      writer.write(Config.CONTAINER_RUN_TIME.getProperty() + " = 2\n");
-      // Make sure we don't overwrite existing properites
-      writer.write(Config.NUMBER_OF_CONTAINERS.getProperty() + " = 10\n");
+      writer.write(GitSource.CFG_GIT_BRANCH + " = branch\n");
+      writer.write(ContainerClient.CFG_IMAGE_BUILD_TIME + " = 1min");
       writer.close();
 
-      Config.IMAGE_BUILD_TIME.set("15");
+      // Make sure we don't overwrite existing properites
+      Config.set(ContainerClient.CFG_IMAGE_BUILD_TIME, "1h");
       Config.fromConfigFile();
 
-      Assert.assertEquals(15, Config.IMAGE_BUILD_TIME.getAsInt());
-      Assert.assertEquals(2, Config.CONTAINER_RUN_TIME.getAsInt());
-      Assert.assertEquals(10, Config.TESTS_PER_CONTAINER.getAsInt());
-      Assert.assertEquals(5, Config.NUMBER_OF_CONTAINERS.getAsInt());
+      DockerTest t = new DockerTest(null, null);
 
-      Config.IMAGE_BUILD_TIME.resetValue();
-      Config.CONTAINER_RUN_TIME.resetValue();
-      Config.TESTS_PER_CONTAINER.resetValue();
+      // Test ones from the file
+      Assert.assertEquals("branch", Config.getAsString(GitSource.CFG_GIT_BRANCH));
+      Assert.assertEquals(3600L, Config.getAsTime(ContainerClient.CFG_IMAGE_BUILD_TIME, TimeUnit.SECONDS));
+      // Test default values are set
+      Assert.assertEquals(2, Config.getAsInt(DockerTest.CFG_NUM_CONTAINERS));
 
-      Assert.assertEquals(15 * 60, Config.IMAGE_BUILD_TIME.getAsTime(TimeUnit.SECONDS));
-      Assert.assertEquals(2 * 60, Config.CONTAINER_RUN_TIME.getAsTime(TimeUnit.MINUTES));
-
-      Config.IMAGE_BUILD_TIME.resetValue();
-      Config.CONTAINER_RUN_TIME.resetValue();
-      Config.TESTS_PER_CONTAINER.resetValue();
-
-      Assert.assertEquals("15", Config.IMAGE_BUILD_TIME.getAsString());
-      Assert.assertEquals("2", Config.CONTAINER_RUN_TIME.getAsString());
-      Assert.assertEquals("10", Config.TESTS_PER_CONTAINER.getAsString());
     } finally {
       propertiesFile.delete();
+      confDir.delete();
     }
   }
 }

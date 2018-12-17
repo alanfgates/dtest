@@ -25,7 +25,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class BaseResultAnalyzer implements ResultAnalyzer {
+public class BaseResultAnalyzer extends ResultAnalyzer {
   private static final Logger LOG = LoggerFactory.getLogger(BaseResultAnalyzer.class);
 
   private boolean hadTimeouts;

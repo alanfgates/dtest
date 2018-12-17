@@ -16,6 +16,7 @@
 package org.dtest.core;
 
 import org.apache.commons.lang3.StringUtils;
+import org.dtest.core.git.GitSource;
 import org.dtest.core.impl.ProcessResults;
 import org.junit.Assert;
 import org.junit.Before;
@@ -42,7 +43,7 @@ public class TestDockerTest {
 
   public static class SuccessfulClient extends ContainerClient {
     @Override
-    public void defineImage(String dir, String repo, String branch, String label) throws IOException {
+    public void defineImage() throws IOException {
 
     }
 
@@ -52,12 +53,12 @@ public class TestDockerTest {
     }
 
     @Override
-    public void buildImage(String dir, long toWait, DTestLogger logger) throws IOException {
+    public void buildImage(String dir, DTestLogger logger) throws IOException {
       imageBuilt = true;
     }
 
     @Override
-    public ContainerResult runContainer(long toWait, ContainerCommand cmd, DTestLogger logger) throws
+    public ContainerResult runContainer(ContainerCommand cmd, DTestLogger logger) throws
         IOException {
       String logs = "Ran: " + StringUtils.join(cmd.shellCommand(), " ") +
           TestBaseResultAnalyzer.LOG1;
@@ -77,6 +78,11 @@ public class TestDockerTest {
     @Override
     public void removeImage(DTestLogger logger) throws IOException {
 
+    }
+
+    @Override
+    public String getProjectName() {
+      return null;
     }
   }
 
@@ -115,7 +121,7 @@ public class TestDockerTest {
 
   public static class TimingOutClient extends ContainerClient {
     @Override
-    public void defineImage(String dir, String repo, String branch, String label) throws IOException {
+    public void defineImage() throws IOException {
 
     }
 
@@ -125,12 +131,12 @@ public class TestDockerTest {
     }
 
     @Override
-    public void buildImage(String dir, long toWait, DTestLogger logger) throws IOException {
+    public void buildImage(String dir, DTestLogger logger) throws IOException {
       imageBuilt = true;
     }
 
     @Override
-    public ContainerResult runContainer(long toWait, ContainerCommand cmd, DTestLogger logger) throws
+    public ContainerResult runContainer(ContainerCommand cmd, DTestLogger logger) throws
         IOException {
       String logs = "Ran: " + StringUtils.join(cmd.shellCommand(), " ") +
           TestBaseResultAnalyzer.LOG3;
@@ -151,11 +157,16 @@ public class TestDockerTest {
     public void removeImage(DTestLogger logger) throws IOException {
 
     }
+
+    @Override
+    public String getProjectName() {
+      return null;
+    }
   }
 
   public static class FailingClient extends ContainerClient {
     @Override
-    public void defineImage(String dir, String repo, String branch, String label) throws IOException {
+    public void defineImage() throws IOException {
 
     }
 
@@ -165,12 +176,12 @@ public class TestDockerTest {
     }
 
     @Override
-    public void buildImage(String dir, long toWait, DTestLogger logger) throws IOException {
+    public void buildImage(String dir, DTestLogger logger) throws IOException {
       imageBuilt = true;
     }
 
     @Override
-    public ContainerResult runContainer(long toWait, ContainerCommand cmd, DTestLogger logger) throws
+    public ContainerResult runContainer(ContainerCommand cmd, DTestLogger logger) throws
         IOException {
       String logs = "Ran: " + StringUtils.join(cmd.shellCommand(), " ") +
           TestBaseResultAnalyzer.LOG1;
@@ -191,14 +202,18 @@ public class TestDockerTest {
     public void removeImage(DTestLogger logger) throws IOException {
 
     }
+
+    @Override
+    public String getProjectName() {
+      return null;
+    }
   }
 
 
   public static class HelloWorldCommandList extends ContainerCommandList {
     @Override
-    public void buildContainerCommands(ContainerClient containerClient,
-                                                       BuildInfo label,
-                                                       DTestLogger logger) throws IOException {
+    public void buildContainerCommands(ContainerClient containerClient, BuildInfo label,
+                                       DTestLogger logger) throws IOException {
       add(new ContainerCommand() {
         @Override
         public String containerSuffix() {
@@ -220,8 +235,7 @@ public class TestDockerTest {
 
   public static class ItestCommandList extends ContainerCommandList {
     @Override
-    public void buildContainerCommands(ContainerClient containerClient,
-                                       BuildInfo label,
+    public void buildContainerCommands(ContainerClient containerClient, BuildInfo label,
                                        DTestLogger logger) throws IOException {
       add(new ContainerCommand() {
         @Override
@@ -242,7 +256,7 @@ public class TestDockerTest {
     }
   }
 
-  public static class SpyingResultAnalyzer implements ResultAnalyzer {
+  public static class SpyingResultAnalyzer extends ResultAnalyzer {
     BaseResultAnalyzer contained = new BaseResultAnalyzer();
     @Override
     public void analyzeLog(ContainerResult result) {
@@ -294,14 +308,14 @@ public class TestDockerTest {
 
   @Test
   public void successfulRunAllTestsPass() {
-    Config.CONTAINER_CLIENT.set(SuccessfulClient.class.getName());
-    Config.CONTAINER_COMMAND_LIST.set(HelloWorldCommandList.class.getName());
-    Config.RESULT_ANALYZER.set(SpyingResultAnalyzer.class.getName());
+    Config.set(ContainerClient.CFG_CONTAINER_CLIENT, SuccessfulClient.class.getName());
+    Config.set(ContainerCommandList.CFG_CONTAINER_COMMAND_LIST, HelloWorldCommandList.class.getName());
+    Config.set(ResultAnalyzer.CFG_RESULT_ANALYZER, SpyingResultAnalyzer.class.getName());
+    Config.set(GitSource.CFG_GIT_BRANCH, "successful");
+    Config.set(GitSource.CFG_GIT_REPO, "repo");
     DockerTest test = new DockerTest(out, err);
-    BuildInfo build = test.parseArgs(new String[] {"-b", "successful",
-                                                   "-d", System.getProperty("java.io.tmpdir"),
+    BuildInfo build = test.parseArgs(new String[] {"-d", System.getProperty("java.io.tmpdir"),
                                                    "-l", "firstTry",
-                                                   "-r", "repo",
                                                    "-p", "profile1"});
     test.runBuild(build);
     Assert.assertTrue(imageBuilt);
@@ -342,14 +356,14 @@ public class TestDockerTest {
 
   @Test
   public void timeout() {
-    Config.CONTAINER_CLIENT.set(TimingOutClient.class.getName());
-    Config.CONTAINER_COMMAND_LIST.set(HelloWorldCommandList.class.getName());
-    Config.RESULT_ANALYZER.set(SpyingResultAnalyzer.class.getName());
+    Config.set(ContainerClient.CFG_CONTAINER_CLIENT, TimingOutClient.class.getName());
+    Config.set(ContainerCommandList.CFG_CONTAINER_COMMAND_LIST, HelloWorldCommandList.class.getName());
+    Config.set(ResultAnalyzer.CFG_RESULT_ANALYZER, SpyingResultAnalyzer.class.getName());
+    Config.set(GitSource.CFG_GIT_BRANCH, "failure");
+    Config.set(GitSource.CFG_GIT_REPO, "repo");
     DockerTest test = new DockerTest(out, err);
-    BuildInfo build = test.parseArgs(new String[] {"-b", "failure",
-                                                   "-d", System.getProperty("java.io.tmpdir"),
+    BuildInfo build = test.parseArgs(new String[] {"-d", System.getProperty("java.io.tmpdir"),
                                                    "-l", "will-time-out",
-                                                   "-r", "repo",
                                                    "-p", "profile1"});
     test.runBuild(build);
     Assert.assertTrue(imageBuilt);
@@ -360,14 +374,14 @@ public class TestDockerTest {
 
   @Test
   public void failedRun() {
-    Config.CONTAINER_CLIENT.set(FailingClient.class.getName());
-    Config.CONTAINER_COMMAND_LIST.set(HelloWorldCommandList.class.getName());
-    Config.RESULT_ANALYZER.set(SpyingResultAnalyzer.class.getName());
+    Config.set(ContainerClient.CFG_CONTAINER_CLIENT, FailingClient.class.getName());
+    Config.set(ContainerCommandList.CFG_CONTAINER_COMMAND_LIST, HelloWorldCommandList.class.getName());
+    Config.set(ResultAnalyzer.CFG_RESULT_ANALYZER, SpyingResultAnalyzer.class.getName());
+    Config.set(GitSource.CFG_GIT_BRANCH, "failure");
+    Config.set(GitSource.CFG_GIT_REPO, "repo");
     DockerTest test = new DockerTest(out, err);
-    BuildInfo build = test.parseArgs(new String[] {"-b", "failure",
-                                                   "-d", System.getProperty("java.io.tmpdir"),
+    BuildInfo build = test.parseArgs(new String[] {"-d", System.getProperty("java.io.tmpdir"),
                                                    "-l", "take2",
-                                                   "-r", "repo",
                                                    "-p", "profile1"});
     test.runBuild(build);
     Assert.assertTrue(imageBuilt);

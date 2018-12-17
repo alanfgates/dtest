@@ -15,8 +15,6 @@
  */
 package org.dtest.core;
 
-import org.dtest.core.Config;
-import org.dtest.core.ContainerCommand;
 import org.dtest.core.impl.Utils;
 
 import java.util.ArrayList;
@@ -27,24 +25,22 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
-public class BaseContainerCommand implements ContainerCommand {
+public class BaseContainerCommand extends ContainerCommand {
 
-  protected final String baseDir; // base directory for all commands
+  protected final String buildDir;
   protected final int cmdNumber;
   protected List<String> tests; // set of tests to run
   protected List<String> excludedTests; // set of tests to NOT run
   protected Map<String, String> envs;
   protected Map<String, String> properties; // properties to pass to maven (-DX=Y) val can be null
-  protected long testTimeout;
 
-  public BaseContainerCommand(String baseDir, int cmdNumber) {
-    this.baseDir = baseDir;
+  public BaseContainerCommand(String buildDir, int cmdNumber) {
+    this.buildDir = buildDir;
     this.cmdNumber = cmdNumber;
     tests = new ArrayList<>();
     excludedTests = new ArrayList<>();
     envs = new HashMap<>();
     properties = new HashMap<>();
-    testTimeout = Config.TEST_RUN_TIME.getAsTime(TimeUnit.SECONDS);
   }
 
   public void addTest(String test) {
@@ -74,12 +70,12 @@ public class BaseContainerCommand implements ContainerCommand {
 
   @Override
   public String[] shellCommand() {
-    return Utils.shellCmdInRoot(baseDir, new SimpleMvnCommandSupplier());
+    return Utils.shellCmdInRoot(buildDir, new SimpleMvnCommandSupplier());
   }
 
   @Override
   public String containerDirectory() {
-    return baseDir;
+    return buildDir;
   }
 
   private class SimpleMvnCommandSupplier implements Supplier<String> {
@@ -93,7 +89,7 @@ public class BaseContainerCommand implements ContainerCommand {
       }
 
       buf.append("/usr/bin/mvn test -Dsurefire.timeout=")
-          .append(testTimeout);
+          .append(Config.getAsTime(ContainerCommand.CFG_TEST_RUN_TIME, TimeUnit.SECONDS));
 
       if (!tests.isEmpty()) {
         buf.append(" -Dtest=");

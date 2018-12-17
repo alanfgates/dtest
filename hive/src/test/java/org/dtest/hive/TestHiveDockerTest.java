@@ -25,6 +25,7 @@ import org.dtest.core.ContainerResult;
 import org.dtest.core.DTestLogger;
 import org.dtest.core.DockerTest;
 import org.dtest.core.ResultAnalyzer;
+import org.dtest.core.git.GitSource;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -51,8 +52,13 @@ public class TestHiveDockerTest {
 
   public static class SuccessfulWithFailingTestsClient extends ContainerClient {
     @Override
-    public void defineImage(String dir, String repo, String branch, String label) throws IOException {
+    public void defineImage() throws IOException {
 
+    }
+
+    @Override
+    public String getProjectName() {
+      return null;
     }
 
     @Override
@@ -61,12 +67,12 @@ public class TestHiveDockerTest {
     }
 
     @Override
-    public void buildImage(String dir, long toWait, DTestLogger logger) throws IOException {
+    public void buildImage(String dir, DTestLogger logger) throws IOException {
       imageBuilt = true;
     }
 
     @Override
-    public ContainerResult runContainer(long toWait, ContainerCommand cmd, DTestLogger logger) throws
+    public ContainerResult runContainer(ContainerCommand cmd, DTestLogger logger) throws
         IOException {
       String logs = "Ran: " + StringUtils.join(cmd.shellCommand(), " ") +
           TestHiveResultAnalyzer.LOG2;
@@ -111,7 +117,7 @@ public class TestHiveDockerTest {
     }
   }
 
-  public static class SpyingResultAnalyzer implements ResultAnalyzer {
+  public static class SpyingResultAnalyzer extends ResultAnalyzer {
     final HiveResultAnalyzer contained = new HiveResultAnalyzer();
     @Override
     public void analyzeLog(ContainerResult result) {
@@ -163,14 +169,14 @@ public class TestHiveDockerTest {
 
   @Test
   public void successfulRunSomeTestsFail() {
-    Config.CONTAINER_CLIENT.set(SuccessfulWithFailingTestsClient.class.getName());
-    Config.CONTAINER_COMMAND_LIST.set(ItestCommandList.class.getName());
-    Config.RESULT_ANALYZER.set(SpyingResultAnalyzer.class.getName());
+    Config.set(ContainerClient.CFG_CONTAINER_CLIENT, SuccessfulWithFailingTestsClient.class.getName());
+    Config.set(ContainerCommandList.CFG_CONTAINER_COMMAND_LIST, ItestCommandList.class.getName());
+    Config.set(ResultAnalyzer.CFG_RESULT_ANALYZER, SpyingResultAnalyzer.class.getName());
+    Config.set(GitSource.CFG_GIT_BRANCH, "successful");
+    Config.set(GitSource.CFG_GIT_REPO, "repo");
     DockerTest test = new DockerTest(out, err);
-    BuildInfo build = test.parseArgs(new String[] {"-b", "successful",
-                                                   "-d", System.getProperty("java.io.tmpdir"),
+    BuildInfo build = test.parseArgs(new String[] {"-d", System.getProperty("java.io.tmpdir"),
                                                    "-l", "secondTry",
-                                                   "-r", "repo",
                                                    "-p", "profile1"});
     test.runBuild(build);
     Assert.assertTrue(imageBuilt);

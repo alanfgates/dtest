@@ -27,6 +27,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -51,8 +52,8 @@ public class BaseDockerClient extends ContainerClient {
   }
 
   @Override
-  public void defineImage(String dir, String repo, String branch, String label) throws IOException {
-    FileWriter writer = new FileWriter(dir + File.separatorChar + "Dockerfile");
+  public void defineImage() throws IOException {
+    FileWriter writer = new FileWriter(buildInfo.getDir() + File.separatorChar + "Dockerfile");
     writer.write("FROM centos\n");
     writer.write("\n");
     writer.write("RUN yum upgrade -y && \\\n");
@@ -65,33 +66,31 @@ public class BaseDockerClient extends ContainerClient {
     writer.write("\n");
     writer.write("RUN { \\\n");
     writer.write("    cd " + getHomeDir() + "; \\\n");
-    writer.write("    /usr/bin/git clone " + repo + "; \\\n");
-    writer.write("    cd " + getProjectName() + "; \\\n");
-    writer.write("    /usr/bin/git checkout " + branch + "; \\\n");
+    for (String line : buildInfo.getSrc().srcCommands(this)) writer.write(line);
     writer.write("    /usr/bin/mvn install -DskipTests; \\\n"); // Need a quick test
-    writer.write("    echo This build is labeled " + label + "; \\\n");
+    writer.write("    echo This build is labeled " + buildInfo.getLabel() + "; \\\n");
     writer.write("}\n");
     writer.close();
 
   }
 
   @Override
-  public void buildImage(String dir, long toWait, DTestLogger logger)
+  public void buildImage(String dir, DTestLogger logger)
       throws IOException {
     LOG.info("Building image");
-    checkBuildSucceeded(Utils.runProcess(BUILD_CONTAINER_NAME, toWait, logger, "docker", "build",
-        "--tag", imageName, dir));
+    checkBuildSucceeded(Utils.runProcess(BUILD_CONTAINER_NAME, Config.getAsTime(CFG_IMAGE_BUILD_TIME, TimeUnit.SECONDS),
+        logger, "docker", "build", "--tag", imageName, dir));
   }
 
   @Override
-  public ContainerResult runContainer(long toWait, ContainerCommand cmd,
+  public ContainerResult runContainer(ContainerCommand cmd,
                                       DTestLogger logger) throws IOException {
     List<String> runCmd = new ArrayList<>();
     String containerName = Utils.buildContainerName(buildInfo.getLabel(), cmd.containerSuffix());
     Collections.addAll(runCmd, "docker", "run", "--name", containerName, imageName);
     Collections.addAll(runCmd, cmd.shellCommand());
-    ProcessResults res = Utils.runProcess(cmd.containerSuffix(), toWait, logger,
-        runCmd.toArray(new String[runCmd.size()]));
+    ProcessResults res = Utils.runProcess(cmd.containerSuffix(),
+        Config.getAsTime(CFG_CONTAINER_RUN_TIME, TimeUnit.SECONDS), logger, runCmd.toArray(new String[runCmd.size()]));
     return new ContainerResult(cmd, res.rc, res.stdout);
   }
 
@@ -146,6 +145,10 @@ public class BaseDockerClient extends ContainerClient {
     }
   }
 
+  @Override
+  public String getProjectName() {
+    return "dtest";
+  }
   protected String getUser() {
     return "dtestuser";
   }
@@ -154,7 +157,4 @@ public class BaseDockerClient extends ContainerClient {
     return "/home/" + getUser();
   }
 
-  protected String getProjectName() {
-    return "dtest";
-  }
 }

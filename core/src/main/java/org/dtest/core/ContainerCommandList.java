@@ -15,10 +15,20 @@
  */
 package org.dtest.core;
 
+import com.google.common.annotations.VisibleForTesting;
+import org.dtest.core.impl.PluginFactory;
+
 import java.io.IOException;
 import java.util.ArrayList;
 
 public abstract class ContainerCommandList extends ArrayList<ContainerCommand> {
+  @VisibleForTesting
+  // Implementation of ContainerCommandList
+  public static final String CFG_CONTAINER_COMMAND_LIST = "dtest.container.command.list";
+
+  static {
+    Config.setDefaultValue(CFG_CONTAINER_COMMAND_LIST, BaseContainerCommandList.class.getName());
+  }
   /**
    * Build the list of commands.
    * @param containerClient container client, in case any containers are needed for determining
@@ -29,4 +39,10 @@ public abstract class ContainerCommandList extends ArrayList<ContainerCommand> {
    */
   public abstract void buildContainerCommands(ContainerClient containerClient, BuildInfo buildInfo, DTestLogger logger)
       throws IOException;
+
+  static ContainerCommandList getInstance() throws IOException {
+    return PluginFactory.getInstance(Config.getAsClass(
+        ContainerCommandList.CFG_CONTAINER_COMMAND_LIST, ContainerCommandList.class));
+
+  }
 }

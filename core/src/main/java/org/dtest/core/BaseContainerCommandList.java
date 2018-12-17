@@ -52,8 +52,7 @@ public class BaseContainerCommandList extends ContainerCommandList {
     for (BaseModuleDirectory mDir : mDirs) {
       mDir.validate();
       int testsPerContainer = mDir.isSetTestsPerContainer() ?
-          mDir.getTestsPerContainer() :
-          Config.TESTS_PER_CONTAINER .getAsInt();
+          mDir.getTestsPerContainer() : Config.getAsInt(ContainerCommand.CFG_TESTS_PER_CONTAINER);
       if (subclassShouldHandle(mDir)) {
         handle(mDir, containerClient, buildInfo, logger, testsPerContainer);
       } else if (!mDir.getNeedsSplit() && !mDir.isSetSingleTest()) {
@@ -191,7 +190,7 @@ public class BaseContainerCommandList extends ContainerCommandList {
   protected String runContainer(ContainerClient containerClient, final String dir,
                                 final String label, final String containerName,
                                 final String cmd, DTestLogger logger) throws IOException {
-    ContainerResult result = containerClient.runContainer(300,
+    ContainerResult result = containerClient.runContainer(
         new ContainerCommand() {
           @Override
           public String containerSuffix() {

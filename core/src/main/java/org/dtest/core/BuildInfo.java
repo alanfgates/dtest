@@ -22,8 +22,7 @@ import java.util.regex.Pattern;
 
 public class BuildInfo implements Comparable<BuildInfo> {
   private final Pattern dockerable = Pattern.compile("[A-Za-z0-9_\\-]+");
-  private final String branch;
-  private final String repo;
+  private final CodeSource src;
   private final String label;
   private final String profile; // test profile to use
   private long queueTime;
@@ -34,9 +33,8 @@ public class BuildInfo implements Comparable<BuildInfo> {
   private boolean killed;
   private boolean cleanupAfter;
 
-  public BuildInfo(String branch, String repo, String label, String profile) throws IOException {
-    this.branch = branch;
-    this.repo = repo;
+  public BuildInfo(CodeSource repo, String label, String profile) throws IOException {
+    this.src = repo;
     this.label = checkLabelIsDockerable(label);
     this.profile = profile;
     startTime = queueTime = 0;
@@ -58,12 +56,8 @@ public class BuildInfo implements Comparable<BuildInfo> {
     return dir;
   }
 
-  public String getBranch() {
-    return branch;
-  }
-
-  public String getRepo() {
-    return repo;
+  public CodeSource getSrc() {
+    return src;
   }
 
   public String getLabel() {
@@ -155,7 +149,7 @@ public class BuildInfo implements Comparable<BuildInfo> {
 
   @Override
   public String toString() {
-    return "repo: " + repo + ", branch: " + branch + (label == null ? "" : ", label: " + label);
+    return "code source: " + src.toString() + (label == null ? "" : ", label: " + label);
   }
 
   @Override
