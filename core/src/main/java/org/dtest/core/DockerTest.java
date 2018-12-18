@@ -45,15 +45,12 @@ public class DockerTest {
   // Simultaneous number of containers to run
   static final String CFG_NUM_CONTAINERS = "dtest.number.containers";
 
-  static {
-    Config.setDefaultValue(CFG_NUM_CONTAINERS, "2");
-  }
-
   private ContainerClient docker;
   private PrintStream out;
   private PrintStream err;
 
   public DockerTest(PrintStream out, PrintStream err) {
+    Config.setDefaultValue(CFG_NUM_CONTAINERS, "2");
     this.out = out;
     this.err = err;
   }
