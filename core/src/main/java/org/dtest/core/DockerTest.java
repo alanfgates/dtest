@@ -41,10 +41,9 @@ import java.util.concurrent.Future;
 public class DockerTest {
   private static final Logger LOG = LoggerFactory.getLogger(DockerTest.class);
   private static final String SUMMARY_LOG = "summary";
-  static final String DTEST_HOME = "DTEST_HOME";
   public static final String EXEC_LOG = "dtest-exec"; // for log entries by dtest
   // Simultaneous number of containers to run
-  protected static final String CFG_NUM_CONTAINERS = "dtest.number.containers";
+  static final String CFG_NUM_CONTAINERS = "dtest.number.containers";
 
   static {
     Config.setDefaultValue(CFG_NUM_CONTAINERS, "2");
@@ -71,19 +70,18 @@ public class DockerTest {
     Options opts = new Options();
 
     opts.addOption(OptionBuilder
+        .withLongOpt("conf-dir")
+        .withDescription("Directory where configuration and build profile files are")
+        .hasArg()
+        .isRequired()
+        .create("c"));
+
+    opts.addOption(OptionBuilder
         .withLongOpt("build-label")
         .withDescription("build label, changing this will force a new container to be built")
         .hasArg()
         .isRequired()
         .create("l"));
-
-    opts.addOption(OptionBuilder
-        .withLongOpt("test-profile")
-        .withDescription("profiles available for testing, usually tied to a branch, current " +
-            "available ones are: " + findAvailableProfiles())
-        .hasArg()
-        .isRequired()
-        .create("p"));
 
     opts.addOption(OptionBuilder
         .withLongOpt("no-cleanup")
@@ -99,9 +97,11 @@ public class DockerTest {
       return null;
     }
 
+
     try {
+      Config.fromConfigFile(cmd.getOptionValue("c"));
       CodeSource codeSource = CodeSource.getInstance();
-      BuildInfo info = new BuildInfo(codeSource, cmd.getOptionValue("l").toLowerCase(), cmd.getOptionValue("p"));
+      BuildInfo info = new BuildInfo(cmd.getOptionValue("c"), codeSource, cmd.getOptionValue("l").toLowerCase());
       info.setCleanupAfter(!cmd.hasOption("m"));
       return info;
     } catch (IOException e) {
@@ -299,14 +299,6 @@ public class DockerTest {
    * @param args command line arguments.
    */
   public static void main(String[] args) {
-    // Read the config file
-    try {
-      Config.fromConfigFile();
-    } catch (IOException e) {
-      System.err.println("Failed to read config file: " + e.getMessage());
-      System.exit(-1);
-    }
-
     DockerTest test = new DockerTest(System.out, System.err);
     BuildInfo build = test.parseArgs(args);
     int rc = (build == null) ? 1 : test.runBuild(build);

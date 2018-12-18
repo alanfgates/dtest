@@ -16,15 +16,9 @@
 package org.dtest.core;
 
 import org.apache.commons.lang3.StringUtils;
-import org.dtest.core.BaseContainerCommandList;
-import org.dtest.core.BaseModuleDirectory;
-import org.dtest.core.BuildInfo;
-import org.dtest.core.ContainerClient;
-import org.dtest.core.ContainerCommand;
-import org.dtest.core.ContainerResult;
-import org.dtest.core.DTestLogger;
 import org.dtest.core.git.GitSource;
 import org.junit.Assert;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -32,10 +26,15 @@ import java.util.List;
 
 public class TestContainerCommandList {
 
+  @BeforeClass
+  public static void createConfFile() throws IOException {
+    TestUtils.createConfFile();
+  }
+
   @Test
   public void parseYaml() throws IOException {
     BaseContainerCommandList factory = new BaseContainerCommandList();
-    List<BaseModuleDirectory> mDirs = factory.readYaml("test-profile.yaml", BaseModuleDirectory.class);
+    List<BaseModuleDirectory> mDirs = factory.readYaml(TestUtils.getConfDir(), BaseModuleDirectory.class);
     Assert.assertEquals(5, mDirs.size());
     BaseModuleDirectory mDir = mDirs.get(0);
     Assert.assertEquals("beeline", mDir.getDir());
@@ -63,13 +62,13 @@ public class TestContainerCommandList {
   @Test(expected = IOException.class)
   public void nonExistentYamlFile() throws IOException {
     BaseContainerCommandList factory = new BaseContainerCommandList();
-    List<BaseModuleDirectory> mDirs = factory.readYaml("nosuch-profile.yaml", BaseModuleDirectory.class);
+    List<BaseModuleDirectory> mDirs = factory.readYaml("nosuch", BaseModuleDirectory.class);
   }
 
   @Test
   public void buildCommands() throws IOException {
     BaseContainerCommandList cmds = new BaseContainerCommandList();
-    BuildInfo buildInfo = new BuildInfo(new GitSource(), "mylabel", "test-profile.yaml");
+    BuildInfo buildInfo = new BuildInfo(TestUtils.getConfDir(), new GitSource(), "mylabel");
     DTestLogger logger = new DTestLogger(".");
     cmds.buildContainerCommands(new TestContainerClient(), buildInfo, logger);
     Assert.assertEquals(7, cmds.size());

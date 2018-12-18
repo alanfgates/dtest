@@ -16,7 +16,7 @@
 package org.dtest.core;
 
 import com.google.common.annotations.VisibleForTesting;
-import org.dtest.core.impl.PluginFactory;
+import org.dtest.core.impl.Utils;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -41,7 +41,7 @@ public abstract class ContainerCommandList extends ArrayList<ContainerCommand> {
       throws IOException;
 
   static ContainerCommandList getInstance() throws IOException {
-    return PluginFactory.getInstance(Config.getAsClass(
+    return Utils.getInstance(Config.getAsClass(
         ContainerCommandList.CFG_CONTAINER_COMMAND_LIST, ContainerCommandList.class));
 
   }

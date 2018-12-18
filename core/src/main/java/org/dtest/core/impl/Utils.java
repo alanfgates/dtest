@@ -40,16 +40,6 @@ public class Utils {
     }
   }
 
-  /*
-  public static <T> T newInstance(Class<T> theClass) throws IOException {
-    try {
-      return theClass.newInstance();
-    } catch (InstantiationException|IllegalAccessException e) {
-      throw new IOException("Unable to instantiate " + theClass.getName(), e);
-    }
-  }
-  */
-
   public static ProcessResults runProcess(String containerId, long secondsToWait,
                                           DTestLogger logger, String... cmd) throws IOException {
     String msg = "Going to run: " + StringUtils.join(cmd, " ");
@@ -102,4 +92,19 @@ public class Utils {
     return CONTAINER_BASE + label + "_" + name;
   }
 
+  /**
+   * Get an instance of a class
+   * @param theClass the class to get an instance of
+   * @param <T> type it should either be or extend
+   * @return an instance of the class
+   * @throws IOException if the class could not be found or the program doesn't have rights to instantiate the class
+   */
+  public static <T> T getInstance(Class<? extends T> theClass) throws IOException {
+    if (theClass == null) return null;
+    try {
+      return theClass.newInstance();
+    } catch (InstantiationException|IllegalAccessException e) {
+      throw new IOException("Unable to instantiate " + theClass.getName(), e);
+    }
+  }
 }

@@ -20,6 +20,7 @@ import org.dtest.core.git.GitSource;
 import org.dtest.core.impl.ProcessResults;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,6 +41,11 @@ public class TestDockerTest {
   private ByteArrayOutputStream outBuffer;
   private PrintStream out;
   private PrintStream err;
+
+  @BeforeClass
+  public static void createConfFile() throws IOException {
+    TestUtils.createConfFile();
+  }
 
   public static class SuccessfulClient extends ContainerClient {
     @Override
@@ -316,7 +322,7 @@ public class TestDockerTest {
     Config.set(BuildInfo.CFG_BUILD_BASE_DIR, System.getProperty("java.io.tmpdir"));
     DockerTest test = new DockerTest(out, err);
     BuildInfo build = test.parseArgs(new String[] {"-l", "firstTry",
-                                                   "-p", "profile1"});
+                                                   "-c", TestUtils.getConfDir()});
     test.runBuild(build);
     Assert.assertTrue(imageBuilt);
     Assert.assertEquals(1, errors.size());
@@ -364,7 +370,7 @@ public class TestDockerTest {
     Config.set(BuildInfo.CFG_BUILD_BASE_DIR, System.getProperty("java.io.tmpdir"));
     DockerTest test = new DockerTest(out, err);
     BuildInfo build = test.parseArgs(new String[] {"-l", "will-time-out",
-                                                   "-p", "profile1"});
+                                                   "-c", TestUtils.getConfDir()});
     test.runBuild(build);
     Assert.assertTrue(imageBuilt);
     Assert.assertTrue(hadTimeouts);
@@ -382,7 +388,7 @@ public class TestDockerTest {
     Config.set(BuildInfo.CFG_BUILD_BASE_DIR, System.getProperty("java.io.tmpdir"));
     DockerTest test = new DockerTest(out, err);
     BuildInfo build = test.parseArgs(new String[] {"-l", "take2",
-                                                   "-p", "profile1"});
+                                                   "-c", TestUtils.getConfDir()});
     test.runBuild(build);
     Assert.assertTrue(imageBuilt);
     Assert.assertFalse(hadTimeouts);

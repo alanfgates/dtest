@@ -16,7 +16,7 @@
 package org.dtest.core;
 
 import com.google.common.annotations.VisibleForTesting;
-import org.dtest.core.impl.PluginFactory;
+import org.dtest.core.impl.Utils;
 
 import java.io.IOException;
 import java.util.List;
@@ -69,6 +69,6 @@ public abstract class ResultAnalyzer {
   public abstract boolean runSucceeded();
 
   static ResultAnalyzer getInstance() throws IOException {
-    return PluginFactory.getInstance(Config.getAsClass(ResultAnalyzer.CFG_RESULT_ANALYZER, ResultAnalyzer.class));
+    return Utils.getInstance(Config.getAsClass(ResultAnalyzer.CFG_RESULT_ANALYZER, ResultAnalyzer.class));
   }
 }

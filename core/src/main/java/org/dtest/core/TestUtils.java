@@ -13,21 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.dtest.core.impl;
+package org.dtest.core;
 
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 
-/**
- * A generic factory for plugin classes.
- */
-public class PluginFactory {
+public class TestUtils {
 
-  public static <T> T getInstance(Class<? extends T> theClass) throws IOException {
-    if (theClass == null) return null;
-    try {
-      return theClass.newInstance();
-    } catch (InstantiationException|IllegalAccessException e) {
-      throw new IOException("Unable to instantiate " + theClass.getName(), e);
-    }
+  public static void createConfFile() throws IOException {
+    File propertiesFile = new File(getConfDir(), Config.PROPERTIES_FILE);
+    propertiesFile.deleteOnExit();
+    FileWriter writer = new FileWriter(propertiesFile);
+    writer.write("test = test\n");
+    writer.close();
+
   }
+
+  public static String getConfDir() {
+    return System.getProperty("java.io.tmpdir") + File.separator + "test-classes";
+  }
+
 }

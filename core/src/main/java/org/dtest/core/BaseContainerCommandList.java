@@ -24,6 +24,7 @@ import org.dtest.core.impl.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InvalidObjectException;
 import java.net.URL;
@@ -48,7 +49,7 @@ public class BaseContainerCommandList extends ContainerCommandList {
       throws IOException {
     setup(containerClient, buildInfo, logger);
 
-    List<BaseModuleDirectory> mDirs = readYaml(buildInfo.getProfile(), getModuleDirectoryClass());
+    List<BaseModuleDirectory> mDirs = readYaml(buildInfo.getConfDir(), getModuleDirectoryClass());
     for (BaseModuleDirectory mDir : mDirs) {
       mDir.validate();
       int testsPerContainer = mDir.isSetTestsPerContainer() ?
@@ -168,14 +169,10 @@ public class BaseContainerCommandList extends ContainerCommandList {
   }
 
   @VisibleForTesting
-  public <T> List<T> readYaml(String filename,
-                              Class<? extends BaseModuleDirectory> clazz)
+  public <T> List<T> readYaml(String confDir, Class<? extends BaseModuleDirectory> clazz)
       throws IOException {
-    if (!filename.endsWith("-profile.yaml")) filename = filename + "-profile.yaml";
-    URL yamlFile = getClass().getClassLoader().getResource(filename);
-    if (yamlFile == null) {
-      throw new IOException("Unable to find " + filename + " to determine tests to run");
-    }
+    String filename = confDir + File.separator + "build.yaml";
+    File yamlFile = new File(filename);
     ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
     ObjectReader reader = mapper.readerFor(clazz);
     MappingIterator<T> iter = reader.readValues(yamlFile);

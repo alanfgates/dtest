@@ -17,7 +17,7 @@
 package org.dtest.core;
 
 import org.dtest.core.git.GitSource;
-import org.dtest.core.impl.PluginFactory;
+import org.dtest.core.impl.Utils;
 
 import java.io.IOException;
 import java.util.List;
@@ -38,6 +38,6 @@ public abstract class CodeSource {
   public abstract List<String> srcCommands(ContainerClient client) throws IOException;
 
   static CodeSource getInstance() throws IOException {
-    return PluginFactory.getInstance(Config.getAsClass(CodeSource.CFG_CODE_SOURCE_CLASS, CodeSource.class));
+    return Utils.getInstance(Config.getAsClass(CodeSource.CFG_CODE_SOURCE_CLASS, CodeSource.class));
   }
 }

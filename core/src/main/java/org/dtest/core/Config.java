@@ -51,8 +51,6 @@ public class Config {
   }
 
   @VisibleForTesting
-  static final String CONF_DIR = "conf";
-  @VisibleForTesting
   static final String PROPERTIES_FILE = "dtest.properties";
 
   public static <T> Class<? extends T> getAsClass(String key, Class<T> clazz) throws IOException {
@@ -82,7 +80,7 @@ public class Config {
       // If/else chain arranged in likely order of frequency for performance
       if (unit.equals("s") || unit.startsWith("sec")) {
         return outUnit.convert(duration, TimeUnit.SECONDS);
-      } else if (unit.equals("ms") || unit.equals("u") || unit.startsWith("msec")) {
+      } else if (unit.equals("ms") || unit.startsWith("msec")) {
         return outUnit.convert(duration, TimeUnit.MILLISECONDS);
       } else if (unit.equals("m") || unit.startsWith("min")) {
         return outUnit.convert(duration, TimeUnit.MINUTES);
@@ -115,16 +113,11 @@ public class Config {
   }
 
   /**
-   * Read the configuration file and set the system properties based on values in the file.  This
-   * method expects the configuration file to be in $DTEST_HOME/conf/dtest.properties.
+   * Read the configuration file and set the system properties based on values in the file.
    * @throws IOException If the file cannot be found or is not readable or is not the proper format.
    */
-  public static void fromConfigFile() throws IOException {
-    String dtestHome = System.getenv(DockerTest.DTEST_HOME);
-    if (dtestHome == null || dtestHome.isEmpty()) {
-      throw new IOException("Unable to find configuration file, please set DTEST_HOME");
-    }
-    String filename = dtestHome + File.separator + CONF_DIR + File.separator + PROPERTIES_FILE;
+  public static void fromConfigFile(String confDir) throws IOException {
+    String filename = confDir + File.separator + PROPERTIES_FILE;
     FileInputStream input = new FileInputStream(filename);
     Properties p = new Properties();
     p.load(input);
@@ -139,6 +132,9 @@ public class Config {
     String entry = entries.get(key);
     if (entry == null) {
       entry = defaultEntries.get(key);
+      if (entry == null) {
+        entry = System.getProperty(key);
+      }
     }
     return entry;
   }

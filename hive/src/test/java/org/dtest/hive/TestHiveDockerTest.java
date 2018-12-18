@@ -25,9 +25,11 @@ import org.dtest.core.ContainerResult;
 import org.dtest.core.DTestLogger;
 import org.dtest.core.DockerTest;
 import org.dtest.core.ResultAnalyzer;
+import org.dtest.core.TestUtils;
 import org.dtest.core.git.GitSource;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,6 +51,11 @@ public class TestHiveDockerTest {
   private ByteArrayOutputStream outBuffer;
   private PrintStream out;
   private PrintStream err;
+
+  @BeforeClass
+  public static void createConfFile() throws IOException {
+    TestUtils.createConfFile();
+  }
 
   public static class SuccessfulWithFailingTestsClient extends ContainerClient {
     @Override
@@ -177,7 +184,7 @@ public class TestHiveDockerTest {
     Config.set(BuildInfo.CFG_BUILD_BASE_DIR, System.getProperty("java.io.tmpdir"));
     DockerTest test = new DockerTest(out, err);
     BuildInfo build = test.parseArgs(new String[] {"-l", "secondTry",
-                                                   "-p", "profile1"});
+                                                   "-c", TestUtils.getConfDir()});
     test.runBuild(build);
     Assert.assertTrue(imageBuilt);
     Assert.assertEquals(1, errors.size());

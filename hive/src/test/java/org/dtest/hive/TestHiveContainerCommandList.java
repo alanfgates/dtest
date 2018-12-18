@@ -23,8 +23,10 @@ import org.dtest.core.ContainerClient;
 import org.dtest.core.ContainerCommand;
 import org.dtest.core.ContainerResult;
 import org.dtest.core.DTestLogger;
+import org.dtest.core.TestUtils;
 import org.dtest.core.git.GitSource;
 import org.junit.Assert;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -32,10 +34,15 @@ import java.util.List;
 
 public class TestHiveContainerCommandList {
 
+  @BeforeClass
+  public static void createConfFile() throws IOException {
+    TestUtils.createConfFile();
+  }
+
   @Test
   public void parseYaml() throws IOException {
     HiveContainerCommandList factory = new HiveContainerCommandList();
-    List<HiveModuleDirectory> mDirs = factory.readYaml("test-profile.yaml", HiveModuleDirectory.class);
+    List<HiveModuleDirectory> mDirs = factory.readYaml(TestUtils.getConfDir(), HiveModuleDirectory.class);
     Assert.assertEquals(7, mDirs.size());
     HiveModuleDirectory mDir = mDirs.get(0);
     Assert.assertEquals("beeline", mDir.getDir());
@@ -87,27 +94,11 @@ public class TestHiveContainerCommandList {
   }
 
   @Test
-  public void parseMasterYamlProfile() throws IOException {
-    // I won't verify the contents but at least parse it
-    HiveContainerCommandList factory = new HiveContainerCommandList();
-    List<HiveModuleDirectory> mDirs = factory.readYaml("master", HiveModuleDirectory.class);
-    Assert.assertTrue(mDirs.size() > 0);
-  }
-
-  @Test
-  public void parseBranch3YamlProfile() throws IOException {
-    // I won't verify the contents but at least parse it
-    HiveContainerCommandList factory = new HiveContainerCommandList();
-    List<HiveModuleDirectory> mDirs = factory.readYaml("branch-3-profile.yaml", HiveModuleDirectory.class);
-    Assert.assertTrue(mDirs.size() > 0);
-  }
-
-  @Test
   public void buildCommands() throws IOException {
     HiveContainerCommandList cmds = new HiveContainerCommandList();
     Config.set(GitSource.CFG_GIT_REPO, "http://myrepo.com/repo.git");
     Config.set(GitSource.CFG_GIT_BRANCH, "mybranch");
-    BuildInfo buildInfo = new BuildInfo(new GitSource(), "mylabel", "test-profile.yaml");
+    BuildInfo buildInfo = new BuildInfo(TestUtils.getConfDir(), new GitSource(), "mylabel");
     DTestLogger logger = new DTestLogger(".");
     cmds.buildContainerCommands(new TestContainerClient(), buildInfo, logger);
     Assert.assertEquals(11, cmds.size());

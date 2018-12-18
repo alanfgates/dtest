@@ -16,7 +16,7 @@
 package org.dtest.core;
 
 import com.google.common.annotations.VisibleForTesting;
-import org.dtest.core.impl.PluginFactory;
+import org.dtest.core.impl.Utils;
 
 import java.io.IOException;
 
@@ -109,7 +109,7 @@ public abstract class ContainerClient {
   public abstract String getProjectName();
 
   static ContainerClient getInstance() throws IOException {
-    return PluginFactory.getInstance(Config.getAsClass(ContainerClient.CFG_CONTAINER_CLIENT, ContainerClient.class));
+    return Utils.getInstance(Config.getAsClass(ContainerClient.CFG_CONTAINER_CLIENT, ContainerClient.class));
   }
 
 

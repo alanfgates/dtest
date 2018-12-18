@@ -29,22 +29,15 @@ public class BuildInfo implements Comparable<BuildInfo> {
   private final Pattern dockerable = Pattern.compile("[A-Za-z0-9_\\-]+");
   private final CodeSource src;
   private final String label;
-  private final String profile; // test profile to use
-  private long queueTime;
-  private long startTime;
-  private long completionTime;
+  private final String confDir;
   private String dir;
-  private boolean success;
-  private boolean killed;
   private boolean cleanupAfter;
 
-  public BuildInfo(CodeSource repo, String label, String profile) throws IOException {
+  public BuildInfo(String confDir, CodeSource repo, String label) throws IOException {
+    this.confDir = confDir;
     this.src = repo;
     this.label = checkLabelIsDockerable(label);
-    this.profile = profile;
-    startTime = queueTime = 0;
     dir = null;
-    success = killed = false;
     cleanupAfter = true;
   }
 
@@ -75,67 +68,12 @@ public class BuildInfo implements Comparable<BuildInfo> {
     return label;
   }
 
-  public String getProfile() {
-    return profile;
-  }
-
   public String getDir() {
     return dir;
   }
 
-  public long getQueueTime() {
-    return queueTime;
-  }
-
-  public void setQueueTime(long queueTime) {
-    this.queueTime = queueTime;
-  }
-
-  public long getStartTime() {
-    return startTime;
-  }
-
-  public void setStartTime(long startTime) {
-    this.startTime = startTime;
-  }
-
-  public long getCompletionTime() {
-    return completionTime;
-  }
-
-  public void setCompletionTime(long completionTime) {
-    this.completionTime = completionTime;
-  }
-
-  public boolean isSuccess() {
-    return success;
-  }
-
-  public void setSuccess(boolean success) {
-    this.success = success;
-  }
-
-  public boolean isKilled() {
-    return killed;
-  }
-
-  public void setKilled(boolean killed) {
-    this.killed = killed;
-  }
-
-  public BuildState getState() {
-    if (isKilled()) return BuildState.KILLED;
-    else if (getQueueTime() == 0) return BuildState.UNSUBMITTED;
-    else if (getStartTime() == 0) return BuildState.PENDING;
-    else if (getCompletionTime() == 0) return BuildState.BUILDING;
-    else if (isSuccess()) return BuildState.SUCCEEDED;
-    else return BuildState.FAILED;
-  }
-
-  public boolean isFinished() {
-    BuildState state = getState();
-    return state == BuildState.KILLED || state == BuildState.SUCCEEDED ||
-        state == BuildState.FAILED;
+  public String getConfDir() {
+    return confDir;
   }
 
   public boolean shouldCleanupAfter() {
