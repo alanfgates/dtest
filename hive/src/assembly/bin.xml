@@ -60,14 +60,23 @@ limitations under the License.
     </fileSet>
 
     <fileSet>
-      <directory>${project.basedir}/src/main/resources/</directory>
+      <directory>${project.basedir}/src/main/resources/master</directory>
       <fileMode>644</fileMode>
       <includes>
-        <include>master-profile.yaml</include>
-        <include>branch-3-profile.yaml</include>
+        <include>dtest.yaml</include>
         <include>dtest.properties</include>
       </includes>
-      <outputDirectory>conf</outputDirectory>
+      <outputDirectory>conf/hive/master</outputDirectory>
+    </fileSet>
+
+    <fileSet>
+      <directory>${project.basedir}/src/main/resources/branch3</directory>
+      <fileMode>644</fileMode>
+      <includes>
+        <include>dtest.yaml</include>
+        <include>dtest.properties</include>
+      </includes>
+      <outputDirectory>conf/hive/branch3</outputDirectory>
     </fileSet>
   </fileSets>
 </assembly>

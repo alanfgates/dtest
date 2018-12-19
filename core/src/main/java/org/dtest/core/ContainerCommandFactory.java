@@ -33,12 +33,13 @@ public abstract class ContainerCommandFactory extends Configurable {
    */
   public static final String CFG_CONTAINERCOMMANDFACTORY_TESTSPERCONTAINER = "dtest.core.containercommandfactory.testspercontainer";
   public static final int CFG_CONTAINERCOMMANDFACTORY_TESTSPERCONTAINER_DEFAULT = 10;
-  protected List<ContainerCommand> cmds = new ArrayList<>();
 
   /**
    * Implementation that builds commands to run in the container.  Defaults to simple maven builder.
    */
   public static final String CFG_CONTAINERCOMMANDLIST_IMPL = "dtest.core.containercommandlist.impl";
+
+  protected List<ContainerCommand> cmds = new ArrayList<>();
 
   /**
    * Build the list of commands.

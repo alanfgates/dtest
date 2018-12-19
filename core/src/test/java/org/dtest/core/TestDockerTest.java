@@ -228,38 +228,6 @@ public class TestDockerTest {
     }
   }
 
-  public static class ItestCommandList extends ContainerCommandFactory {
-    @Override
-    public void buildContainerCommands(ContainerClient containerClient, BuildInfo label,
-                                       DTestLogger logger) throws IOException {
-      getCmds().add(new ContainerCommand() {
-        @Override
-        public String containerSuffix() {
-          return "friendly-itests-qtest";
-        }
-
-        @Override
-        public String[] shellCommand() {
-          return new String[] {"echo", "hello", "world"};
-        }
-
-        @Override
-        public String containerDirectory() {
-          return "/tmp";
-        }
-      });
-    }
-
-    @Override
-    public List<String> getInitialBuildCommand() {
-      return null;
-    }
-
-    @Override
-    public List<String> getRequiredPackages() {
-      return null;
-}}
-
   public static class SpyingResultAnalyzer extends ResultAnalyzer {
     MavenResultAnalyzer contained = new MavenResultAnalyzer();
     @Override

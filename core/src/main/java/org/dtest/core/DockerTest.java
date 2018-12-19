@@ -51,6 +51,12 @@ public class DockerTest {
   public static final String CFG_DOCKERTEST_NUMCONTAINERS = "dtest.core.dockertest.numcontainers";
   private static final int CFG_DOCKERTEST_NUMCONTAINERS_DEFAULT = 2;
 
+  /**
+   * Where to drop the tar file produced by the build.  Defaults to java.io.tmpdir.
+   */
+  public static final String CFG_DOCKERTEST_RESULTLOCATION = "dtest.core.dockertest.resultlocation";
+  private static final String CFG_DOCKERTEST_RESULTLOCATION_DEFAULT = System.getProperty("java.io.tmpdir");
+
   private static final Logger LOG = LoggerFactory.getLogger(DockerTest.class);
   private static final String SUMMARY_LOG = "summary";
   public static final String EXEC_LOG = "dtest-exec"; // for log entries by dtest
@@ -279,12 +285,16 @@ public class DockerTest {
 
   private void packageLogsAndCleanup() throws IOException {
     ProcessResults res = Utils.runProcess("tar", 60, logger, "tar", "zcf",
-        buildInfo.getLabel() + ".tgz", "-C", buildInfo.getBaseDir(), buildInfo.getLabel());
+        getResultsDir() + buildInfo.getLabel() + ".tgz", "-C", buildInfo.getBaseDir(), buildInfo.getLabel());
     if (res.rc != 0) {
       throw new IOException("Failed to tar up logs, error " + res.rc + " msg: " + res.stderr);
     }
     docker.removeImage(logger);
 
+  }
+
+  private String getResultsDir() {
+    return cfg.getAsString(CFG_DOCKERTEST_RESULTLOCATION, CFG_DOCKERTEST_RESULTLOCATION_DEFAULT) + File.separator;
   }
 
   /**
