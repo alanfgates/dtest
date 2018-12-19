@@ -29,7 +29,6 @@ import org.dtest.core.TestUtils;
 import org.dtest.core.git.GitSource;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,8 +37,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
+import java.util.Properties;
 
 public class TestHiveDockerTest {
   private static final Logger LOG = LoggerFactory.getLogger(TestHiveDockerTest.class);
@@ -51,11 +50,6 @@ public class TestHiveDockerTest {
   private ByteArrayOutputStream outBuffer;
   private PrintStream out;
   private PrintStream err;
-
-  @BeforeClass
-  public static void createConfFile() throws IOException {
-    TestUtils.createConfFile();
-  }
 
   public static class SuccessfulWithFailingTestsClient extends ContainerClient {
     @Override
@@ -105,7 +99,7 @@ public class TestHiveDockerTest {
   public static class ItestCommandList extends ContainerCommandList {
     @Override
     public void buildContainerCommands(ContainerClient containerClient, BuildInfo label, DTestLogger logger) throws IOException {
-      add(new ContainerCommand() {
+      getCmds().add(new ContainerCommand() {
         @Override
         public String containerSuffix() {
           return "friendly-itests-qtest";
@@ -175,17 +169,19 @@ public class TestHiveDockerTest {
   }
 
   @Test
-  public void successfulRunSomeTestsFail() {
-    Config.set(ContainerClient.CFG_CONTAINER_CLIENT, SuccessfulWithFailingTestsClient.class.getName());
-    Config.set(ContainerCommandList.CFG_CONTAINER_COMMAND_LIST, ItestCommandList.class.getName());
-    Config.set(ResultAnalyzer.CFG_RESULT_ANALYZER, SpyingResultAnalyzer.class.getName());
-    Config.set(GitSource.CFG_GIT_BRANCH, "successful");
-    Config.set(GitSource.CFG_GIT_REPO, "repo");
-    Config.set(BuildInfo.CFG_BUILD_BASE_DIR, System.getProperty("java.io.tmpdir"));
+  public void successfulRunSomeTestsFail() throws IOException {
+    Properties props = TestUtils.buildProperties(
+        ContainerClient.CFG_CONTAINERCLIENT_IMPL, SuccessfulWithFailingTestsClient.class.getName(),
+        ContainerCommandList.CFG_CONTAINERCOMMANDLIST_IMPL, ItestCommandList.class.getName(),
+        ResultAnalyzer.CFG_RESULTANALYZER_IMPL, SpyingResultAnalyzer.class.getName(),
+        GitSource.CFG_GITSOURCE_BRANCH, "successful",
+        GitSource.CFG_GITSOURCE_REPO, "repo",
+        BuildInfo.CFG_BUILDINFO_BASEDIR, System.getProperty("java.io.tmpdir"),
+        BuildInfo.CFG_BUILDINFO_LABEL, "secondTry");
     DockerTest test = new DockerTest(out, err);
-    BuildInfo build = test.parseArgs(new String[] {"-l", "secondTry",
-                                                   "-c", TestUtils.getConfDir()});
-    test.runBuild(build);
+    test.buildConfig(props);
+    test.prepareBuild();
+    test.runBuild();
     Assert.assertTrue(imageBuilt);
     Assert.assertEquals(1, errors.size());
     Assert.assertEquals("TestNegativeCliDriver.alter_notnull_constraint_violation", errors.get(0));

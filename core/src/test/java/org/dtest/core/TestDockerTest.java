@@ -20,7 +20,6 @@ import org.dtest.core.git.GitSource;
 import org.dtest.core.impl.ProcessResults;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,6 +29,7 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
 
 public class TestDockerTest {
   private static final Logger LOG = LoggerFactory.getLogger(TestDockerTest.class);
@@ -41,11 +41,6 @@ public class TestDockerTest {
   private ByteArrayOutputStream outBuffer;
   private PrintStream out;
   private PrintStream err;
-
-  @BeforeClass
-  public static void createConfFile() throws IOException {
-    TestUtils.createConfFile();
-  }
 
   public static class SuccessfulClient extends ContainerClient {
     @Override
@@ -220,7 +215,7 @@ public class TestDockerTest {
     @Override
     public void buildContainerCommands(ContainerClient containerClient, BuildInfo label,
                                        DTestLogger logger) throws IOException {
-      add(new ContainerCommand() {
+      getCmds().add(new ContainerCommand() {
         @Override
         public String containerSuffix() {
           return "friendly";
@@ -243,7 +238,7 @@ public class TestDockerTest {
     @Override
     public void buildContainerCommands(ContainerClient containerClient, BuildInfo label,
                                        DTestLogger logger) throws IOException {
-      add(new ContainerCommand() {
+      getCmds().add(new ContainerCommand() {
         @Override
         public String containerSuffix() {
           return "friendly-itests-qtest";
@@ -313,17 +308,19 @@ public class TestDockerTest {
   }
 
   @Test
-  public void successfulRunAllTestsPass() {
-    Config.set(ContainerClient.CFG_CONTAINER_CLIENT, SuccessfulClient.class.getName());
-    Config.set(ContainerCommandList.CFG_CONTAINER_COMMAND_LIST, HelloWorldCommandList.class.getName());
-    Config.set(ResultAnalyzer.CFG_RESULT_ANALYZER, SpyingResultAnalyzer.class.getName());
-    Config.set(GitSource.CFG_GIT_BRANCH, "successful");
-    Config.set(GitSource.CFG_GIT_REPO, "repo");
-    Config.set(BuildInfo.CFG_BUILD_BASE_DIR, System.getProperty("java.io.tmpdir"));
+  public void successfulRunAllTestsPass() throws IOException {
+    Properties props = TestUtils.buildProperties(
+        ContainerClient.CFG_CONTAINERCLIENT_IMPL, SuccessfulClient.class.getName(),
+        ContainerCommandList.CFG_CONTAINERCOMMANDLIST_IMPL, HelloWorldCommandList.class.getName(),
+        ResultAnalyzer.CFG_RESULTANALYZER_IMPL, SpyingResultAnalyzer.class.getName(),
+        GitSource.CFG_GITSOURCE_BRANCH, "successful",
+        GitSource.CFG_GITSOURCE_REPO, "repo",
+        BuildInfo.CFG_BUILDINFO_BASEDIR, System.getProperty("java.io.tmpdir"),
+        BuildInfo.CFG_BUILDINFO_LABEL, "firstTry");
     DockerTest test = new DockerTest(out, err);
-    BuildInfo build = test.parseArgs(new String[] {"-l", "firstTry",
-                                                   "-c", TestUtils.getConfDir()});
-    test.runBuild(build);
+    test.buildConfig(props);
+    test.prepareBuild();
+    test.runBuild();
     Assert.assertTrue(imageBuilt);
     Assert.assertEquals(1, errors.size());
     Assert.assertEquals("TestAcidOnTez.testGetSplitsLocks", errors.get(0));
@@ -361,17 +358,19 @@ public class TestDockerTest {
   */
 
   @Test
-  public void timeout() {
-    Config.set(ContainerClient.CFG_CONTAINER_CLIENT, TimingOutClient.class.getName());
-    Config.set(ContainerCommandList.CFG_CONTAINER_COMMAND_LIST, HelloWorldCommandList.class.getName());
-    Config.set(ResultAnalyzer.CFG_RESULT_ANALYZER, SpyingResultAnalyzer.class.getName());
-    Config.set(GitSource.CFG_GIT_BRANCH, "failure");
-    Config.set(GitSource.CFG_GIT_REPO, "repo");
-    Config.set(BuildInfo.CFG_BUILD_BASE_DIR, System.getProperty("java.io.tmpdir"));
+  public void timeout() throws IOException {
+    Properties props = TestUtils.buildProperties(
+        ContainerClient.CFG_CONTAINERCLIENT_IMPL, TimingOutClient.class.getName(),
+        ContainerCommandList.CFG_CONTAINERCOMMANDLIST_IMPL, HelloWorldCommandList.class.getName(),
+        ResultAnalyzer.CFG_RESULTANALYZER_IMPL, SpyingResultAnalyzer.class.getName(),
+        GitSource.CFG_GITSOURCE_BRANCH, "failure",
+        GitSource.CFG_GITSOURCE_REPO, "repo",
+        BuildInfo.CFG_BUILDINFO_BASEDIR, System.getProperty("java.io.tmpdir"),
+        BuildInfo.CFG_BUILDINFO_LABEL, "will-time-out");
     DockerTest test = new DockerTest(out, err);
-    BuildInfo build = test.parseArgs(new String[] {"-l", "will-time-out",
-                                                   "-c", TestUtils.getConfDir()});
-    test.runBuild(build);
+    test.buildConfig(props);
+    test.prepareBuild();
+    test.runBuild();
     Assert.assertTrue(imageBuilt);
     Assert.assertTrue(hadTimeouts);
     Assert.assertTrue(runSucceeded);
@@ -379,17 +378,19 @@ public class TestDockerTest {
   }
 
   @Test
-  public void failedRun() {
-    Config.set(ContainerClient.CFG_CONTAINER_CLIENT, FailingClient.class.getName());
-    Config.set(ContainerCommandList.CFG_CONTAINER_COMMAND_LIST, HelloWorldCommandList.class.getName());
-    Config.set(ResultAnalyzer.CFG_RESULT_ANALYZER, SpyingResultAnalyzer.class.getName());
-    Config.set(GitSource.CFG_GIT_BRANCH, "failure");
-    Config.set(GitSource.CFG_GIT_REPO, "repo");
-    Config.set(BuildInfo.CFG_BUILD_BASE_DIR, System.getProperty("java.io.tmpdir"));
+  public void failedRun() throws IOException {
+    Properties props = TestUtils.buildProperties(
+        ContainerClient.CFG_CONTAINERCLIENT_IMPL, FailingClient.class.getName(),
+        ContainerCommandList.CFG_CONTAINERCOMMANDLIST_IMPL, HelloWorldCommandList.class.getName(),
+        ResultAnalyzer.CFG_RESULTANALYZER_IMPL, SpyingResultAnalyzer.class.getName(),
+        GitSource.CFG_GITSOURCE_BRANCH, "failure",
+        GitSource.CFG_GITSOURCE_REPO, "repo",
+        BuildInfo.CFG_BUILDINFO_BASEDIR, System.getProperty("java.io.tmpdir"),
+        BuildInfo.CFG_BUILDINFO_LABEL, "take2");
     DockerTest test = new DockerTest(out, err);
-    BuildInfo build = test.parseArgs(new String[] {"-l", "take2",
-                                                   "-c", TestUtils.getConfDir()});
-    test.runBuild(build);
+    test.buildConfig(props);
+    test.prepareBuild();
+    test.runBuild();
     Assert.assertTrue(imageBuilt);
     Assert.assertFalse(hadTimeouts);
     Assert.assertFalse(runSucceeded);

@@ -17,7 +17,6 @@ package org.dtest.core.git;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.dtest.core.CodeSource;
-import org.dtest.core.Config;
 import org.dtest.core.ContainerClient;
 
 import java.io.IOException;
@@ -27,16 +26,16 @@ import java.util.List;
 public class GitSource extends CodeSource  {
 
   @VisibleForTesting
-  public static final String CFG_GIT_REPO = "dtest.git.repo";
-  public static final String CFG_GIT_BRANCH = "dtest.git.branch";
+  public static final String CFG_GITSOURCE_REPO = "dtest.git.gitsource.repo";
+  public static final String CFG_GITSOURCE_BRANCH = "dtest.git.gitsource.branch";
 
   @Override
   public List<String> srcCommands(ContainerClient client) throws IOException {
-    String repo = Config.getAsString(CFG_GIT_REPO);
-    String branch = Config.getAsString(CFG_GIT_BRANCH);
+    String repo = getConfig().getAsString(CFG_GITSOURCE_REPO);
+    String branch = getConfig().getAsString(CFG_GITSOURCE_BRANCH);
     if (repo == null || branch == null) {
-      throw new IOException("You must provide configuration values " + CFG_GIT_REPO + " and " + CFG_GIT_BRANCH +
-          " to use git");
+      throw new IOException("You must provide configuration values " + CFG_GITSOURCE_REPO + " and " +
+          CFG_GITSOURCE_BRANCH + " to use git");
     }
     return Arrays.asList(
         "    /usr/bin/git clone " + repo + "; \\\n",

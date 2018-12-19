@@ -89,7 +89,7 @@ public class BaseContainerCommand extends ContainerCommand {
       }
 
       buf.append("/usr/bin/mvn test -Dsurefire.timeout=")
-          .append(Config.getAsTime(ContainerCommand.CFG_TEST_RUN_TIME, TimeUnit.SECONDS));
+          .append(getConfig().getAsTime(CFG_CONTAINERCOMMAND_SINGLERUNTIME, TimeUnit.SECONDS, CFG_CONTAINERCOMMAND_SINGLERUNTIME_DEFAULT));
 
       if (!tests.isEmpty()) {
         buf.append(" -Dtest=");

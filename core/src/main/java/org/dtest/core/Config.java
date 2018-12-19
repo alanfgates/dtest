@@ -21,57 +21,91 @@ import org.dtest.core.impl.Utils;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * This class creates a static global configuration object.  It contains two maps, both of which map keys (strings)
- * to values (objects).  The first map maps keys to values, the second keys to default values.  The first map is always
- * checked first, and the second only used if there is no entry for the key in the first.
+ * This class forms a wrapper around properties, giving callers a way to get the values as appropriate types.
+ * No support for default values is provided other than allowing users to pass in a default value that will
+ * be returned if the requested key is not in the properties.
  *
- * The class provides a set of getter methods that allow the user to fetch that value as string, int,
- * time value, etc.
+ * When the config object is constructed a properties object can be passed in.  If none is, the System properties
+ * will be used instead.
  *
- * Keys for the configuration values are defined in the classes that read those keys.  While other classes can set
- * values for those keys, no other classes should read them.  This is because until those classes are invoked the
- * default values will not be set up.
+ * Properties can also be read from a file.  Any properties already set in the passed in properties object will
+ * not be overridden by the values in the file.
+ *
+ * The intent of this bare bones config system is to build something that plugins can easily tap into.  The
+ * envisioned usage is that each component defines its own config values and only that component reads them.
  */
 public class Config {
 
-  private static final Map<String, String> entries = new HashMap<>();
-  private static final Map<String, String> defaultEntries = new HashMap<>();
-  private static final Pattern TIME_UNIT_SUFFIX = Pattern.compile("([0-9]+)([a-zA-Z]+)");
-
-  private Config() {
-
-  }
-
   @VisibleForTesting
   static final String PROPERTIES_FILE = "dtest.properties";
+  private static final Pattern TIME_UNIT_SUFFIX = Pattern.compile("([0-9]+)([a-zA-Z]+)");
 
-  public static <T> Class<? extends T> getAsClass(String key, Class<T> clazz) throws IOException {
-    String val = find(key);
-    return val == null ? null : Utils.getClass(val, clazz);
+  private final Properties entries;
+
+  /**
+   * Build a configuration object using the System properties.
+   */
+  public Config() {
+    this(System.getProperties());
+
   }
 
-  public static int getAsInt(String key) {
-    String val = find(key);
-    return val == null ? 0 : Integer.valueOf(val);
+  /**
+   * Build a configuration object using the specified properties
+   * @param props properties
+   */
+  public Config(Properties props) {
+    entries = (Properties)props.clone();
+  }
+
+  /**
+   * Build a configuration object by reading a config file.  Any values passed in props will override values read
+   * in the file.
+   * @param confDir configuration directory for the file.  The file should be named dtest.properties
+   * @param props Properties that will override anything found in the file
+   * @throws IOException if the file cannot be read
+   */
+  public Config(String confDir, Properties props) throws IOException {
+    String filename = confDir + File.separator + PROPERTIES_FILE;
+    FileInputStream input = new FileInputStream(filename);
+    Properties p = new Properties();
+    p.load(input);
+    entries = new Properties(p); // Set the file values as defaults for our properties
+    // Now copy in our passed in properties
+    for (String key : props.stringPropertyNames()) entries.setProperty(key, props.getProperty(key));
+    input.close();
+  }
+
+  public <T> Class<? extends T> getAsClass(String key, Class<T> clazz, Class<? extends T> defaultVal) throws IOException {
+    String val = entries.getProperty(key);
+    return val == null ? defaultVal : Utils.getClass(val, clazz);
+  }
+
+  public int getAsInt(String key, int defaultVal) {
+    String val = entries.getProperty(key);
+    return val == null ? defaultVal : Integer.valueOf(val);
+  }
+
+  public int getAsInt(String key) {
+    return getAsInt(key, 0);
   }
 
   /**
    * Get the value as a time.
    * @param key key to look up
    * @param outUnit time unit to return this as
-   * @return time as a long
+   * @param defaultVal default time value
+   * @return time as a long, or defaultVal if the key is not present
    */
-  public static long getAsTime(String key, TimeUnit outUnit) {
-    String val = find(key);
-    if (val == null) return 0;
+  public long getAsTime(String key, TimeUnit outUnit, long defaultVal) {
+    String val = entries.getProperty(key);
+    if (val == null) return defaultVal;
     Matcher m = TIME_UNIT_SUFFIX.matcher(val);
     if (m.matches()) {
       long duration = Long.parseLong(m.group(1));
@@ -100,43 +134,34 @@ public class Config {
     }
   }
 
-  public static String getAsString(String key) throws IOException {
-    return find(key);
-  }
-
-  public static void set(String key, String newVal) {
-    entries.put(key, newVal);
-  }
-
-  public static void setDefaultValue(String key, String defaultVal) {
-    defaultEntries.put(key, defaultVal);
+  /**
+   * Get the value as a time.
+   * @param key key to look up
+   * @param outUnit time unit to return this as
+   * @return time as a long, or 0 if key not present
+   */
+  public long getAsTime(String key, TimeUnit outUnit) {
+    return getAsTime(key, outUnit, 0);
   }
 
   /**
-   * Read the configuration file and set the system properties based on values in the file.
-   * @throws IOException If the file cannot be found or is not readable or is not the proper format.
+   * Get the entry as a string, or the provided default value if the entry isn't set.
+   * @param key key
+   * @param defaultVal default value
+   * @return value or default value if entry is not set.
    */
-  public static void fromConfigFile(String confDir) throws IOException {
-    String filename = confDir + File.separator + PROPERTIES_FILE;
-    FileInputStream input = new FileInputStream(filename);
-    Properties p = new Properties();
-    p.load(input);
-    for (Object key : p.keySet()) {
-      // Only set the value if it doesn't override an existing value
-      entries.putIfAbsent(key.toString(), p.getProperty(key.toString()));
-    }
-    input.close();
+  public String getAsString(String key, String defaultVal) {
+    return entries.getProperty(key, defaultVal);
   }
 
-  private static String find(String key) {
-    String entry = entries.get(key);
-    if (entry == null) {
-      entry = defaultEntries.get(key);
-      if (entry == null) {
-        entry = System.getProperty(key);
-      }
-    }
-    return entry;
+  /**
+   * Get the entry as a string
+   * @param key key
+   * @return value, or null if no value
+   */
+  public String getAsString(String key) {
+    return entries.getProperty(key);
   }
+
 
 }

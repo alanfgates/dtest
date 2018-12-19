@@ -27,13 +27,15 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.io.InvalidObjectException;
-import java.net.URL;
 import java.util.ArrayDeque;
 import java.util.Collections;
 import java.util.Deque;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
+import static org.dtest.core.ContainerCommand.CFG_CONTAINERCOMMAND_TESTSPERCONTAINER;
+import static org.dtest.core.ContainerCommand.CFG_CONTAINERCOMMAND_TESTSPERCONTAINER_DEFAULT;
 
 public class BaseContainerCommandList extends ContainerCommandList {
   private static final Logger LOG = LoggerFactory.getLogger(BaseContainerCommandList.class);
@@ -53,7 +55,8 @@ public class BaseContainerCommandList extends ContainerCommandList {
     for (BaseModuleDirectory mDir : mDirs) {
       mDir.validate();
       int testsPerContainer = mDir.isSetTestsPerContainer() ?
-          mDir.getTestsPerContainer() : Config.getAsInt(ContainerCommand.CFG_TESTS_PER_CONTAINER);
+          mDir.getTestsPerContainer() : getConfig().getAsInt(CFG_CONTAINERCOMMAND_TESTSPERCONTAINER,
+          CFG_CONTAINERCOMMAND_TESTSPERCONTAINER_DEFAULT);
       if (subclassShouldHandle(mDir)) {
         handle(mDir, containerClient, buildInfo, logger, testsPerContainer);
       } else if (!mDir.getNeedsSplit() && !mDir.isSetSingleTest()) {
@@ -63,7 +66,7 @@ public class BaseContainerCommandList extends ContainerCommandList {
             + "/" + mDir.getDir(), containerNumber++);
         setEnvsAndProperties(mDir, mvn);
         if (mDir.isSetSkippedTests()) mvn.excludeTests(mDir.getSkippedTests());
-        add(mvn);
+        cmds.add(mvn);
       } else if (mDir.getNeedsSplit()) {
         // Tests that need split
         Set<String> excludedTests = new HashSet<>();
@@ -90,7 +93,7 @@ public class BaseContainerCommandList extends ContainerCommandList {
             setEnvsAndProperties(mDir, mvn);
             mvn.addTest(test);
             LOG.debug("Isolating test " + test + " in container " + (containerNumber - 1));
-            add(mvn);
+            cmds.add(mvn);
             tests.remove(test);
           }
         }
@@ -105,7 +108,7 @@ public class BaseContainerCommandList extends ContainerCommandList {
             LOG.debug("Adding test " + single + " to container " + (containerNumber - 1));
             mvn.addTest(single);
           }
-          add(mvn);
+          cmds.add(mvn);
         }
       } else if (mDir.isSetSingleTest()) {
         // Running a single test
@@ -114,7 +117,7 @@ public class BaseContainerCommandList extends ContainerCommandList {
             containerNumber++);
         mvn.addTest(mDir.getSingleTest());
         setEnvsAndProperties(mDir, mvn);
-        add(mvn);
+        cmds.add(mvn);
       } else {
           throw new InvalidObjectException("Help, I don't understand what you want me to do for " +
               "directory " + mDir.getDir());
@@ -182,6 +185,7 @@ public class BaseContainerCommandList extends ContainerCommandList {
   protected void setEnvsAndProperties(BaseModuleDirectory mDir, BaseContainerCommand mvn) {
     if (mDir.getEnv() != null) mvn.addEnvs(mDir.getEnv());
     if (mDir.getMvnProperties() != null) mvn.addProperties(mDir.getMvnProperties());
+    mvn.setConfig(getConfig());
   }
 
   protected String runContainer(ContainerClient containerClient, final String dir,

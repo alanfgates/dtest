@@ -21,14 +21,10 @@ import org.dtest.core.impl.Utils;
 import java.io.IOException;
 import java.util.List;
 
-public abstract class ResultAnalyzer {
+public abstract class ResultAnalyzer extends Configurable {
   @VisibleForTesting
   // Implementation of ResultAnalyzer
-  public final static String CFG_RESULT_ANALYZER = "dtest.result.analyzer";
-
-  static {
-    Config.setDefaultValue(CFG_RESULT_ANALYZER, BaseResultAnalyzer.class.getName());
-  }
+  public final static String CFG_RESULTANALYZER_IMPL = "dtest.core.resultanalyzer.impl";
 
   /**
    * Analyze a log.
@@ -68,7 +64,10 @@ public abstract class ResultAnalyzer {
    */
   public abstract boolean runSucceeded();
 
-  static ResultAnalyzer getInstance() throws IOException {
-    return Utils.getInstance(Config.getAsClass(ResultAnalyzer.CFG_RESULT_ANALYZER, ResultAnalyzer.class));
+  static ResultAnalyzer getInstance(Config cfg) throws IOException {
+    ResultAnalyzer ra = Utils.getInstance(cfg.getAsClass(ResultAnalyzer.CFG_RESULTANALYZER_IMPL,
+        ResultAnalyzer.class, BaseResultAnalyzer.class));
+    ra.setConfig(cfg);
+    return ra;
   }
 }

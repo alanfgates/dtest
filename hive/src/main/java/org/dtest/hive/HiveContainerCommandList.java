@@ -77,7 +77,7 @@ public class HiveContainerCommandList extends BaseContainerCommandList {
     // Deal with any tests that need to be run alone
     if (mDir.isSetIsolatedQFiles()) {
       for (String test : mDir.getIsolatedQFiles()) {
-        add(buildOneQFilesCmd(containerClient, Collections.singleton(test), mDir));
+        cmds.add(buildOneQFilesCmd(containerClient, Collections.singleton(test), mDir));
         qfiles.remove(test);
       }
     }
@@ -88,7 +88,7 @@ public class HiveContainerCommandList extends BaseContainerCommandList {
         if (oneSet.size() >= testsPerContainer) break;
         oneSet.add(qFile);
       }
-      add(buildOneQFilesCmd(containerClient, oneSet, mDir));
+      cmds.add(buildOneQFilesCmd(containerClient, oneSet, mDir));
       qfiles.removeAll(oneSet);
     }
   }

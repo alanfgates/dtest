@@ -15,7 +15,6 @@
  */
 package org.dtest.hive;
 
-import org.dtest.core.Config;
 import org.dtest.core.impl.Utils;
 import org.dtest.core.BaseContainerCommand;
 
@@ -63,7 +62,7 @@ public class HiveContainerCommand extends BaseContainerCommand {
       }
 
       buf.append("/usr/bin/mvn test -Dsurefire.timeout=")
-          .append(Config.getAsTime(CFG_TEST_RUN_TIME, TimeUnit.SECONDS));
+          .append(getConfig().getAsTime(CFG_CONTAINERCOMMAND_SINGLERUNTIME, TimeUnit.SECONDS, CFG_CONTAINERCOMMAND_SINGLERUNTIME_DEFAULT));
 
       if (!tests.isEmpty()) {
         buf.append(" -Dtest=");

@@ -15,6 +15,8 @@
  */
 package org.dtest.core;
 
+import com.fasterxml.jackson.databind.annotation.JsonAppend;
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.GnuParser;
@@ -30,9 +32,9 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -43,25 +45,47 @@ public class DockerTest {
   private static final String SUMMARY_LOG = "summary";
   public static final String EXEC_LOG = "dtest-exec"; // for log entries by dtest
   // Simultaneous number of containers to run
-  static final String CFG_NUM_CONTAINERS = "dtest.number.containers";
+  static final String CFG_CORE_DOCKERTEST_NUMCONTAINERS = "dtest.core.dockertest.numcontainers";
 
   private ContainerClient docker;
   private PrintStream out;
   private PrintStream err;
+  private Config cfg;
+  private BuildInfo buildInfo;
+  private String cfgDir;
+  private boolean cleanupAfter = true;
+  private DTestLogger logger;
 
   public DockerTest(PrintStream out, PrintStream err) {
-    Config.setDefaultValue(CFG_NUM_CONTAINERS, "2");
     this.out = out;
     this.err = err;
   }
 
   /**
+   * Setup the configuration.  Call this first.
+   * @param confDir directory with configuration file in it.
+   * @param override properties we were passed that take precedence over values in the file.
+   * @throws IOException if we fail to read the config file.
+   */
+  public void buildConfig(String confDir, Properties override) throws IOException {
+    cfg = new Config(confDir, override);
+  }
+
+  /**
+   * This is for testing.  You likely want {@link #buildConfig(String, Properties)}.
+   * @param props properties to put in config file
+   */
+  @VisibleForTesting
+  public void buildConfig(Properties props) {
+    cfg = new Config(props);
+  }
+
+  /**
    * Parse the arguments.
    * @param args Command line arguments.
-   * @return A description of the build, or null if the parsing failed.
    */
   @SuppressWarnings("static-access")
-  public BuildInfo parseArgs(String[] args) {
+  private void parseArgs(String[] args) {
     CommandLineParser parser = new GnuParser();
 
     Options opts = new Options();
@@ -74,13 +98,6 @@ public class DockerTest {
         .create("c"));
 
     opts.addOption(OptionBuilder
-        .withLongOpt("build-label")
-        .withDescription("build label, changing this will force a new container to be built")
-        .hasArg()
-        .isRequired()
-        .create("l"));
-
-    opts.addOption(OptionBuilder
         .withLongOpt("no-cleanup")
         .withDescription("do not cleanup docker containers and image after build")
         .create("m"));
@@ -88,36 +105,33 @@ public class DockerTest {
     CommandLine cmd;
     try {
       cmd = parser.parse(opts, args);
+      cleanupAfter = !cmd.hasOption("m");
+      cfgDir = cmd.getOptionValue("c");
     } catch (ParseException e) {
       LOG.error("Failed to parse command line: ", e);
       usage(opts);
-      return null;
-    }
-
-
-    try {
-      Config.fromConfigFile(cmd.getOptionValue("c"));
-      CodeSource codeSource = CodeSource.getInstance();
-      BuildInfo info = new BuildInfo(cmd.getOptionValue("c"), codeSource, cmd.getOptionValue("l").toLowerCase());
-      info.setCleanupAfter(!cmd.hasOption("m"));
-      return info;
-    } catch (IOException e) {
-      err.println(e.getMessage());
-      LOG.error("Failed to build BuildInfo", e);
-      return null;
     }
   }
 
-  public int runBuild(BuildInfo info) {
-    DTestLogger logger = null;
+  /**
+   * Setup the build information.  Call this after {@link #buildConfig(String, Properties)} and before
+   * {@link #runBuild()}.
+   */
+  public void prepareBuild() throws IOException {
+    CodeSource codeSource = CodeSource.getInstance(cfg);
+    buildInfo = new BuildInfo(cfgDir, codeSource, cleanupAfter);
+    buildInfo.setConfig(cfg);
+  }
+
+  public int runBuild() {
     int rc;
     try {
-      docker = ContainerClient.getInstance();
-      docker.setBuildInfo(info);
-      String dir = info.buildDir();
+      docker = ContainerClient.getInstance(cfg);
+      docker.setBuildInfo(buildInfo);
+      String dir = buildInfo.buildDir();
       logger = new DTestLogger(dir);
       try {
-        buildDockerImage(info, logger);
+        buildDockerImage();
       } catch (IOException e) {
         String msg = "Failed to build docker image, might mean your code doesn't compile";
         err.println(msg + "  See log for details.");
@@ -125,8 +139,8 @@ public class DockerTest {
         return 1;
       }
       try {
-        rc = runContainers(info, logger);
-        packageLogsAndCleanup(info, logger);
+        rc = runContainers();
+        packageLogsAndCleanup();
       } catch (IOException e) {
         String msg = "Failed to run one or more of the containers.";
         err.println(msg + "  See log for details.");
@@ -158,40 +172,23 @@ public class DockerTest {
     formatter.printHelp("docker-test", opts);
   }
 
-  private String findAvailableProfiles() {
-    // This is a lame implementation, in that it has to know to look for something before it can
-    // find it, but I'm not sure of a better way to do it.
-    String[] possibilies = {"master-profile.yaml", "branch-3-profile.yaml", "branch-2-profile.yaml"};
-    StringBuilder buf = new StringBuilder();
-    boolean first = true;
-    for (String possibility : possibilies) {
-      URL yamlFile = getClass().getClassLoader().getResource(possibility);
-      if (yamlFile != null) {
-        if (first) first = false;
-        else buf.append(", ");
-        buf.append(new File(yamlFile.getFile()).getName());
-      }
-    }
-    return buf.toString();
-  }
-
-  private void buildDockerImage(BuildInfo info, DTestLogger logger)
+  private void buildDockerImage()
       throws IOException {
     docker.defineImage();
-    docker.buildImage(info.getDir(), logger);
+    docker.buildImage(buildInfo.getDir(), logger);
   }
 
-  private int runContainers(final BuildInfo info, final DTestLogger logger)
+  private int runContainers()
       throws IOException {
-    ContainerCommandList taskCmds = ContainerCommandList.getInstance();
-    taskCmds.buildContainerCommands(docker, info, logger);
+    ContainerCommandList taskCmds = ContainerCommandList.getInstance(cfg);
+    taskCmds.buildContainerCommands(docker, buildInfo, logger);
 
-    final ResultAnalyzer analyzer = ResultAnalyzer.getInstance();
+    final ResultAnalyzer analyzer = ResultAnalyzer.getInstance(cfg);
     // I don't need the return value, but by having one I can use the Callable interface instead
     // of Runnable, and Callable catches exceptions for me and passes them back.
-    List <Future<Integer>> tasks = new ArrayList<>(taskCmds.size());
-    ExecutorService executor = Executors.newFixedThreadPool(Config.getAsInt(CFG_NUM_CONTAINERS));
-    for (ContainerCommand taskCmd : taskCmds) {
+    List <Future<Integer>> tasks = new ArrayList<>(taskCmds.getCmds().size());
+    ExecutorService executor = Executors.newFixedThreadPool(cfg.getAsInt(CFG_CORE_DOCKERTEST_NUMCONTAINERS, 2));
+    for (ContainerCommand taskCmd : taskCmds.getCmds()) {
       tasks.add(executor.submit(() -> {
         ContainerResult result = docker.runContainer(taskCmd, logger);
         analyzer.analyzeLog(result);
@@ -218,7 +215,7 @@ public class DockerTest {
 
         // Copy log files from any failed tests to a directory specific to this container
         if (result.getLogFilesToFetch() != null && !result.getLogFilesToFetch().isEmpty()) {
-          File logDir = new File(info.getDir(), result.getCmd().containerSuffix());
+          File logDir = new File(buildInfo.getDir(), result.getCmd().containerSuffix());
           LOG.info("Creating directory " + logDir.getAbsolutePath() + " for logs from container "
               + result.getCmd().containerSuffix());
           logDir.mkdir();
@@ -280,9 +277,9 @@ public class DockerTest {
     return rc;
   }
 
-  private void packageLogsAndCleanup(BuildInfo info, DTestLogger logger) throws IOException {
+  private void packageLogsAndCleanup() throws IOException {
     ProcessResults res = Utils.runProcess("tar", 60, logger, "tar", "zcf",
-        info.getLabel() + ".tgz", "-C", info.getBaseDir(), info.getLabel());
+        buildInfo.getLabel() + ".tgz", "-C", buildInfo.getBaseDir(), buildInfo.getLabel());
     if (res.rc != 0) {
       throw new IOException("Failed to tar up logs, error " + res.rc + " msg: " + res.stderr);
     }
@@ -291,14 +288,23 @@ public class DockerTest {
   }
 
   /**
-   * This calls System.exit, don't call it if you're using a tool.  Use
-   * {@link #runBuild(BuildInfo)} instead.
+   * This calls System.exit, don't call it if you're using a tool.  Instead call
+   * {@link #buildConfig(String, Properties)} then {@link #prepareBuild()} and then {@link #runBuild()}.
    * @param args command line arguments.
    */
   public static void main(String[] args) {
     DockerTest test = new DockerTest(System.out, System.err);
-    BuildInfo build = test.parseArgs(args);
-    int rc = (build == null) ? 1 : test.runBuild(build);
+    test.parseArgs(args);
+    int rc = 0;
+    try {
+      test.buildConfig(test.cfgDir, System.getProperties());
+      test.prepareBuild();
+      rc = test.runBuild();
+    } catch (IOException e) {
+      rc = 1;
+      LOG.error("Failed to run", e);
+      System.err.println("Failed, see logs for more details: " + e.getMessage());
+    }
     System.exit(rc);
   }
 }

@@ -16,19 +16,17 @@
 
 package org.dtest.core;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.dtest.core.git.GitSource;
 import org.dtest.core.impl.Utils;
 
 import java.io.IOException;
 import java.util.List;
 
-public abstract class CodeSource {
+public abstract class CodeSource extends Configurable {
 
-  private static final String CFG_CODE_SOURCE_CLASS = "dtest.code.source.class";
-
-  static {
-    Config.setDefaultValue(CFG_CODE_SOURCE_CLASS, GitSource.class.getName());
-  }
+  @VisibleForTesting
+  public static final String CFG_CODESOURCE_IMPL = "dtest.core.codesource.impl";
 
   /**
    * Get the list of commands that should be executed during image creation to checkout the appropriate source code
@@ -37,7 +35,9 @@ public abstract class CodeSource {
    */
   public abstract List<String> srcCommands(ContainerClient client) throws IOException;
 
-  static CodeSource getInstance() throws IOException {
-    return Utils.getInstance(Config.getAsClass(CodeSource.CFG_CODE_SOURCE_CLASS, CodeSource.class));
+  static CodeSource getInstance(Config cfg) throws IOException {
+    CodeSource cs = Utils.getInstance(cfg.getAsClass(CodeSource.CFG_CODESOURCE_IMPL, CodeSource.class, GitSource.class));
+    cs.setConfig(cfg);
+    return cs;
   }
 }

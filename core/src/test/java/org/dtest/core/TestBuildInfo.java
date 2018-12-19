@@ -24,16 +24,25 @@ public class TestBuildInfo {
 
   @Test
   public void simple() throws IOException {
-    new BuildInfo(System.getProperty("java.io.tmpdir"), new GitSource(), "patch1");
+    Config cfg = TestUtils.buildCfg(BuildInfo.CFG_BUILDINFO_LABEL, "patch1");
+    BuildInfo info = new BuildInfo(System.getProperty("java.io.tmpdir"), new GitSource(), true);
+    info.setConfig(cfg);
+    info.checkLabelIsDockerable();
   }
 
   @Test
   public void withDash() throws IOException {
-    new BuildInfo(System.getProperty("java.io.tmpdir"), new GitSource(), "patch1-run2");
+    Config cfg = TestUtils.buildCfg(BuildInfo.CFG_BUILDINFO_LABEL, "patch1-run2");
+    BuildInfo info = new BuildInfo(System.getProperty("java.io.tmpdir"), new GitSource(), true);
+    info.setConfig(cfg);
+    info.checkLabelIsDockerable();
   }
 
   @Test(expected = IOException.class)
   public void withSlash() throws IOException {
-    new BuildInfo(System.getProperty("java.io.tmpdir"), new GitSource(), "patch1/run2");
+    Config cfg = TestUtils.buildCfg(BuildInfo.CFG_BUILDINFO_LABEL, "patch1/run2");
+    BuildInfo info = new BuildInfo(System.getProperty("java.io.tmpdir"), new GitSource(), true);
+    info.setConfig(cfg);
+    info.checkLabelIsDockerable();
   }
 }

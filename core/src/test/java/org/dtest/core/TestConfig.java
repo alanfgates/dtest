@@ -23,49 +23,64 @@ import org.junit.Test;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.List;
+import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
 public class TestConfig {
+
+  private static class MySource extends CodeSource {
+    @Override
+    public List<String> srcCommands(ContainerClient client) throws IOException {
+      return null;
+    }
+  }
 
   @Test
   public void testConfigFile() throws IOException {
     File propertiesFile = new File(System.getProperty("java.io.tmpdir"), Config.PROPERTIES_FILE);
     propertiesFile.deleteOnExit();
     FileWriter writer = new FileWriter(propertiesFile);
-    writer.write(GitSource.CFG_GIT_BRANCH + " = branch\n");
-    writer.write(ContainerClient.CFG_IMAGE_BUILD_TIME + " = 1min");
+    writer.write(GitSource.CFG_GITSOURCE_BRANCH + " = branch\n");
+    writer.write(ContainerClient.CFG_CONTAINERCLIENT_IMAGEBUILDTIME + " = 1min\n");
+    writer.write(CodeSource.CFG_CODESOURCE_IMPL + " = " + MySource.class.getName() + "\n");
     writer.close();
 
     // Make sure we don't overwrite existing properites
-    Config.set(ContainerClient.CFG_IMAGE_BUILD_TIME, "1h");
-    Config.fromConfigFile(System.getProperty("java.io.tmpdir"));
-
-    DockerTest t = new DockerTest(null, null);
+    Properties props = new Properties();
+    props.setProperty(ContainerClient.CFG_CONTAINERCLIENT_IMAGEBUILDTIME, "1h");
+    Config cfg = new Config(System.getProperty("java.io.tmpdir"), props);
 
     // Test ones from the file
-    Assert.assertEquals("branch", Config.getAsString(GitSource.CFG_GIT_BRANCH));
-    Assert.assertEquals(3600L, Config.getAsTime(ContainerClient.CFG_IMAGE_BUILD_TIME, TimeUnit.SECONDS));
+    Assert.assertEquals("branch", cfg.getAsString(GitSource.CFG_GITSOURCE_BRANCH));
+    Assert.assertEquals(3600L, cfg.getAsTime(ContainerClient.CFG_CONTAINERCLIENT_IMAGEBUILDTIME, TimeUnit.SECONDS));
     // Test default values are set
-    Assert.assertEquals(2, Config.getAsInt(DockerTest.CFG_NUM_CONTAINERS));
-    // Test that system properties are searched if defaults aren't set
-    System.setProperty("x.y.z", "5");
-    Assert.assertEquals(5, Config.getAsInt("x.y.z"));
+    Assert.assertEquals(10, cfg.getAsInt(ContainerCommand.CFG_CONTAINERCOMMAND_TESTSPERCONTAINER,
+        ContainerCommand.CFG_CONTAINERCOMMAND_TESTSPERCONTAINER_DEFAULT));
+    Assert.assertEquals(MySource.class, cfg.getAsClass(CodeSource.CFG_CODESOURCE_IMPL, CodeSource.class, GitSource.class));
+    // Test that later changes to the properties don't affect the config object
+    props.setProperty("x.y.z", "5");
+    Assert.assertEquals(0, cfg.getAsInt("x.y.z"));
 
     // Test values with no key match don't go sideways
-    Assert.assertEquals(0, Config.getAsInt("no.such"));
-    Assert.assertEquals(0L, Config.getAsTime("no.such", TimeUnit.SECONDS));
-    Assert.assertNull(Config.getAsClass("no.such", getClass()));
-    Assert.assertNull(Config.getAsString("no.such"));
+    Assert.assertEquals(0, cfg.getAsInt("no.such"));
+    Assert.assertEquals(0L, cfg.getAsTime("no.such", TimeUnit.SECONDS));
+    Assert.assertNull(cfg.getAsString("no.such"));
 
-    // Test getAsClass
-    Config.set("test.get.as.class", getClass().getName());
-    Class<? extends TestConfig> tc = Config.getAsClass("test.get.as.class", TestConfig.class);
-    Assert.assertEquals(TestConfig.class, tc);
   }
 
   @Test(expected = IOException.class)
   public void testBadClass() throws IOException {
-    Config.set("test.bad.class", "NoSuchClass");
-    Utils.getInstance(Config.getAsClass("test.bad.class", ContainerCommand.class));
+    Properties props = new Properties();
+    props.setProperty("test.bad.class", "NoSuchClass");
+    Config cfg = new Config(props);
+    Utils.getInstance(cfg.getAsClass("test.bad.class", ContainerCommand.class, BaseContainerCommand.class));
+  }
+
+  @Test
+  public void testFromSystemProperties() {
+    System.setProperty("dtest.testconfig.testval", "5");
+    Config cfg = new Config();
+    Assert.assertEquals(5, cfg.getAsInt("dtest.testconfig.testval"));
   }
 }

@@ -18,7 +18,6 @@ package org.dtest.core;
 import org.apache.commons.lang3.StringUtils;
 import org.dtest.core.git.GitSource;
 import org.junit.Assert;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -26,15 +25,11 @@ import java.util.List;
 
 public class TestContainerCommandList {
 
-  @BeforeClass
-  public static void createConfFile() throws IOException {
-    TestUtils.createConfFile();
-  }
-
   @Test
   public void parseYaml() throws IOException {
-    BaseContainerCommandList factory = new BaseContainerCommandList();
-    List<BaseModuleDirectory> mDirs = factory.readYaml(TestUtils.getConfDir(), BaseModuleDirectory.class);
+    BaseContainerCommandList cmds = new BaseContainerCommandList();
+    cmds.setConfig(new Config());
+    List<BaseModuleDirectory> mDirs = cmds.readYaml(TestUtils.getConfDir(), BaseModuleDirectory.class);
     Assert.assertEquals(5, mDirs.size());
     BaseModuleDirectory mDir = mDirs.get(0);
     Assert.assertEquals("beeline", mDir.getDir());
@@ -61,24 +56,28 @@ public class TestContainerCommandList {
 
   @Test(expected = IOException.class)
   public void nonExistentYamlFile() throws IOException {
-    BaseContainerCommandList factory = new BaseContainerCommandList();
-    List<BaseModuleDirectory> mDirs = factory.readYaml("nosuch", BaseModuleDirectory.class);
+    BaseContainerCommandList cmds = new BaseContainerCommandList();
+    cmds.setConfig(new Config());
+    List<BaseModuleDirectory> mDirs = cmds.readYaml("nosuch", BaseModuleDirectory.class);
   }
 
   @Test
   public void buildCommands() throws IOException {
+    Config cfg = TestUtils.buildCfg(BuildInfo.CFG_BUILDINFO_LABEL, "mylabel");
     BaseContainerCommandList cmds = new BaseContainerCommandList();
-    BuildInfo buildInfo = new BuildInfo(TestUtils.getConfDir(), new GitSource(), "mylabel");
+    cmds.setConfig(cfg);
+    BuildInfo buildInfo = new BuildInfo(TestUtils.getConfDir(), new GitSource(), true);
+    buildInfo.setConfig(cfg);
     DTestLogger logger = new DTestLogger(".");
     cmds.buildContainerCommands(new TestContainerClient(), buildInfo, logger);
-    Assert.assertEquals(7, cmds.size());
-    Assert.assertEquals("/bin/bash -c ( cd /tmp/beeline; /usr/bin/mvn test -Dsurefire.timeout=300)", StringUtils.join(cmds.get(0).shellCommand(), " "));
-    Assert.assertEquals("/bin/bash -c ( cd /tmp/cli; /usr/bin/mvn test -Dsurefire.timeout=300 -Dtest.excludes.additional=**/TestCliDriverMethods)", StringUtils.join(cmds.get(1).shellCommand(), " "));
-    Assert.assertEquals("/bin/bash -c ( cd /tmp/standalone-metastore; /usr/bin/mvn test -Dsurefire.timeout=300 -Dtest=TestRetriesInRetryingHMSHandler,TestRetryingHMSHandler,TestSetUGIOnBothClientServer,TestSetUGIOnOnlyClient,TestSetUGIOnOnlyServer,TestStats,TestMetastoreSchemaTool,TestSchemaToolForMetastore,TestTxnHandlerNegative,TestTxnUtils -Dtest.groups=\"\")", StringUtils.join(cmds.get(2).shellCommand(), " "));
-    Assert.assertEquals("/bin/bash -c ( cd /tmp/standalone-metastore; /usr/bin/mvn test -Dsurefire.timeout=300 -Dtest=TestHdfsUtils,TestMetaStoreUtils -Dtest.groups=\"\")", StringUtils.join(cmds.get(3).shellCommand(), " "));
-    Assert.assertEquals("/bin/bash -c ( cd /tmp/ql; /usr/bin/mvn test -Dsurefire.timeout=300 -Dtest=TestCleaner2)", StringUtils.join(cmds.get(4).shellCommand(), " "));
-    Assert.assertEquals("/bin/bash -c ( cd /tmp/ql; /usr/bin/mvn test -Dsurefire.timeout=300 -Dtest=CompactorTest,TestCleaner,TestInitiator,TestWorker2)", StringUtils.join(cmds.get(5).shellCommand(), " "));
-    Assert.assertEquals("/bin/bash -c ( cd /tmp/itests/qtest; /usr/bin/mvn test -Dsurefire.timeout=300 -Dtest=TestContribCliDriver -DskipSparkTests)", StringUtils.join(cmds.get(6).shellCommand(), " "));
+    Assert.assertEquals(7, cmds.getCmds().size());
+    Assert.assertEquals("/bin/bash -c ( cd /tmp/beeline; /usr/bin/mvn test -Dsurefire.timeout=300)", StringUtils.join(cmds.getCmds().get(0).shellCommand(), " "));
+    Assert.assertEquals("/bin/bash -c ( cd /tmp/cli; /usr/bin/mvn test -Dsurefire.timeout=300 -Dtest.excludes.additional=**/TestCliDriverMethods)", StringUtils.join(cmds.getCmds().get(1).shellCommand(), " "));
+    Assert.assertEquals("/bin/bash -c ( cd /tmp/standalone-metastore; /usr/bin/mvn test -Dsurefire.timeout=300 -Dtest=TestRetriesInRetryingHMSHandler,TestRetryingHMSHandler,TestSetUGIOnBothClientServer,TestSetUGIOnOnlyClient,TestSetUGIOnOnlyServer,TestStats,TestMetastoreSchemaTool,TestSchemaToolForMetastore,TestTxnHandlerNegative,TestTxnUtils -Dtest.groups=\"\")", StringUtils.join(cmds.getCmds().get(2).shellCommand(), " "));
+    Assert.assertEquals("/bin/bash -c ( cd /tmp/standalone-metastore; /usr/bin/mvn test -Dsurefire.timeout=300 -Dtest=TestHdfsUtils,TestMetaStoreUtils -Dtest.groups=\"\")", StringUtils.join(cmds.getCmds().get(3).shellCommand(), " "));
+    Assert.assertEquals("/bin/bash -c ( cd /tmp/ql; /usr/bin/mvn test -Dsurefire.timeout=300 -Dtest=TestCleaner2)", StringUtils.join(cmds.getCmds().get(4).shellCommand(), " "));
+    Assert.assertEquals("/bin/bash -c ( cd /tmp/ql; /usr/bin/mvn test -Dsurefire.timeout=300 -Dtest=CompactorTest,TestCleaner,TestInitiator,TestWorker2)", StringUtils.join(cmds.getCmds().get(5).shellCommand(), " "));
+    Assert.assertEquals("/bin/bash -c ( cd /tmp/itests/qtest; /usr/bin/mvn test -Dsurefire.timeout=300 -Dtest=TestContribCliDriver -DskipSparkTests)", StringUtils.join(cmds.getCmds().get(6).shellCommand(), " "));
   }
 
   private static class TestContainerClient extends ContainerClient {

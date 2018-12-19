@@ -18,9 +18,24 @@ package org.dtest.core;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.Properties;
 
 public class TestUtils {
 
+  public static Properties buildProperties(String... vals) {
+    Properties props = new Properties();
+    assert vals.length % 2 == 0 : "Requires even number of args";
+    for (int i = 0; i < vals.length; i += 2) {
+      props.setProperty(vals[i], vals[i+1]);
+    }
+    return props;
+  }
+
+  public static Config buildCfg(String... vals) {
+    return new Config(buildProperties(vals));
+  }
+
+  /*
   public static void createConfFile() throws IOException {
     File propertiesFile = new File(getConfDir(), Config.PROPERTIES_FILE);
     propertiesFile.deleteOnExit();
@@ -29,7 +44,7 @@ public class TestUtils {
     writer.close();
 
   }
-
+  */
   public static String getConfDir() {
     return System.getProperty("java.io.tmpdir") + File.separator + "test-classes";
   }

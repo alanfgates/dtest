@@ -22,32 +22,33 @@ import java.io.IOException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class BuildInfo implements Comparable<BuildInfo> {
+public class BuildInfo extends Configurable implements Comparable<BuildInfo> {
   @VisibleForTesting
-  public static final String CFG_BUILD_BASE_DIR = "dtest.build.base.dir";
+  public static final String CFG_BUILDINFO_BASEDIR = "dtest.core.buildinfo.basedir";
+  public static final String CFG_BUILDINFO_LABEL = "dtest.core.buildinfo.label";
 
   private final Pattern dockerable = Pattern.compile("[A-Za-z0-9_\\-]+");
   private final CodeSource src;
-  private final String label;
   private final String confDir;
+  private final boolean cleanupAfter;
+  private String label;
   private String dir;
-  private boolean cleanupAfter;
 
-  public BuildInfo(String confDir, CodeSource repo, String label) throws IOException {
+  public BuildInfo(String confDir, CodeSource repo, boolean cleanupAfter) throws IOException {
     this.confDir = confDir;
     this.src = repo;
-    this.label = checkLabelIsDockerable(label);
     dir = null;
-    cleanupAfter = true;
+    this.cleanupAfter = cleanupAfter;
   }
 
   /**
-   * Create a directory for this build.
+   * Create a directory for this build.  You must call {@link #setConfig(Config)} before calling this.
    * @return directory name
    * @throws IOException if the directory can't be built.
    */
   String buildDir() throws IOException {
     if (dir != null) return dir;
+    this.label = checkLabelIsDockerable();
     File d = new File(getBaseDir(), label);
     d.mkdir();
     dir = d.getAbsolutePath();
@@ -55,8 +56,8 @@ public class BuildInfo implements Comparable<BuildInfo> {
   }
 
   public String getBaseDir() throws IOException {
-    String baseDir = Config.getAsString(CFG_BUILD_BASE_DIR);
-    if (baseDir == null) throw new IOException(CFG_BUILD_BASE_DIR + " not set, required");
+    String baseDir = getConfig().getAsString(CFG_BUILDINFO_BASEDIR);
+    if (baseDir == null) throw new IOException(CFG_BUILDINFO_BASEDIR + " not set, required");
     return baseDir;
   }
 
@@ -78,10 +79,6 @@ public class BuildInfo implements Comparable<BuildInfo> {
 
   public boolean shouldCleanupAfter() {
     return cleanupAfter;
-  }
-
-  public void setCleanupAfter(boolean cleanupAfter) {
-    this.cleanupAfter = cleanupAfter;
   }
 
   @Override
@@ -106,7 +103,10 @@ public class BuildInfo implements Comparable<BuildInfo> {
     return label.compareTo(o.label);
   }
 
-  private String checkLabelIsDockerable(String label) throws IOException {
+  @VisibleForTesting
+  String checkLabelIsDockerable() throws IOException {
+    String label = getConfig().getAsString(CFG_BUILDINFO_LABEL);
+    if (label == null) throw new IOException("You must specify a build label using " + CFG_BUILDINFO_LABEL);
     Matcher m = dockerable.matcher(label);
     if (m.matches()) {
       return label;

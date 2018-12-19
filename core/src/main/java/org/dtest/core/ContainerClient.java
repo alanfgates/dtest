@@ -20,22 +20,17 @@ import org.dtest.core.impl.Utils;
 
 import java.io.IOException;
 
-public abstract class ContainerClient {
+public abstract class ContainerClient extends Configurable {
 
   @VisibleForTesting
   // Implementation of ContainerClient
-  public static final String CFG_CONTAINER_CLIENT = "dtest.container.client";
+  public static final String CFG_CONTAINERCLIENT_IMPL = "dtest.core.containerclient.impl";
   // Maximum amount of time to wait for container to run
-  public static final String CFG_CONTAINER_RUN_TIME = "dtest.container.run.time";
+  public static final String CFG_CONTAINERCLIENT_CONTAINERRUNTIME = "dtest.core.containerclient.containerruntime";
+  protected static final long CFG_CONTAINERCLIENT_CONTAINERRUNTIME_DEFAULT = 30 * 60;
   // Maximum amount of time to wait for image to build
-  public static final String CFG_IMAGE_BUILD_TIME = "dtest.image.build.time";
-
-  static {
-    Config.setDefaultValue(CFG_CONTAINER_CLIENT, BaseDockerClient.class.getName());
-    Config.setDefaultValue(CFG_CONTAINER_RUN_TIME, "30min");
-    Config.setDefaultValue(CFG_IMAGE_BUILD_TIME, "3hour");
-
-  }
+  public static final String CFG_CONTAINERCLIENT_IMAGEBUILDTIME = "dtest.core.containerclient.imagebuildtime";
+  protected static final long CFG_CONTAINERCLIENT_IMAGEBUILDTIME_DEFAULT = 3 * 60 * 60;
 
   protected BuildInfo buildInfo;
 
@@ -108,8 +103,11 @@ public abstract class ContainerClient {
    */
   public abstract String getProjectName();
 
-  static ContainerClient getInstance() throws IOException {
-    return Utils.getInstance(Config.getAsClass(ContainerClient.CFG_CONTAINER_CLIENT, ContainerClient.class));
+  static ContainerClient getInstance(Config cfg) throws IOException {
+    ContainerClient cc = Utils.getInstance(cfg.getAsClass(ContainerClient.CFG_CONTAINERCLIENT_IMPL,
+        ContainerClient.class, BaseDockerClient.class));
+    cc.setConfig(cfg);
+    return cc;
   }
 
 

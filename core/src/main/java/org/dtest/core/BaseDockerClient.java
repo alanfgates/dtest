@@ -78,7 +78,9 @@ public class BaseDockerClient extends ContainerClient {
   public void buildImage(String dir, DTestLogger logger)
       throws IOException {
     LOG.info("Building image");
-    checkBuildSucceeded(Utils.runProcess(BUILD_CONTAINER_NAME, Config.getAsTime(CFG_IMAGE_BUILD_TIME, TimeUnit.SECONDS),
+    checkBuildSucceeded(Utils.runProcess(BUILD_CONTAINER_NAME,
+        getConfig().getAsTime(CFG_CONTAINERCLIENT_IMAGEBUILDTIME, TimeUnit.SECONDS,
+            CFG_CONTAINERCLIENT_IMAGEBUILDTIME_DEFAULT),
         logger, "docker", "build", "--tag", imageName, dir));
   }
 
@@ -90,7 +92,8 @@ public class BaseDockerClient extends ContainerClient {
     Collections.addAll(runCmd, "docker", "run", "--name", containerName, imageName);
     Collections.addAll(runCmd, cmd.shellCommand());
     ProcessResults res = Utils.runProcess(cmd.containerSuffix(),
-        Config.getAsTime(CFG_CONTAINER_RUN_TIME, TimeUnit.SECONDS), logger, runCmd.toArray(new String[runCmd.size()]));
+        getConfig().getAsTime(CFG_CONTAINERCLIENT_CONTAINERRUNTIME, TimeUnit.SECONDS,
+            CFG_CONTAINERCLIENT_CONTAINERRUNTIME_DEFAULT), logger, runCmd.toArray(new String[runCmd.size()]));
     return new ContainerResult(cmd, res.rc, res.stdout);
   }
 

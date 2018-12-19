@@ -20,15 +20,16 @@ import org.dtest.core.impl.Utils;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 
-public abstract class ContainerCommandList extends ArrayList<ContainerCommand> {
+public abstract class ContainerCommandList extends Configurable {
+
+  protected List<ContainerCommand> cmds = new ArrayList<>();
+
   @VisibleForTesting
   // Implementation of ContainerCommandList
-  public static final String CFG_CONTAINER_COMMAND_LIST = "dtest.container.command.list";
+  public static final String CFG_CONTAINERCOMMANDLIST_IMPL = "dtest.core.containercommandlist.impl";
 
-  static {
-    Config.setDefaultValue(CFG_CONTAINER_COMMAND_LIST, BaseContainerCommandList.class.getName());
-  }
   /**
    * Build the list of commands.
    * @param containerClient container client, in case any containers are needed for determining
@@ -40,9 +41,14 @@ public abstract class ContainerCommandList extends ArrayList<ContainerCommand> {
   public abstract void buildContainerCommands(ContainerClient containerClient, BuildInfo buildInfo, DTestLogger logger)
       throws IOException;
 
-  static ContainerCommandList getInstance() throws IOException {
-    return Utils.getInstance(Config.getAsClass(
-        ContainerCommandList.CFG_CONTAINER_COMMAND_LIST, ContainerCommandList.class));
+  public List<ContainerCommand> getCmds() {
+    return cmds;
+  }
 
+  static ContainerCommandList getInstance(Config cfg) throws IOException {
+    ContainerCommandList ccl = Utils.getInstance(cfg.getAsClass(ContainerCommandList.CFG_CONTAINERCOMMANDLIST_IMPL,
+        ContainerCommandList.class, BaseContainerCommandList.class));
+    ccl.setConfig(cfg);
+    return ccl;
   }
 }
