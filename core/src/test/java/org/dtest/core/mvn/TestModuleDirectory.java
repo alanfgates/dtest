@@ -13,13 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.dtest.core;
+package org.dtest.core.mvn;
 
-public enum BuildState {
-  UNSUBMITTED,
-  PENDING,
-  BUILDING,
-  SUCCEEDED,
-  FAILED,
-  KILLED
+import org.junit.Test;
+
+import java.io.InvalidObjectException;
+
+public class TestModuleDirectory {
+  @Test(expected = InvalidObjectException.class)
+  public void splitSingle() throws InvalidObjectException {
+    ModuleDirectory dir = new ModuleDirectory();
+    dir.setNeedsSplit(true);
+    dir.setSingleTest("a");
+    dir.validate();
+  }
+
 }

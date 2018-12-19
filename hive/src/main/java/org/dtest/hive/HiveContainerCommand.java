@@ -16,7 +16,7 @@
 package org.dtest.hive;
 
 import org.dtest.core.impl.Utils;
-import org.dtest.core.BaseContainerCommand;
+import org.dtest.core.mvn.MavenContainerCommand;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,7 +24,7 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
-public class HiveContainerCommand extends BaseContainerCommand {
+public class HiveContainerCommand extends MavenContainerCommand {
   private boolean isITest;
   private List<String> qfiles; // set of qfiles to run
 

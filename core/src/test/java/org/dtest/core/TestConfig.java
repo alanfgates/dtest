@@ -17,6 +17,7 @@ package org.dtest.core;
 
 import org.dtest.core.git.GitSource;
 import org.dtest.core.impl.Utils;
+import org.dtest.core.mvn.MavenContainerCommand;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -34,6 +35,16 @@ public class TestConfig {
     public List<String> srcCommands(ContainerClient client) throws IOException {
       return null;
     }
+
+    @Override
+    public String getDefaultBranch() {
+      return null;
+    }
+
+    @Override
+    public List<String> getRequiredPackages() {
+      return null;
+    }
   }
 
   @Test
@@ -41,7 +52,7 @@ public class TestConfig {
     File propertiesFile = new File(System.getProperty("java.io.tmpdir"), Config.PROPERTIES_FILE);
     propertiesFile.deleteOnExit();
     FileWriter writer = new FileWriter(propertiesFile);
-    writer.write(GitSource.CFG_GITSOURCE_BRANCH + " = branch\n");
+    writer.write(CodeSource.CFG_CODESOURCE_BRANCH + " = branch\n");
     writer.write(ContainerClient.CFG_CONTAINERCLIENT_IMAGEBUILDTIME + " = 1min\n");
     writer.write(CodeSource.CFG_CODESOURCE_IMPL + " = " + MySource.class.getName() + "\n");
     writer.close();
@@ -52,11 +63,11 @@ public class TestConfig {
     Config cfg = new Config(System.getProperty("java.io.tmpdir"), props);
 
     // Test ones from the file
-    Assert.assertEquals("branch", cfg.getAsString(GitSource.CFG_GITSOURCE_BRANCH));
+    Assert.assertEquals("branch", cfg.getAsString(CodeSource.CFG_CODESOURCE_BRANCH));
     Assert.assertEquals(3600L, cfg.getAsTime(ContainerClient.CFG_CONTAINERCLIENT_IMAGEBUILDTIME, TimeUnit.SECONDS));
     // Test default values are set
-    Assert.assertEquals(10, cfg.getAsInt(ContainerCommand.CFG_CONTAINERCOMMAND_TESTSPERCONTAINER,
-        ContainerCommand.CFG_CONTAINERCOMMAND_TESTSPERCONTAINER_DEFAULT));
+    Assert.assertEquals(10, cfg.getAsInt(ContainerCommandFactory.CFG_CONTAINERCOMMANDFACTORY_TESTSPERCONTAINER,
+        ContainerCommandFactory.CFG_CONTAINERCOMMANDFACTORY_TESTSPERCONTAINER_DEFAULT));
     Assert.assertEquals(MySource.class, cfg.getAsClass(CodeSource.CFG_CODESOURCE_IMPL, CodeSource.class, GitSource.class));
     // Test that later changes to the properties don't affect the config object
     props.setProperty("x.y.z", "5");
@@ -74,7 +85,7 @@ public class TestConfig {
     Properties props = new Properties();
     props.setProperty("test.bad.class", "NoSuchClass");
     Config cfg = new Config(props);
-    Utils.getInstance(cfg.getAsClass("test.bad.class", ContainerCommand.class, BaseContainerCommand.class));
+    Utils.getInstance(cfg.getAsClass("test.bad.class", ContainerCommand.class, MavenContainerCommand.class));
   }
 
   @Test

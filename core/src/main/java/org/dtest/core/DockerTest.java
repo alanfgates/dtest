@@ -15,7 +15,6 @@
  */
 package org.dtest.core;
 
-import com.fasterxml.jackson.databind.annotation.JsonAppend;
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -40,12 +39,21 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
+/**
+ * DockerTest is the main class.  It can be accessed via the command line or called from a tool.  If using from
+ * a tool you need to first setup the configuration via {@link #buildConfig(String, Properties)}, then
+ * run the build using {@link #runBuild()}.
+ */
 public class DockerTest {
+  /**
+   * Number of containers to run.  Defaults to 2.
+   */
+  public static final String CFG_DOCKERTEST_NUMCONTAINERS = "dtest.core.dockertest.numcontainers";
+  private static final int CFG_DOCKERTEST_NUMCONTAINERS_DEFAULT = 2;
+
   private static final Logger LOG = LoggerFactory.getLogger(DockerTest.class);
   private static final String SUMMARY_LOG = "summary";
   public static final String EXEC_LOG = "dtest-exec"; // for log entries by dtest
-  // Simultaneous number of containers to run
-  static final String CFG_CORE_DOCKERTEST_NUMCONTAINERS = "dtest.core.dockertest.numcontainers";
 
   private ContainerClient docker;
   private PrintStream out;
@@ -114,24 +122,22 @@ public class DockerTest {
   }
 
   /**
-   * Setup the build information.  Call this after {@link #buildConfig(String, Properties)} and before
-   * {@link #runBuild()}.
+   * Run the build.  This may take a while (obviously) and will launch a number of threads.
+   * @return status of the build, 0 for success 1 for failure, -1 for error.
    */
-  public void prepareBuild() throws IOException {
-    CodeSource codeSource = CodeSource.getInstance(cfg);
-    buildInfo = new BuildInfo(cfgDir, codeSource, cleanupAfter);
-    buildInfo.setConfig(cfg);
-  }
-
   public int runBuild() {
     int rc;
     try {
+      CodeSource codeSource = CodeSource.getInstance(cfg);
+      buildInfo = new BuildInfo(cfgDir, codeSource, cleanupAfter);
+      buildInfo.setConfig(cfg);
       docker = ContainerClient.getInstance(cfg);
       docker.setBuildInfo(buildInfo);
-      String dir = buildInfo.buildDir();
+      String dir = buildInfo.getBuildDir();
       logger = new DTestLogger(dir);
+      ContainerCommandFactory cmdFactory = ContainerCommandFactory.getInstance(cfg);
       try {
-        buildDockerImage();
+        docker.buildImage(cmdFactory, logger);
       } catch (IOException e) {
         String msg = "Failed to build docker image, might mean your code doesn't compile";
         err.println(msg + "  See log for details.");
@@ -139,7 +145,7 @@ public class DockerTest {
         return 1;
       }
       try {
-        rc = runContainers();
+        rc = runContainers(cmdFactory);
         packageLogsAndCleanup();
       } catch (IOException e) {
         String msg = "Failed to run one or more of the containers.";
@@ -172,23 +178,17 @@ public class DockerTest {
     formatter.printHelp("docker-test", opts);
   }
 
-  private void buildDockerImage()
+  private int runContainers(ContainerCommandFactory cmdFactory)
       throws IOException {
-    docker.defineImage();
-    docker.buildImage(buildInfo.getDir(), logger);
-  }
-
-  private int runContainers()
-      throws IOException {
-    ContainerCommandList taskCmds = ContainerCommandList.getInstance(cfg);
-    taskCmds.buildContainerCommands(docker, buildInfo, logger);
+    cmdFactory.buildContainerCommands(docker, buildInfo, logger);
 
     final ResultAnalyzer analyzer = ResultAnalyzer.getInstance(cfg);
     // I don't need the return value, but by having one I can use the Callable interface instead
     // of Runnable, and Callable catches exceptions for me and passes them back.
-    List <Future<Integer>> tasks = new ArrayList<>(taskCmds.getCmds().size());
-    ExecutorService executor = Executors.newFixedThreadPool(cfg.getAsInt(CFG_CORE_DOCKERTEST_NUMCONTAINERS, 2));
-    for (ContainerCommand taskCmd : taskCmds.getCmds()) {
+    List <Future<Integer>> tasks = new ArrayList<>(cmdFactory.getCmds().size());
+    ExecutorService executor =
+        Executors.newFixedThreadPool(cfg.getAsInt(CFG_DOCKERTEST_NUMCONTAINERS, CFG_DOCKERTEST_NUMCONTAINERS_DEFAULT));
+    for (ContainerCommand taskCmd : cmdFactory.getCmds()) {
       tasks.add(executor.submit(() -> {
         ContainerResult result = docker.runContainer(taskCmd, logger);
         analyzer.analyzeLog(result);
@@ -215,7 +215,7 @@ public class DockerTest {
 
         // Copy log files from any failed tests to a directory specific to this container
         if (result.getLogFilesToFetch() != null && !result.getLogFilesToFetch().isEmpty()) {
-          File logDir = new File(buildInfo.getDir(), result.getCmd().containerSuffix());
+          File logDir = new File(buildInfo.getBuildDir(), result.getCmd().containerSuffix());
           LOG.info("Creating directory " + logDir.getAbsolutePath() + " for logs from container "
               + result.getCmd().containerSuffix());
           logDir.mkdir();
@@ -288,8 +288,7 @@ public class DockerTest {
   }
 
   /**
-   * This calls System.exit, don't call it if you're using a tool.  Instead call
-   * {@link #buildConfig(String, Properties)} then {@link #prepareBuild()} and then {@link #runBuild()}.
+   * This calls System.exit, don't call it if you're using a tool.
    * @param args command line arguments.
    */
   public static void main(String[] args) {
@@ -298,7 +297,6 @@ public class DockerTest {
     int rc = 0;
     try {
       test.buildConfig(test.cfgDir, System.getProperties());
-      test.prepareBuild();
       rc = test.runBuild();
     } catch (IOException e) {
       rc = 1;

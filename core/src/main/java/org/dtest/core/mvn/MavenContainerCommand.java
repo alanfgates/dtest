@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.dtest.core;
+package org.dtest.core.mvn;
 
+import org.dtest.core.ContainerCommand;
 import org.dtest.core.impl.Utils;
 
 import java.util.ArrayList;
@@ -25,7 +26,7 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
-public class BaseContainerCommand extends ContainerCommand {
+public class MavenContainerCommand extends ContainerCommand {
 
   protected final String buildDir;
   protected final int cmdNumber;
@@ -34,7 +35,7 @@ public class BaseContainerCommand extends ContainerCommand {
   protected Map<String, String> envs;
   protected Map<String, String> properties; // properties to pass to maven (-DX=Y) val can be null
 
-  public BaseContainerCommand(String buildDir, int cmdNumber) {
+  public MavenContainerCommand(String buildDir, int cmdNumber) {
     this.buildDir = buildDir;
     this.cmdNumber = cmdNumber;
     tests = new ArrayList<>();

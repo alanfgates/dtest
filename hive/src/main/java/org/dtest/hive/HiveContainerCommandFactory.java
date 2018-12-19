@@ -19,8 +19,8 @@ import org.dtest.core.BuildInfo;
 import org.dtest.core.ContainerClient;
 import org.dtest.core.ContainerCommand;
 import org.dtest.core.DTestLogger;
-import org.dtest.core.BaseContainerCommandList;
-import org.dtest.core.BaseModuleDirectory;
+import org.dtest.core.mvn.MavenContainerCommandFactory;
+import org.dtest.core.mvn.ModuleDirectory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,8 +38,8 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
-public class HiveContainerCommandList extends BaseContainerCommandList {
-  private static final Logger LOG = LoggerFactory.getLogger(HiveContainerCommandList.class);
+public class HiveContainerCommandFactory extends MavenContainerCommandFactory {
+  private static final Logger LOG = LoggerFactory.getLogger(HiveContainerCommandFactory.class);
   private Properties testProperties;
   private Map<String, Set<String>> filesFromDirs = new HashMap<>();
 
@@ -54,14 +54,22 @@ public class HiveContainerCommandList extends BaseContainerCommandList {
   }
 
   @Override
-  protected boolean subclassShouldHandle(BaseModuleDirectory simple) {
+  public List<String> getInitialBuildCommand() {
+    return Arrays.asList(
+      "/usr/bin/mvn install -DskipTests",
+      "cd itests",
+      "/usr/bin/mvn install -DskipSparkTests -DskipTests");
+  }
+
+  @Override
+  protected boolean subclassShouldHandle(ModuleDirectory simple) {
     assert simple instanceof HiveModuleDirectory;
     HiveModuleDirectory mDir = (HiveModuleDirectory)simple;
     return mDir.isSetSingleTest() && mDir.hasQFiles();
   }
 
   @Override
-  protected void handle(BaseModuleDirectory simple, ContainerClient containerClient,
+  protected void handle(ModuleDirectory simple, ContainerClient containerClient,
                         BuildInfo buildInfo, DTestLogger logger, int testsPerContainer) throws IOException {
     assert simple instanceof HiveModuleDirectory;
     HiveModuleDirectory mDir = (HiveModuleDirectory)simple;
@@ -94,7 +102,7 @@ public class HiveContainerCommandList extends BaseContainerCommandList {
   }
 
   @Override
-  protected Class<? extends BaseModuleDirectory> getModuleDirectoryClass() {
+  protected Class<? extends ModuleDirectory> getModuleDirectoryClass() {
     return HiveModuleDirectory.class;
   }
 

@@ -22,9 +22,21 @@ import java.io.IOException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ * Track information about the build.
+ */
 public class BuildInfo extends Configurable implements Comparable<BuildInfo> {
-  @VisibleForTesting
+  /**
+   * Directory to run the build in.  This is the directory on the base machine, not in the container.
+   * This value must be set.
+   */
   public static final String CFG_BUILDINFO_BASEDIR = "dtest.core.buildinfo.basedir";
+
+  /**
+   * Label for this build.  This value must be set.  Usually you want this to be unique, as this is used
+   * for the docker image label.  You can force a new build from scratch on the same repo and branch/hash by
+   * changing this label.
+   */
   public static final String CFG_BUILDINFO_LABEL = "dtest.core.buildinfo.label";
 
   private final Pattern dockerable = Pattern.compile("[A-Za-z0-9_\\-]+");
@@ -34,7 +46,13 @@ public class BuildInfo extends Configurable implements Comparable<BuildInfo> {
   private String label;
   private String dir;
 
-  public BuildInfo(String confDir, CodeSource repo, boolean cleanupAfter) throws IOException {
+  /**
+   *
+   * @param confDir directory where we expect to find dtest.properties file
+   * @param repo code source object that will be used to fetch code.
+   * @param cleanupAfter whether we should cleanup after this build
+   */
+  public BuildInfo(String confDir, CodeSource repo, boolean cleanupAfter) {
     this.confDir = confDir;
     this.src = repo;
     dir = null;
@@ -42,11 +60,13 @@ public class BuildInfo extends Configurable implements Comparable<BuildInfo> {
   }
 
   /**
-   * Create a directory for this build.  You must call {@link #setConfig(Config)} before calling this.
+   * Get the directory for this build.  This is the directory on the build machine that will be used as the
+   * base for the build.  If the directory does not exist this call will create it.
+   * You must call {@link #setConfig(Config)} before calling this.
    * @return directory name
    * @throws IOException if the directory can't be built.
    */
-  String buildDir() throws IOException {
+  public String getBuildDir() throws IOException {
     if (dir != null) return dir;
     this.label = checkLabelIsDockerable();
     File d = new File(getBaseDir(), label);
@@ -55,12 +75,22 @@ public class BuildInfo extends Configurable implements Comparable<BuildInfo> {
     return dir;
   }
 
+  /**
+   * Get the base directory for this build.
+   * @return base directory
+   * @throws IOException if basedir isn't provided in the configuration.
+   */
   public String getBaseDir() throws IOException {
     String baseDir = getConfig().getAsString(CFG_BUILDINFO_BASEDIR);
     if (baseDir == null) throw new IOException(CFG_BUILDINFO_BASEDIR + " not set, required");
     return baseDir;
   }
 
+
+  /**
+   * Get the object that controls how the code is checked out from source
+   * @return code source
+   */
   public CodeSource getSrc() {
     return src;
   }
@@ -69,10 +99,10 @@ public class BuildInfo extends Configurable implements Comparable<BuildInfo> {
     return label;
   }
 
-  public String getDir() {
-    return dir;
-  }
-
+  /**
+   * Get the configuration directory for dtest.
+   * @return dtest conf dir
+   */
   public String getConfDir() {
     return confDir;
   }
@@ -115,4 +145,5 @@ public class BuildInfo extends Configurable implements Comparable<BuildInfo> {
           "[A-Za-z0-9_\\-]");
     }
   }
+
 }

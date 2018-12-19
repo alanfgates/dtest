@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.dtest.core;
+package org.dtest.core.mvn;
 
 import com.google.common.annotations.VisibleForTesting;
-import org.dtest.core.BaseResultAnalyzer;
 import org.dtest.core.ContainerCommand;
 import org.dtest.core.ContainerResult;
+import org.dtest.core.mvn.MavenResultAnalyzer;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -26,7 +26,7 @@ import java.util.Iterator;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-public class TestBaseResultAnalyzer {
+public class TestMavenResultAnalyzer {
   private static class SimpleContainerCommand extends ContainerCommand {
     private final String name;
     private final String dir;
@@ -54,7 +54,7 @@ public class TestBaseResultAnalyzer {
 
   @Test
   public void unitTestLog() {
-    BaseResultAnalyzer analyzer = new BaseResultAnalyzer();
+    MavenResultAnalyzer analyzer = new MavenResultAnalyzer();
     ContainerResult cr = new ContainerResult(new SimpleContainerCommand("hive-dtest-1_unittests-hive-unit",
         "/Users/gates/git/hive/itests/hive-unit") , 0, LOG1);
     analyzer.analyzeLog(cr);
@@ -77,7 +77,7 @@ public class TestBaseResultAnalyzer {
 
   @Test
   public void timeoutLog() {
-    BaseResultAnalyzer analyzer = new BaseResultAnalyzer();
+    MavenResultAnalyzer analyzer = new MavenResultAnalyzer();
     analyzer.analyzeLog(new ContainerResult(new SimpleContainerCommand("bla", "bla"), 0, LOG3));
     Assert.assertTrue(analyzer.hadTimeouts());
     Assert.assertTrue(analyzer.runSucceeded());

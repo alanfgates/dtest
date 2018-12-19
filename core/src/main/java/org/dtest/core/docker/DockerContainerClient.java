@@ -13,9 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.dtest.core;
+package org.dtest.core.docker;
 
 import com.google.common.annotations.VisibleForTesting;
+import org.dtest.core.BuildInfo;
+import org.dtest.core.CodeSource;
+import org.dtest.core.ContainerClient;
+import org.dtest.core.ContainerCommand;
+import org.dtest.core.ContainerCommandFactory;
+import org.dtest.core.ContainerResult;
+import org.dtest.core.DTestLogger;
 import org.dtest.core.impl.ProcessResults;
 import org.dtest.core.impl.Utils;
 import org.slf4j.Logger;
@@ -25,14 +32,15 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class BaseDockerClient extends ContainerClient {
-  private static final Logger LOG = LoggerFactory.getLogger(BaseDockerClient.class);
+public class DockerContainerClient extends ContainerClient {
+  private static final Logger LOG = LoggerFactory.getLogger(DockerContainerClient.class);
   private static final String IMAGE_BASE = "dtest-image-";
   private static final Pattern IMAGE_SUCCESS = Pattern.compile("BUILD SUCCESS");
   private static final Pattern USING_CACHE = Pattern.compile("Using cache");
@@ -52,36 +60,13 @@ public class BaseDockerClient extends ContainerClient {
   }
 
   @Override
-  public void defineImage() throws IOException {
-    FileWriter writer = new FileWriter(buildInfo.getDir() + File.separatorChar + "Dockerfile");
-    writer.write("FROM centos\n");
-    writer.write("\n");
-    writer.write("RUN yum upgrade -y && \\\n");
-    writer.write("    yum update -y && \\\n");
-    writer.write("    yum install -y java-1.8.0-openjdk-devel unzip git maven\n");
-    writer.write("\n");
-    writer.write("RUN useradd -m " + getUser() + "\n");
-    writer.write("\n");
-    writer.write("USER " + getUser() + "\n");
-    writer.write("\n");
-    writer.write("RUN { \\\n");
-    writer.write("    cd " + getHomeDir() + "; \\\n");
-    for (String line : buildInfo.getSrc().srcCommands(this)) writer.write(line);
-    writer.write("    /usr/bin/mvn install -DskipTests; \\\n"); // Need a quick test
-    writer.write("    echo This build is labeled " + buildInfo.getLabel() + "; \\\n");
-    writer.write("}\n");
-    writer.close();
-
-  }
-
-  @Override
-  public void buildImage(String dir, DTestLogger logger)
-      throws IOException {
+  public void buildImage(ContainerCommandFactory cmdFactory, DTestLogger logger) throws IOException {
+    defineImage(cmdFactory);
     LOG.info("Building image");
     checkBuildSucceeded(Utils.runProcess(BUILD_CONTAINER_NAME,
         getConfig().getAsTime(CFG_CONTAINERCLIENT_IMAGEBUILDTIME, TimeUnit.SECONDS,
             CFG_CONTAINERCLIENT_IMAGEBUILDTIME_DEFAULT),
-        logger, "docker", "build", "--tag", imageName, dir));
+        logger, "docker", "build", "--tag", imageName, buildInfo.getBuildDir()));
   }
 
   @Override
@@ -152,6 +137,48 @@ public class BaseDockerClient extends ContainerClient {
   public String getProjectName() {
     return "dtest";
   }
+
+  /**
+   * Build the dockerfile for the image.  You can override this completely or you can call the methods
+   * below that override specific parts.  The latter is recommended unless you really need to rewrite how things are
+   * done.
+   * @param cmdFactory used to generate the initial build command.
+   * @throws IOException if the file cannot be written.
+   */
+  @VisibleForTesting
+  public void defineImage(ContainerCommandFactory cmdFactory) throws IOException {
+    FileWriter writer = new FileWriter(buildInfo.getBuildDir() + File.separatorChar + "Dockerfile");
+    writer.write(getBaseImage() + "\n");
+    writer.write("\n");
+    writer.write(getImageUpgrade(buildInfo.getSrc(), cmdFactory) + "\n");
+    writer.write("\n");
+    writer.write("RUN useradd -m " + getUser() + "\n");
+    writer.write("\n");
+    writer.write("USER " + getUser() + "\n");
+    writer.write("\n");
+    writer.write("RUN { \\\n");
+    writer.write("    cd " + getHomeDir() + "; \\\n");
+    for (String line : buildInfo.getSrc().srcCommands(this)) writer.write(line + "; ");
+    writer.write("\\\n");
+    for (String line : cmdFactory.getInitialBuildCommand()) writer.write(line + "; ");
+    writer.write("\\\n");
+    writer.write("    echo This build is labeled " + buildInfo.getLabel() + "; \\\n");
+    writer.write("}\n");
+    writer.close();
+  }
+
+  protected String getBaseImage() {
+    return "FROM centos";
+  }
+
+  protected String getImageUpgrade(CodeSource codeSource, ContainerCommandFactory cmdFactory) {
+    StringBuilder buf = new StringBuilder("RUN yum upgrade -y && yum update -y && yum install -y java-1.8.0-openjdk-devel ");
+    for (String pkg : codeSource.getRequiredPackages()) buf.append(pkg).append(' ');
+    for (String pkg : cmdFactory.getRequiredPackages()) buf.append(pkg).append(' ');
+    return buf.toString();
+
+  }
+
   protected String getUser() {
     return "dtestuser";
   }

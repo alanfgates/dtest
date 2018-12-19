@@ -15,20 +15,31 @@
  */
 package org.dtest.core;
 
-import com.google.common.annotations.VisibleForTesting;
+import org.dtest.core.docker.DockerContainerClient;
 import org.dtest.core.impl.Utils;
 
 import java.io.IOException;
 
+/**
+ * ContainerClient handles interactions with the container system.
+ */
 public abstract class ContainerClient extends Configurable {
 
-  @VisibleForTesting
   // Implementation of ContainerClient
+  /**
+   * Class used to implement the container.  Defaults to simple Docker.
+   */
   public static final String CFG_CONTAINERCLIENT_IMPL = "dtest.core.containerclient.impl";
-  // Maximum amount of time to wait for container to run
+
+  /**
+   * Maximum amount of time to wait for a container to run.  Defaults to 30 minutes.
+   */
   public static final String CFG_CONTAINERCLIENT_CONTAINERRUNTIME = "dtest.core.containerclient.containerruntime";
   protected static final long CFG_CONTAINERCLIENT_CONTAINERRUNTIME_DEFAULT = 30 * 60;
-  // Maximum amount of time to wait for image to build
+
+  /**
+   * Maximum amount of time to wait for an image to build.  Defaults to 3 hours.
+   */
   public static final String CFG_CONTAINERCLIENT_IMAGEBUILDTIME = "dtest.core.containerclient.imagebuildtime";
   protected static final long CFG_CONTAINERCLIENT_IMAGEBUILDTIME_DEFAULT = 3 * 60 * 60;
 
@@ -43,29 +54,23 @@ public abstract class ContainerClient extends Configurable {
   }
 
   /**
-   * Define the container.  Usually this will mean writing a Dockerfile.
-   * @throws IOException if we fail to write the docker file
-   */
-  public abstract void defineImage() throws IOException;
-
-  /**
-   * Return the directory in the container that commands should operate in.
+   * Return the directory in the container that commands should operate in.  Note that this refers to a directory
+   * in the container, not on the build machine.
    * @return container directory.
    */
   public abstract String getContainerBaseDir();
 
   /**
-   * Build an image
-   * @param dir directory to build in, must either be absolute path or relative to CWD of the
-   *            process.
+   * Build an image.
+   * @param cmdFactory factory to generate containers, needed to get the initial build info
    * @param logger output log for tests
    * @throws IOException if the image fails to build
    */
-  public abstract void buildImage(String dir, DTestLogger logger) throws IOException;
+  public abstract void buildImage(ContainerCommandFactory cmdFactory, DTestLogger logger) throws IOException;
 
   /**
-   * Run a container and return a string containing the logs
-   * @param cmd command to run along with any arguments
+   * Run a container and return the results.
+   * @param cmd command to run
    * @param logger output log for tests
    * @return results from the container
    * @throws IOException if the container fails to run
@@ -105,7 +110,7 @@ public abstract class ContainerClient extends Configurable {
 
   static ContainerClient getInstance(Config cfg) throws IOException {
     ContainerClient cc = Utils.getInstance(cfg.getAsClass(ContainerClient.CFG_CONTAINERCLIENT_IMPL,
-        ContainerClient.class, BaseDockerClient.class));
+        ContainerClient.class, DockerContainerClient.class));
     cc.setConfig(cfg);
     return cc;
   }

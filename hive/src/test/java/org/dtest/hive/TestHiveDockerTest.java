@@ -17,16 +17,15 @@ package org.dtest.hive;
 
 import org.apache.commons.lang3.StringUtils;
 import org.dtest.core.BuildInfo;
-import org.dtest.core.Config;
+import org.dtest.core.CodeSource;
 import org.dtest.core.ContainerClient;
 import org.dtest.core.ContainerCommand;
-import org.dtest.core.ContainerCommandList;
+import org.dtest.core.ContainerCommandFactory;
 import org.dtest.core.ContainerResult;
 import org.dtest.core.DTestLogger;
 import org.dtest.core.DockerTest;
 import org.dtest.core.ResultAnalyzer;
 import org.dtest.core.TestUtils;
-import org.dtest.core.git.GitSource;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -53,11 +52,6 @@ public class TestHiveDockerTest {
 
   public static class SuccessfulWithFailingTestsClient extends ContainerClient {
     @Override
-    public void defineImage() throws IOException {
-
-    }
-
-    @Override
     public String getProjectName() {
       return null;
     }
@@ -68,7 +62,7 @@ public class TestHiveDockerTest {
     }
 
     @Override
-    public void buildImage(String dir, DTestLogger logger) throws IOException {
+    public void buildImage(ContainerCommandFactory cmdFactory, DTestLogger logger) throws IOException {
       imageBuilt = true;
     }
 
@@ -96,7 +90,7 @@ public class TestHiveDockerTest {
     }
   }
 
-  public static class ItestCommandList extends ContainerCommandList {
+  public static class ItestCommandList extends ContainerCommandFactory {
     @Override
     public void buildContainerCommands(ContainerClient containerClient, BuildInfo label, DTestLogger logger) throws IOException {
       getCmds().add(new ContainerCommand() {
@@ -115,6 +109,16 @@ public class TestHiveDockerTest {
           return "/tmp";
         }
       });
+    }
+
+    @Override
+    public List<String> getInitialBuildCommand() {
+      return null;
+    }
+
+    @Override
+    public List<String> getRequiredPackages() {
+      return null;
     }
   }
 
@@ -172,15 +176,14 @@ public class TestHiveDockerTest {
   public void successfulRunSomeTestsFail() throws IOException {
     Properties props = TestUtils.buildProperties(
         ContainerClient.CFG_CONTAINERCLIENT_IMPL, SuccessfulWithFailingTestsClient.class.getName(),
-        ContainerCommandList.CFG_CONTAINERCOMMANDLIST_IMPL, ItestCommandList.class.getName(),
+        ContainerCommandFactory.CFG_CONTAINERCOMMANDLIST_IMPL, ItestCommandList.class.getName(),
         ResultAnalyzer.CFG_RESULTANALYZER_IMPL, SpyingResultAnalyzer.class.getName(),
-        GitSource.CFG_GITSOURCE_BRANCH, "successful",
-        GitSource.CFG_GITSOURCE_REPO, "repo",
+        CodeSource.CFG_CODESOURCE_BRANCH, "successful",
+        CodeSource.CFG_CODESOURCE_REPO, "repo",
         BuildInfo.CFG_BUILDINFO_BASEDIR, System.getProperty("java.io.tmpdir"),
         BuildInfo.CFG_BUILDINFO_LABEL, "secondTry");
     DockerTest test = new DockerTest(out, err);
     test.buildConfig(props);
-    test.prepareBuild();
     test.runBuild();
     Assert.assertTrue(imageBuilt);
     Assert.assertEquals(1, errors.size());

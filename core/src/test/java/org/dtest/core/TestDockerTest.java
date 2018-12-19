@@ -16,13 +16,13 @@
 package org.dtest.core;
 
 import org.apache.commons.lang3.StringUtils;
-import org.dtest.core.git.GitSource;
+import org.dtest.core.docker.DockerContainerClient;
 import org.dtest.core.impl.ProcessResults;
+import org.dtest.core.mvn.MavenResultAnalyzer;
+import org.dtest.core.mvn.TestMavenResultAnalyzer;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -32,7 +32,6 @@ import java.util.List;
 import java.util.Properties;
 
 public class TestDockerTest {
-  private static final Logger LOG = LoggerFactory.getLogger(TestDockerTest.class);
   private static boolean imageBuilt, hadTimeouts, runSucceeded;
   private static int succeeded;
   private static List<String> failures;
@@ -44,17 +43,12 @@ public class TestDockerTest {
 
   public static class SuccessfulClient extends ContainerClient {
     @Override
-    public void defineImage() throws IOException {
-
-    }
-
-    @Override
     public String getContainerBaseDir() {
       return null;
     }
 
     @Override
-    public void buildImage(String dir, DTestLogger logger) throws IOException {
+    public void buildImage(ContainerCommandFactory cmdFactory, DTestLogger logger) throws IOException {
       imageBuilt = true;
     }
 
@@ -62,7 +56,7 @@ public class TestDockerTest {
     public ContainerResult runContainer(ContainerCommand cmd, DTestLogger logger) throws
         IOException {
       String logs = "Ran: " + StringUtils.join(cmd.shellCommand(), " ") +
-          TestBaseResultAnalyzer.LOG1;
+          TestMavenResultAnalyzer.LOG1;
       return new ContainerResult(cmd, 0, logs);
     }
 
@@ -112,7 +106,7 @@ public class TestDockerTest {
         public ContainerResult runContainer(long toWait, ContainerCommand cmd, DTestLogger logger) throws
             IOException {
           String logs = "Ran: " + StringUtils.join(cmd.shellCommand(), " ") +
-              TestBaseResultAnalyzer.LOG2;
+              TestMavenResultAnalyzer.LOG2;
           return new ContainerResult(cmd, 0, logs);
         }
       };
@@ -122,17 +116,12 @@ public class TestDockerTest {
 
   public static class TimingOutClient extends ContainerClient {
     @Override
-    public void defineImage() throws IOException {
-
-    }
-
-    @Override
     public String getContainerBaseDir() {
       return null;
     }
 
     @Override
-    public void buildImage(String dir, DTestLogger logger) throws IOException {
+    public void buildImage(ContainerCommandFactory cmdFactory, DTestLogger logger) throws IOException {
       imageBuilt = true;
     }
 
@@ -140,7 +129,7 @@ public class TestDockerTest {
     public ContainerResult runContainer(ContainerCommand cmd, DTestLogger logger) throws
         IOException {
       String logs = "Ran: " + StringUtils.join(cmd.shellCommand(), " ") +
-          TestBaseResultAnalyzer.LOG3;
+          TestMavenResultAnalyzer.LOG3;
       return new ContainerResult(cmd, 0, logs);
     }
 
@@ -167,17 +156,12 @@ public class TestDockerTest {
 
   public static class FailingClient extends ContainerClient {
     @Override
-    public void defineImage() throws IOException {
-
-    }
-
-    @Override
     public String getContainerBaseDir() {
       return null;
     }
 
     @Override
-    public void buildImage(String dir, DTestLogger logger) throws IOException {
+    public void buildImage(ContainerCommandFactory cmdFactory, DTestLogger logger) throws IOException {
       imageBuilt = true;
     }
 
@@ -185,7 +169,7 @@ public class TestDockerTest {
     public ContainerResult runContainer(ContainerCommand cmd, DTestLogger logger) throws
         IOException {
       String logs = "Ran: " + StringUtils.join(cmd.shellCommand(), " ") +
-          TestBaseResultAnalyzer.LOG1;
+          TestMavenResultAnalyzer.LOG1;
       return new ContainerResult(cmd, 130, logs);
     }
 
@@ -211,7 +195,7 @@ public class TestDockerTest {
   }
 
 
-  public static class HelloWorldCommandList extends ContainerCommandList {
+  public static class HelloWorldCommandList extends ContainerCommandFactory {
     @Override
     public void buildContainerCommands(ContainerClient containerClient, BuildInfo label,
                                        DTestLogger logger) throws IOException {
@@ -232,9 +216,19 @@ public class TestDockerTest {
         }
       });
     }
+
+    @Override
+    public List<String> getInitialBuildCommand() {
+      return null;
+    }
+
+    @Override
+    public List<String> getRequiredPackages() {
+      return null;
+    }
   }
 
-  public static class ItestCommandList extends ContainerCommandList {
+  public static class ItestCommandList extends ContainerCommandFactory {
     @Override
     public void buildContainerCommands(ContainerClient containerClient, BuildInfo label,
                                        DTestLogger logger) throws IOException {
@@ -255,10 +249,19 @@ public class TestDockerTest {
         }
       });
     }
-  }
+
+    @Override
+    public List<String> getInitialBuildCommand() {
+      return null;
+    }
+
+    @Override
+    public List<String> getRequiredPackages() {
+      return null;
+}}
 
   public static class SpyingResultAnalyzer extends ResultAnalyzer {
-    BaseResultAnalyzer contained = new BaseResultAnalyzer();
+    MavenResultAnalyzer contained = new MavenResultAnalyzer();
     @Override
     public void analyzeLog(ContainerResult result) {
       contained.analyzeLog(result);
@@ -311,15 +314,14 @@ public class TestDockerTest {
   public void successfulRunAllTestsPass() throws IOException {
     Properties props = TestUtils.buildProperties(
         ContainerClient.CFG_CONTAINERCLIENT_IMPL, SuccessfulClient.class.getName(),
-        ContainerCommandList.CFG_CONTAINERCOMMANDLIST_IMPL, HelloWorldCommandList.class.getName(),
+        ContainerCommandFactory.CFG_CONTAINERCOMMANDLIST_IMPL, HelloWorldCommandList.class.getName(),
         ResultAnalyzer.CFG_RESULTANALYZER_IMPL, SpyingResultAnalyzer.class.getName(),
-        GitSource.CFG_GITSOURCE_BRANCH, "successful",
-        GitSource.CFG_GITSOURCE_REPO, "repo",
+        CodeSource.CFG_CODESOURCE_BRANCH, "successful",
+        CodeSource.CFG_CODESOURCE_REPO, "repo",
         BuildInfo.CFG_BUILDINFO_BASEDIR, System.getProperty("java.io.tmpdir"),
         BuildInfo.CFG_BUILDINFO_LABEL, "firstTry");
     DockerTest test = new DockerTest(out, err);
     test.buildConfig(props);
-    test.prepareBuild();
     test.runBuild();
     Assert.assertTrue(imageBuilt);
     Assert.assertEquals(1, errors.size());
@@ -361,15 +363,14 @@ public class TestDockerTest {
   public void timeout() throws IOException {
     Properties props = TestUtils.buildProperties(
         ContainerClient.CFG_CONTAINERCLIENT_IMPL, TimingOutClient.class.getName(),
-        ContainerCommandList.CFG_CONTAINERCOMMANDLIST_IMPL, HelloWorldCommandList.class.getName(),
+        ContainerCommandFactory.CFG_CONTAINERCOMMANDLIST_IMPL, HelloWorldCommandList.class.getName(),
         ResultAnalyzer.CFG_RESULTANALYZER_IMPL, SpyingResultAnalyzer.class.getName(),
-        GitSource.CFG_GITSOURCE_BRANCH, "failure",
-        GitSource.CFG_GITSOURCE_REPO, "repo",
+        CodeSource.CFG_CODESOURCE_BRANCH, "failure",
+        CodeSource.CFG_CODESOURCE_REPO, "repo",
         BuildInfo.CFG_BUILDINFO_BASEDIR, System.getProperty("java.io.tmpdir"),
         BuildInfo.CFG_BUILDINFO_LABEL, "will-time-out");
     DockerTest test = new DockerTest(out, err);
     test.buildConfig(props);
-    test.prepareBuild();
     test.runBuild();
     Assert.assertTrue(imageBuilt);
     Assert.assertTrue(hadTimeouts);
@@ -381,15 +382,14 @@ public class TestDockerTest {
   public void failedRun() throws IOException {
     Properties props = TestUtils.buildProperties(
         ContainerClient.CFG_CONTAINERCLIENT_IMPL, FailingClient.class.getName(),
-        ContainerCommandList.CFG_CONTAINERCOMMANDLIST_IMPL, HelloWorldCommandList.class.getName(),
+        ContainerCommandFactory.CFG_CONTAINERCOMMANDLIST_IMPL, HelloWorldCommandList.class.getName(),
         ResultAnalyzer.CFG_RESULTANALYZER_IMPL, SpyingResultAnalyzer.class.getName(),
-        GitSource.CFG_GITSOURCE_BRANCH, "failure",
-        GitSource.CFG_GITSOURCE_REPO, "repo",
+        CodeSource.CFG_CODESOURCE_BRANCH, "failure",
+        CodeSource.CFG_CODESOURCE_REPO, "repo",
         BuildInfo.CFG_BUILDINFO_BASEDIR, System.getProperty("java.io.tmpdir"),
         BuildInfo.CFG_BUILDINFO_LABEL, "take2");
     DockerTest test = new DockerTest(out, err);
     test.buildConfig(props);
-    test.prepareBuild();
     test.runBuild();
     Assert.assertTrue(imageBuilt);
     Assert.assertFalse(hadTimeouts);
@@ -399,7 +399,7 @@ public class TestDockerTest {
 
   @Test
   public void successfulImageBuild() throws IOException {
-    BaseDockerClient.checkBuildSucceeded(new ProcessResults(
+    DockerContainerClient.checkBuildSucceeded(new ProcessResults(
         "2018-04-04T11:19:45,741  INFO [Thread-1] dtest.StreamPumper: [INFO] Hive Packaging .................................... SUCCESS [1.924s]\n" +
         "2018-04-04T11:19:45,741  INFO [Thread-1] dtest.StreamPumper: [INFO] ------------------------------------------------------------------------\n" +
         "2018-04-04T11:19:45,741  INFO [Thread-1] dtest.StreamPumper: [INFO] BUILD SUCCESS\n" +
@@ -423,7 +423,7 @@ public class TestDockerTest {
 
   @Test(expected = IOException.class)
   public void imageBuildSucceededButBuildFailed() throws IOException {
-    BaseDockerClient.checkBuildSucceeded(new ProcessResults(
+    DockerContainerClient.checkBuildSucceeded(new ProcessResults(
         "2018-04-04T11:19:45,741  INFO [Thread-1] dtest.StreamPumper: [INFO] Hive Packaging .................................... SUCCESS [1.924s]\n" +
         "2018-04-04T11:19:45,741  INFO [Thread-1] dtest.StreamPumper: [INFO] ------------------------------------------------------------------------\n" +
         "2018-04-04T11:19:45,741  INFO [Thread-1] dtest.StreamPumper: [INFO] BUILD SUCCESS\n" +
@@ -456,7 +456,7 @@ public class TestDockerTest {
 
   @Test(expected = IOException.class)
   public void imageBuildSuccessfulButBothBuildsFailed() throws IOException {
-    BaseDockerClient.checkBuildSucceeded(new ProcessResults(
+    DockerContainerClient.checkBuildSucceeded(new ProcessResults(
         "2018-04-04T13:37:34,371  INFO [Thread-1] dtest.StreamPumper: [INFO] Hive TestUtils .................................... SKIPPED\n" +
             "2018-04-04T13:37:34,371  INFO [Thread-1] dtest.StreamPumper: [INFO] Hive Packaging .................................... SKIPPED\n" +
             "2018-04-04T13:37:34,371  INFO [Thread-1] dtest.StreamPumper: [INFO] ------------------------------------------------------------------------\n" +
@@ -479,7 +479,7 @@ public class TestDockerTest {
 
   @Test(expected = IOException.class)
   public void imageBuildFailed() throws IOException {
-    BaseDockerClient.checkBuildSucceeded(new ProcessResults(
+    DockerContainerClient.checkBuildSucceeded(new ProcessResults(
         "2018-04-04T11:19:45,741  INFO [Thread-1] dtest.StreamPumper: [INFO] Hive Packaging .................................... SUCCESS [1.924s]\n" +
             "2018-04-04T11:19:45,741  INFO [Thread-1] dtest.StreamPumper: [INFO] ------------------------------------------------------------------------\n" +
             "2018-04-04T11:19:45,741  INFO [Thread-1] dtest.StreamPumper: [INFO] BUILD SUCCESS\n" +

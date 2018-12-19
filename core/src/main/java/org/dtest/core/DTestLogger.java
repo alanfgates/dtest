@@ -26,6 +26,7 @@ import java.util.Date;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
+// TODO - get rid of this and switch to log4j.  THen we can get rid of teh print streams in DockerTest.
 public class DTestLogger {
   /**
    * Log file name.

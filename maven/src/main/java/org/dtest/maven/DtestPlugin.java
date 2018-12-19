@@ -20,29 +20,38 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
+import org.apache.maven.plugins.annotations.Parameter;
 
 @Mojo(name = "dtest",
       defaultPhase = LifecyclePhase.TEST,
       requiresDirectInvocation = true)
 public class DtestPlugin extends AbstractMojo {
+
+  /**
+   * Default repository to use in the build.  This must be set.  You can override this with values specific
+   */
+  @Parameter
+  String repo;
+
   // Need parameters for
-  // CFG_BUILD_BASE_DIR - required
-  // CFG_CODE_SOURCE_CLASS
-  // CFG_CONTAINER_CLIENT
-  // CFG_CONTAINER_RUN_TIME
-  // CFG_IMAGE_BUILD_TIME
-  // CFG_TEST_RUN_TIME
-  // CFG_BASE_DIR
-  // CFG_TESTS_PER_CONTAINER
-  // CFG_CONTAINER_COMMAND_LIST
-  // CFG_NUM_CONTAINERS
-  // CFG_GIT_REPO
-  // CFG_GIT_BRANCH - required
-  // CFG_RESULT_ANALYZER
+  // repo - master repo must be set
+  // branch - default to what makes sense for the CodeRepository
+  // label - auto generates something
+  // base dir = default to target
   // Need options for where properties and yaml files are, default to resources
-  // Figure out what the resources directory is
+  // How do I get a hold of properties already set, rather than having a parameter for every config value?
   @Override
   public void execute() throws MojoExecutionException, MojoFailureException {
+
+    // Move dtest.properties and dtest.yaml into target/conf
+
+    // Set any passed in values in properties
+
+    // build the config object
+
+    // preapre the build
+
+    // run the build
 
   }
 
