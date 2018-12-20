@@ -37,6 +37,7 @@ public class DtestPlugin extends AbstractMojo {
   // repo - master repo must be set
   // branch - default to what makes sense for the CodeRepository
   // label - auto generates something
+  // log4j - configuration
   // base dir = default to target
   // Need options for where properties and yaml files are, default to resources
   // How do I get a hold of properties already set, rather than having a parameter for every config value?

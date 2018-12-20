@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="warn">
+
+    <Properties>
+        <Property name="logfile.name">dtest1.log</Property>
+    </Properties>
+
+    <Appenders>
+        <Console name="STDERR" target="SYSTEM_ERR">
+            <PatternLayout pattern="%d{DEFAULT} %5p [%t] %c{1}: %m%n"/>
+        </Console>
+        <File name="File" fileName="${logfile.name}">
+            <PatternLayout pattern="%d{DEFAULT} %5p [%t] %c{1}: %m%n"/>
+        </File>
+    </Appenders>
+
+    <Loggers>
+        <Logger name="console" level="warn">
+            <AppenderRef ref="STDERR"/>
+        </Logger>
+        <Root level="info">
+            <AppenderRef ref="File"/>
+        </Root>
+    </Loggers>
+
+</Configuration>

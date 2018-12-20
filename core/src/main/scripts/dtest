@@ -46,5 +46,5 @@ while [ $# -gt 0 ]; do
 done
 
 $JAVA_HOME/bin/java -cp $CLASSPATH "${PROPERTIES[@]}" \
-    -Dlog4j.configurationFile=${DTEST_HOME}/conf/dtest-log4j2.properties \
+    -Dlog4j.configurationFile=${DTEST_HOME}/conf/log4j2.xml \
     org.dtest.core.DockerTest "${ARGS[@]}"
