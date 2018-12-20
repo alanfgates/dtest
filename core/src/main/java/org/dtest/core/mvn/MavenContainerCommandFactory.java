@@ -27,8 +27,6 @@ import org.dtest.core.ContainerCommandFactory;
 import org.dtest.core.ContainerResult;
 import org.dtest.core.DTestLogger;
 import org.dtest.core.impl.Utils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -42,7 +40,6 @@ import java.util.List;
 import java.util.Set;
 
 public class MavenContainerCommandFactory extends ContainerCommandFactory {
-  private static final Logger LOG = LoggerFactory.getLogger(MavenContainerCommandFactory.class);
   protected int containerNumber;
 
   public MavenContainerCommandFactory() {
@@ -51,18 +48,18 @@ public class MavenContainerCommandFactory extends ContainerCommandFactory {
   }
 
   @Override
-  public void buildContainerCommands(ContainerClient containerClient, BuildInfo buildInfo, DTestLogger logger)
+  public void buildContainerCommands(ContainerClient containerClient, BuildInfo buildInfo)
       throws IOException {
-    setup(containerClient, buildInfo, logger);
+    setup(containerClient, buildInfo);
 
     List<ModuleDirectory> mDirs = readYaml(buildInfo.getConfDir(), getModuleDirectoryClass());
     for (ModuleDirectory mDir : mDirs) {
       mDir.validate();
       int testsPerContainer = mDir.isSetTestsPerContainer() ?
-          mDir.getTestsPerContainer() : getConfig().getAsInt(CFG_CONTAINERCOMMANDFACTORY_TESTSPERCONTAINER,
+          mDir.getTestsPerContainer() : cfg.getAsInt(CFG_CONTAINERCOMMANDFACTORY_TESTSPERCONTAINER,
           CFG_CONTAINERCOMMANDFACTORY_TESTSPERCONTAINER_DEFAULT);
       if (subclassShouldHandle(mDir)) {
-        handle(mDir, containerClient, buildInfo, logger, testsPerContainer);
+        handle(mDir, containerClient, buildInfo, testsPerContainer);
       } else if (!mDir.getNeedsSplit() && !mDir.isSetSingleTest()) {
         // This is the simple case.  Remove any skipped tests and set any environment variables
         // and we're good
@@ -76,7 +73,7 @@ public class MavenContainerCommandFactory extends ContainerCommandFactory {
         Set<String> excludedTests = new HashSet<>();
         if (mDir.isSetSkippedTests()) Collections.addAll(excludedTests, mDir.getSkippedTests());
         String unitTests = runContainer(containerClient, mDir.getDir(), buildInfo.getLabel(),
-            "find-tests-" + containerNumber++, "find . -name Test\\*\\*.java", logger);
+            "find-tests-" + containerNumber++, "find . -name Test\\*\\*.java");
         Deque<String> tests = new ArrayDeque<>();
         for (String line : unitTests.split("\n")) {
           String testPath = line.trim();
@@ -96,7 +93,7 @@ public class MavenContainerCommandFactory extends ContainerCommandFactory {
                     mDir.getDir(), containerNumber++);
             setEnvsAndProperties(mDir, mvn);
             mvn.addTest(test);
-            LOG.debug("Isolating test " + test + " in container " + (containerNumber - 1));
+            log.debug("Isolating test " + test + " in container " + (containerNumber - 1));
             cmds.add(mvn);
             tests.remove(test);
           }
@@ -109,7 +106,7 @@ public class MavenContainerCommandFactory extends ContainerCommandFactory {
           setEnvsAndProperties(mDir, mvn);
           for (int i = 0; i < testsPerContainer && !tests.isEmpty(); i++) {
             String single = tests.pop();
-            LOG.debug("Adding test " + single + " to container " + (containerNumber - 1));
+            log.debug("Adding test " + single + " to container " + (containerNumber - 1));
             mvn.addTest(single);
           }
           cmds.add(mvn);
@@ -144,10 +141,9 @@ public class MavenContainerCommandFactory extends ContainerCommandFactory {
    * A chance for subclasses to do any setup they need.
    * @param containerClient container client handle.
    * @param buildInfo build information.
-   * @param logger dtest logger.
    * @throws IOException
    */
-  protected void setup(ContainerClient containerClient, BuildInfo buildInfo, DTestLogger logger)
+  protected void setup(ContainerClient containerClient, BuildInfo buildInfo)
       throws IOException {
 
   }
@@ -169,12 +165,11 @@ public class MavenContainerCommandFactory extends ContainerCommandFactory {
    * @param mDir information on this directory
    * @param containerClient container client handle
    * @param buildInfo build information
-   * @param logger dtest logger to write details to
    * @param testsPerContainer number tests to run in this container
    * @throws IOException if it fails to read a file or something else it needs
    */
   protected void handle(ModuleDirectory mDir, ContainerClient containerClient,
-                        BuildInfo buildInfo, DTestLogger logger, int testsPerContainer) throws IOException {
+                        BuildInfo buildInfo, int testsPerContainer) throws IOException {
   }
 
   /**
@@ -199,12 +194,12 @@ public class MavenContainerCommandFactory extends ContainerCommandFactory {
   protected void setEnvsAndProperties(ModuleDirectory mDir, MavenContainerCommand mvn) {
     if (mDir.getEnv() != null) mvn.addEnvs(mDir.getEnv());
     if (mDir.getMvnProperties() != null) mvn.addProperties(mDir.getMvnProperties());
-    mvn.setConfig(getConfig());
+    mvn.setConfig(cfg).setLog(log);
   }
 
   protected String runContainer(ContainerClient containerClient, final String dir,
                                 final String label, final String containerName,
-                                final String cmd, DTestLogger logger) throws IOException {
+                                final String cmd) throws IOException {
     ContainerResult result = containerClient.runContainer(
         new ContainerCommand() {
           @Override
@@ -222,13 +217,13 @@ public class MavenContainerCommandFactory extends ContainerCommandFactory {
           public String containerDirectory() {
             return dir;
           }
-        }, logger);
+        });
     if (result.getRc() != 0) {
       String msg = "Failed to run cmd " + cmd + " as part of determining tests to run";
-      LOG.error(msg);
+      log.error(msg);
       throw new IOException(msg);
     }
-    containerClient.removeContainer(result, logger);
+    containerClient.removeContainer(result);
     return result.getLogs();
   }
 }

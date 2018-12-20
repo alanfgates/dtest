@@ -2,7 +2,7 @@
 <Configuration status="warn">
 
     <Properties>
-        <Property name="logfile.name">dtest1.log</Property>
+        <Property name="logfile.name">dtest.log</Property>
     </Properties>
 
     <Appenders>

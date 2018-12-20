@@ -25,8 +25,6 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.dtest.core.impl.ProcessResults;
 import org.dtest.core.impl.Utils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -57,22 +55,17 @@ public class DockerTest {
   public static final String CFG_DOCKERTEST_RESULTLOCATION = "dtest.core.dockertest.resultlocation";
   private static final String CFG_DOCKERTEST_RESULTLOCATION_DEFAULT = System.getProperty("java.io.tmpdir");
 
-  private static final Logger LOG = LoggerFactory.getLogger(DockerTest.class);
   private static final String SUMMARY_LOG = "summary";
   public static final String EXEC_LOG = "dtest-exec"; // for log entries by dtest
 
   private ContainerClient docker;
-  private PrintStream out;
-  private PrintStream err;
   private Config cfg;
   private BuildInfo buildInfo;
   private String cfgDir;
   private boolean cleanupAfter = true;
-  private DTestLogger logger;
+  private DTestLogger log;
 
-  public DockerTest(PrintStream out, PrintStream err) {
-    this.out = out;
-    this.err = err;
+  public DockerTest() {
   }
 
   /**
@@ -92,6 +85,10 @@ public class DockerTest {
   @VisibleForTesting
   public void buildConfig(Properties props) {
     cfg = new Config(props);
+  }
+
+  public void setLogger(DTestLogger log) {
+    this.log = log;
   }
 
   /**
@@ -122,7 +119,7 @@ public class DockerTest {
       cleanupAfter = !cmd.hasOption("m");
       cfgDir = cmd.getOptionValue("c");
     } catch (ParseException e) {
-      LOG.error("Failed to parse command line: ", e);
+      log.error("Failed to parse command line: ", e);
       usage(opts);
     }
   }
@@ -131,52 +128,26 @@ public class DockerTest {
    * Run the build.  This may take a while (obviously) and will launch a number of threads.
    * @return status of the build, 0 for success 1 for failure, -1 for error.
    */
-  public int runBuild() {
-    int rc;
+  public BuildState runBuild() {
+    BuildState state = null;
     try {
-      CodeSource codeSource = CodeSource.getInstance(cfg);
+      CodeSource codeSource = CodeSource.getInstance(cfg, log);
       buildInfo = new BuildInfo(cfgDir, codeSource, cleanupAfter);
       buildInfo.setConfig(cfg);
-      docker = ContainerClient.getInstance(cfg);
+      docker = ContainerClient.getInstance(cfg, log);
       docker.setBuildInfo(buildInfo);
-      String dir = buildInfo.getBuildDir();
-      logger = new DTestLogger(dir);
-      ContainerCommandFactory cmdFactory = ContainerCommandFactory.getInstance(cfg);
-      try {
-        docker.buildImage(cmdFactory, logger);
-      } catch (IOException e) {
-        String msg = "Failed to build docker image, might mean your code doesn't compile";
-        err.println(msg + "  See log for details.");
-        LOG.error(msg, e);
-        return 1;
-      }
-      try {
-        rc = runContainers(cmdFactory);
-        packageLogsAndCleanup();
-      } catch (IOException e) {
-        String msg = "Failed to run one or more of the containers.";
-        err.println(msg + "  See log for details.");
-        LOG.error(msg, e);
-        return -1;
-      }
+      ContainerCommandFactory cmdFactory = ContainerCommandFactory.getInstance(cfg, log);
+      docker.buildImage(cmdFactory);
+      state = runContainers(cmdFactory);
+      packageLogsAndCleanup();
+      return state;
     } catch (IOException e) {
-      String msg = "Failed to open the logger.  This often means you gave a bogus output directory.";
-      err.println(msg);
-      LOG.error(msg, e);
-      return -1;
-    } finally {
-      if (logger != null) {
-        try {
-          logger.close();
-        } catch (IOException e) {
-          String msg = "Failed to close the logger.";
-          err.println(msg);
-          LOG.error(msg);
-          rc = 1;
-        }
-      }
+      log.error("Failed to run the build", e);
+      // we might have failed before state got set
+      if (state == null) state = new BuildState();
+      state.fail();
+      return state;
     }
-    return rc;
   }
 
   private void usage(Options opts) {
@@ -184,11 +155,11 @@ public class DockerTest {
     formatter.printHelp("docker-test", opts);
   }
 
-  private int runContainers(ContainerCommandFactory cmdFactory)
+  private BuildState runContainers(ContainerCommandFactory cmdFactory)
       throws IOException {
-    cmdFactory.buildContainerCommands(docker, buildInfo, logger);
+    cmdFactory.buildContainerCommands(docker, buildInfo);
 
-    final ResultAnalyzer analyzer = ResultAnalyzer.getInstance(cfg);
+    final ResultAnalyzer analyzer = ResultAnalyzer.getInstance(cfg, log);
     // I don't need the return value, but by having one I can use the Callable interface instead
     // of Runnable, and Callable catches exceptions for me and passes them back.
     List <Future<Integer>> tasks = new ArrayList<>(cmdFactory.getCmds().size());
@@ -196,7 +167,7 @@ public class DockerTest {
         Executors.newFixedThreadPool(cfg.getAsInt(CFG_DOCKERTEST_NUMCONTAINERS, CFG_DOCKERTEST_NUMCONTAINERS_DEFAULT));
     for (ContainerCommand taskCmd : cmdFactory.getCmds()) {
       tasks.add(executor.submit(() -> {
-        ContainerResult result = docker.runContainer(taskCmd, logger);
+        ContainerResult result = docker.runContainer(taskCmd);
         analyzer.analyzeLog(result);
         StringBuilder statusMsg = new StringBuilder("Task ")
             .append(result.getCmd().containerSuffix())
@@ -217,79 +188,63 @@ public class DockerTest {
         default:
           throw new RuntimeException("Unexpected state");
         }
-        logger.write(result.getCmd().containerSuffix(), statusMsg.toString());
+        log.info(result.getCmd().containerSuffix(), statusMsg.toString());
 
         // Copy log files from any failed tests to a directory specific to this container
         if (result.getLogFilesToFetch() != null && !result.getLogFilesToFetch().isEmpty()) {
           File logDir = new File(buildInfo.getBuildDir(), result.getCmd().containerSuffix());
-          LOG.info("Creating directory " + logDir.getAbsolutePath() + " for logs from container "
+          log.info("Creating directory " + logDir.getAbsolutePath() + " for logs from container "
               + result.getCmd().containerSuffix());
           logDir.mkdir();
-          docker.copyLogFiles(result, logDir.getAbsolutePath(), logger);
+          docker.copyLogFiles(result, logDir.getAbsolutePath());
         }
-        docker.removeContainer(result, logger);
+        docker.removeContainer(result);
         return 1;
       }));
     }
 
-    boolean runSucceeded = true;
+    BuildState buildState = new BuildState();
     for (Future<Integer> task : tasks) {
       try {
         task.get();
       } catch (InterruptedException e) {
-        LOG.error("Interrupted while waiting for containers to finish, assuming I was" +
+        log.error("Interrupted while waiting for containers to finish, assuming I was" +
             " told to quit.", e);
-        runSucceeded = false;
+        buildState.timeout();
       } catch (ExecutionException e) {
-        LOG.error("Got an exception while running container, that's generally bad", e);
-        runSucceeded = false;
+        log.error("Got an exception while running container, that's generally bad", e);
+        buildState.fail();
       }
     }
 
-    runSucceeded &= analyzer.runSucceeded();
-
     executor.shutdown();
+    buildState.update(analyzer.getBuildState());
     if (analyzer.getErrors().size() > 0) {
-      logger.writeAndPrint(SUMMARY_LOG, "All Errors:", out);
+      log.info(SUMMARY_LOG, "All Errors:");
       for (String error : analyzer.getErrors()) {
-        logger.writeAndPrint(SUMMARY_LOG, error, out);
+        log.info(SUMMARY_LOG, error);
       }
     }
     if (analyzer.getFailed().size() > 0) {
-      logger.writeAndPrint(SUMMARY_LOG, "All Failures:", out);
+      log.info(SUMMARY_LOG, "All Failures:");
       for (String failure : analyzer.getFailed()) {
-        logger.writeAndPrint(SUMMARY_LOG, failure, out);
+        log.info(SUMMARY_LOG, failure);
       }
     }
-    StringBuilder msg = new StringBuilder("Test run ");
-    int rc = 0;
-    if (!runSucceeded) {
-      msg.append("FAILED, this can mean tests failed or mvn commands failed to " +
-          "execute properly.\n");
-      rc = 1;
-    } else if (analyzer.hadTimeouts()) {
-      msg.append("HAD TIMEOUTS.  Following numbers are incomplete.\n");
-      rc = -1;
-    } else {
-      msg.append("SUCCEEDED");
-    }
-    msg.append("Final counts: Succeeded: ")
-        .append(analyzer.getSucceeded())
-        .append(", Errors: ")
-        .append(analyzer.getErrors().size())
-        .append(", Failures: ")
-        .append(analyzer.getFailed().size());
-    logger.writeAndPrint(SUMMARY_LOG, msg.toString(), out);
-    return rc;
+    log.info(SUMMARY_LOG, "Final counts: Succeeded: " + analyzer.getSucceeded() +
+        ", Errors: " + analyzer.getErrors().size() +
+        ", Failures: " + analyzer.getFailed().size());
+    log.info(SUMMARY_LOG, buildState.getState().getSummary());
+    return buildState;
   }
 
   private void packageLogsAndCleanup() throws IOException {
-    ProcessResults res = Utils.runProcess("tar", 60, logger, "tar", "zcf",
+    ProcessResults res = Utils.runProcess("tar", 60, log, "tar", "zcf",
         getResultsDir() + buildInfo.getLabel() + ".tgz", "-C", buildInfo.getBaseDir(), buildInfo.getLabel());
     if (res.rc != 0) {
       throw new IOException("Failed to tar up logs, error " + res.rc + " msg: " + res.stderr);
     }
-    docker.removeImage(logger);
+    docker.removeImage();
 
   }
 
@@ -302,15 +257,21 @@ public class DockerTest {
    * @param args command line arguments.
    */
   public static void main(String[] args) {
-    DockerTest test = new DockerTest(System.out, System.err);
+    DockerTest test = new DockerTest();
     test.parseArgs(args);
-    int rc = 0;
+    int rc;
     try {
       test.buildConfig(test.cfgDir, System.getProperties());
-      rc = test.runBuild();
+      test.setLogger(new Slf4jLogger());
+      BuildState state = test.runBuild();
+      switch (state.getState()) {
+        case NOT_INITIALIZED: throw new RuntimeException("This shouldn't happen");
+        case SUCCEEDED: rc = 0; break;
+        case HAD_FAILURES_OR_ERRORS: rc = 1; break;
+        default: rc = -1; break;
+      }
     } catch (IOException e) {
       rc = 1;
-      LOG.error("Failed to run", e);
       System.err.println("Failed, see logs for more details: " + e.getMessage());
     }
     System.exit(rc);

@@ -23,6 +23,7 @@ import org.dtest.core.ContainerCommand;
 import org.dtest.core.ContainerCommandFactory;
 import org.dtest.core.ContainerResult;
 import org.dtest.core.DTestLogger;
+import org.dtest.core.Slf4jLogger;
 import org.dtest.core.TestUtils;
 import org.dtest.core.git.GitSource;
 import org.junit.Assert;
@@ -72,12 +73,13 @@ public class TestMavenContainerCommandFactory {
   @Test
   public void buildCommands() throws IOException {
     Config cfg = TestUtils.buildCfg(BuildInfo.CFG_BUILDINFO_LABEL, "mylabel");
+    TestUtils.TestLogger log = new TestUtils.TestLogger();
     MavenContainerCommandFactory cmds = new MavenContainerCommandFactory();
     cmds.setConfig(cfg);
+    cmds.setLog(log);
     BuildInfo buildInfo = new BuildInfo(TestUtils.getConfDir(), new GitSource(), true);
-    buildInfo.setConfig(cfg);
-    DTestLogger logger = new DTestLogger(".");
-    cmds.buildContainerCommands(new TestContainerClient(), buildInfo, logger);
+    buildInfo.setConfig(cfg).setLog(log);
+    cmds.buildContainerCommands(new TestContainerClient(), buildInfo);
     Assert.assertEquals(7, cmds.getCmds().size());
     Assert.assertEquals("/bin/bash -c ( cd /tmp/beeline; /usr/bin/mvn test -Dsurefire.timeout=300)", StringUtils.join(cmds.getCmds().get(0).shellCommand(), " "));
     Assert.assertEquals("/bin/bash -c ( cd /tmp/cli; /usr/bin/mvn test -Dsurefire.timeout=300 -Dtest.excludes.additional=**/TestCliDriverMethods)", StringUtils.join(cmds.getCmds().get(1).shellCommand(), " "));
@@ -86,27 +88,28 @@ public class TestMavenContainerCommandFactory {
     Assert.assertEquals("/bin/bash -c ( cd /tmp/ql; /usr/bin/mvn test -Dsurefire.timeout=300 -Dtest=TestCleaner2)", StringUtils.join(cmds.getCmds().get(4).shellCommand(), " "));
     Assert.assertEquals("/bin/bash -c ( cd /tmp/ql; /usr/bin/mvn test -Dsurefire.timeout=300 -Dtest=CompactorTest,TestCleaner,TestInitiator,TestWorker2)", StringUtils.join(cmds.getCmds().get(5).shellCommand(), " "));
     Assert.assertEquals("/bin/bash -c ( cd /tmp/itests/qtest; /usr/bin/mvn test -Dsurefire.timeout=300 -Dtest=TestContribCliDriver -DskipSparkTests)", StringUtils.join(cmds.getCmds().get(6).shellCommand(), " "));
+    log.dumpToLog();
   }
 
   private static class TestContainerClient extends ContainerClient {
 
     @Override
-    public void buildImage(ContainerCommandFactory cmdFactory, DTestLogger logger) throws IOException {
+    public void buildImage(ContainerCommandFactory cmdFactory) throws IOException {
 
     }
 
     @Override
-    public void copyLogFiles(ContainerResult result, String targetDir, DTestLogger logger) throws IOException {
+    public void copyLogFiles(ContainerResult result, String targetDir) throws IOException {
 
     }
 
     @Override
-    public void removeContainer(ContainerResult result, DTestLogger logger) throws IOException {
+    public void removeContainer(ContainerResult result) throws IOException {
 
     }
 
     @Override
-    public void removeImage(DTestLogger logger) throws IOException {
+    public void removeImage() throws IOException {
 
     }
 
@@ -116,8 +119,7 @@ public class TestMavenContainerCommandFactory {
     }
 
     @Override
-    public ContainerResult runContainer(ContainerCommand cmd,
-                                        DTestLogger logger) throws IOException {
+    public ContainerResult runContainer(ContainerCommand cmd) throws IOException {
       // Doing our own mocking here
       String shellCmd = StringUtils.join(cmd.shellCommand(), " ");
       if (shellCmd.contains("standalone-metastore") && shellCmd.contains("find")) {

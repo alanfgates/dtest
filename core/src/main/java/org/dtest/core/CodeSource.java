@@ -65,9 +65,9 @@ public abstract class CodeSource extends Configurable {
    */
   public abstract String getDefaultBranch();
 
-  static CodeSource getInstance(Config cfg) throws IOException {
+  static CodeSource getInstance(Config cfg, DTestLogger log) throws IOException {
     CodeSource cs = Utils.getInstance(cfg.getAsClass(CodeSource.CFG_CODESOURCE_IMPL, CodeSource.class, GitSource.class));
-    cs.setConfig(cfg);
+    cs.setConfig(cfg).setLog(log);
     return cs;
   }
 }

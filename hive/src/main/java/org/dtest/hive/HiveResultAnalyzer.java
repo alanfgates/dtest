@@ -22,24 +22,13 @@ import java.util.regex.Pattern;
 
 public class HiveResultAnalyzer extends MavenResultAnalyzer {
 
-  private final Pattern qTestError;
-  private final Pattern qTestFailure;
-
   public HiveResultAnalyzer() {
-    qTestFailure =
-        Pattern.compile("\\[ERROR\\] testCliDriver\\[([A-Za-z0-9_]+)\\].*\\.(Test[A-Za-z0-9_]+).*FAILURE!");
-    qTestError =
-        Pattern.compile("\\[ERROR\\] testCliDriver\\[([A-Za-z0-9_]+)\\].*\\.(Test[A-Za-z0-9_]+).*ERROR!");
+    unitTestFailurePatterns.addFirst(
+        Pattern.compile("\\[ERROR\\] testCliDriver\\[([A-Za-z0-9_]+)\\].*\\.(Test[A-Za-z0-9_]+).*FAILURE!"));
+    unitTestErrorPatterns.addFirst(
+        Pattern.compile("\\[ERROR\\] testCliDriver\\[([A-Za-z0-9_]+)\\].*\\.(Test[A-Za-z0-9_]+).*ERROR!"));
   }
 
-  // Returns true if it sees a timeout
-  @Override
-  protected boolean analyzeLogLine(ContainerResult result, String line) {
-    if (!findErrorsAndFailures(result, line, qTestError, qTestFailure)) {
-      return super.analyzeLogLine(result, line);
-    }
-    return false;
-  }
 
   @Override
   protected String getTestClassPrefix() {

@@ -24,54 +24,51 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
 public class TestDockerTest {
-  private static boolean imageBuilt, hadTimeouts, runSucceeded;
+  private static boolean imageBuilt;
   private static int succeeded;
   private static List<String> failures;
   private static List<String> errors;
-
-  private ByteArrayOutputStream outBuffer;
-  private PrintStream out;
-  private PrintStream err;
+  private static String logToReturn;
 
   public static class SuccessfulClient extends ContainerClient {
+
     @Override
     public String getContainerBaseDir() {
       return null;
     }
 
     @Override
-    public void buildImage(ContainerCommandFactory cmdFactory, DTestLogger logger) throws IOException {
+    public void buildImage(ContainerCommandFactory cmdFactory) throws IOException {
+      buildInfo.getBuildDir();
       imageBuilt = true;
     }
 
     @Override
-    public ContainerResult runContainer(ContainerCommand cmd, DTestLogger logger) throws
+    public ContainerResult runContainer(ContainerCommand cmd) throws
         IOException {
-      String logs = "Ran: " + StringUtils.join(cmd.shellCommand(), " ") +
-          TestMavenResultAnalyzer.LOG1;
+      String logs = "Ran: " + StringUtils.join(cmd.shellCommand(), " ") + logToReturn;
+          //TestMavenResultAnalyzer.LOG_SUCCESSFUL_RUN_FAILED_TESTS;
       return new ContainerResult(cmd, 0, logs);
     }
 
     @Override
-    public void copyLogFiles(ContainerResult result, String targetDir, DTestLogger logger) throws IOException {
+    public void copyLogFiles(ContainerResult result, String targetDir) throws IOException {
 
     }
 
     @Override
-    public void removeContainer(ContainerResult result, DTestLogger logger) throws IOException {
+    public void removeContainer(ContainerResult result) throws IOException {
 
     }
 
     @Override
-    public void removeImage(DTestLogger logger) throws IOException {
+    public void removeImage() throws IOException {
 
     }
 
@@ -121,30 +118,31 @@ public class TestDockerTest {
     }
 
     @Override
-    public void buildImage(ContainerCommandFactory cmdFactory, DTestLogger logger) throws IOException {
+    public void buildImage(ContainerCommandFactory cmdFactory) throws IOException {
+      buildInfo.getBuildDir();
       imageBuilt = true;
     }
 
     @Override
-    public ContainerResult runContainer(ContainerCommand cmd, DTestLogger logger) throws
+    public ContainerResult runContainer(ContainerCommand cmd) throws
         IOException {
       String logs = "Ran: " + StringUtils.join(cmd.shellCommand(), " ") +
-          TestMavenResultAnalyzer.LOG3;
+          TestMavenResultAnalyzer.LOG_TIMED_OUT;
       return new ContainerResult(cmd, 0, logs);
     }
 
     @Override
-    public void copyLogFiles(ContainerResult result, String targetDir, DTestLogger logger) throws IOException {
+    public void copyLogFiles(ContainerResult result, String targetDir) throws IOException {
 
     }
 
     @Override
-    public void removeContainer(ContainerResult result, DTestLogger logger) throws IOException {
+    public void removeContainer(ContainerResult result) throws IOException {
 
     }
 
     @Override
-    public void removeImage(DTestLogger logger) throws IOException {
+    public void removeImage() throws IOException {
 
     }
 
@@ -161,30 +159,31 @@ public class TestDockerTest {
     }
 
     @Override
-    public void buildImage(ContainerCommandFactory cmdFactory, DTestLogger logger) throws IOException {
+    public void buildImage(ContainerCommandFactory cmdFactory) throws IOException {
+      buildInfo.getBuildDir();
       imageBuilt = true;
     }
 
     @Override
-    public ContainerResult runContainer(ContainerCommand cmd, DTestLogger logger) throws
+    public ContainerResult runContainer(ContainerCommand cmd) throws
         IOException {
       String logs = "Ran: " + StringUtils.join(cmd.shellCommand(), " ") +
-          TestMavenResultAnalyzer.LOG1;
+          TestMavenResultAnalyzer.LOG_SUCCESSFUL_RUN_FAILED_TESTS;
       return new ContainerResult(cmd, 130, logs);
     }
 
     @Override
-    public void copyLogFiles(ContainerResult result, String targetDir, DTestLogger logger) throws IOException {
+    public void copyLogFiles(ContainerResult result, String targetDir) throws IOException {
 
     }
 
     @Override
-    public void removeContainer(ContainerResult result, DTestLogger logger) throws IOException {
+    public void removeContainer(ContainerResult result) throws IOException {
 
     }
 
     @Override
-    public void removeImage(DTestLogger logger) throws IOException {
+    public void removeImage() throws IOException {
 
     }
 
@@ -197,9 +196,8 @@ public class TestDockerTest {
 
   public static class HelloWorldCommandList extends ContainerCommandFactory {
     @Override
-    public void buildContainerCommands(ContainerClient containerClient, BuildInfo label,
-                                       DTestLogger logger) throws IOException {
-      getCmds().add(new ContainerCommand() {
+    public void buildContainerCommands(ContainerClient containerClient, BuildInfo label) throws IOException {
+      ContainerCommand cmd = new ContainerCommand() {
         @Override
         public String containerSuffix() {
           return "friendly";
@@ -214,7 +212,9 @@ public class TestDockerTest {
         public String containerDirectory() {
           return "/tmp";
         }
-      });
+      };
+      cmd.setConfig(cfg).setLog(log);
+      cmds.add(cmd);
     }
 
     @Override
@@ -230,9 +230,25 @@ public class TestDockerTest {
 
   public static class SpyingResultAnalyzer extends ResultAnalyzer {
     MavenResultAnalyzer contained = new MavenResultAnalyzer();
+
+    @Override
+    public Configurable setConfig(Config cfg) {
+      super.setConfig(cfg);
+      contained.setConfig(cfg);
+      return this;
+    }
+
+    @Override
+    public Configurable setLog(DTestLogger log) {
+      super.setLog(log);
+      contained.setLog(log);
+      return this;
+    }
+
     @Override
     public void analyzeLog(ContainerResult result) {
       contained.analyzeLog(result);
+      buildState = contained.buildState;
     }
 
     @Override
@@ -252,18 +268,6 @@ public class TestDockerTest {
       errors = contained.getErrors();
       return errors;
     }
-
-    @Override
-    public boolean hadTimeouts() {
-      hadTimeouts = contained.hadTimeouts();
-      return hadTimeouts;
-    }
-
-    @Override
-    public boolean runSucceeded() {
-      runSucceeded = contained.runSucceeded();
-      return runSucceeded;
-    }
   }
 
   @Before
@@ -272,34 +276,58 @@ public class TestDockerTest {
     succeeded = 0;
     failures = new ArrayList<>();
     errors = new ArrayList<>();
-    hadTimeouts = false;
-    outBuffer = new ByteArrayOutputStream();
-    out = new PrintStream(outBuffer);
-    err = new PrintStream(new ByteArrayOutputStream());
   }
 
   @Test
-  public void successfulRunAllTestsPass() throws IOException {
+  public void successfulRunAllTestsPass() {
+    TestUtils.TestLogger log = new TestUtils.TestLogger();
     Properties props = TestUtils.buildProperties(
         ContainerClient.CFG_CONTAINERCLIENT_IMPL, SuccessfulClient.class.getName(),
         ContainerCommandFactory.CFG_CONTAINERCOMMANDLIST_IMPL, HelloWorldCommandList.class.getName(),
         ResultAnalyzer.CFG_RESULTANALYZER_IMPL, SpyingResultAnalyzer.class.getName(),
         CodeSource.CFG_CODESOURCE_BRANCH, "successful",
-        CodeSource.CFG_CODESOURCE_REPO, "repo",
+
         BuildInfo.CFG_BUILDINFO_BASEDIR, System.getProperty("java.io.tmpdir"),
         BuildInfo.CFG_BUILDINFO_LABEL, "firstTry");
-    DockerTest test = new DockerTest(out, err);
+    logToReturn = TestMavenResultAnalyzer.LOG_SUCCESSFUL_RUN_ALL_SUCCEEDED;
+    DockerTest test = new DockerTest();
     test.buildConfig(props);
-    test.runBuild();
+    test.setLogger(log);
+    BuildState state = test.runBuild();
+    log.dumpToLog();
+    Assert.assertEquals(BuildState.State.SUCCEEDED, state.getState());
+    Assert.assertTrue(imageBuilt);
+    Assert.assertEquals(0, errors.size());
+    Assert.assertEquals(0, failures.size());
+    Assert.assertEquals(19, succeeded);
+    Assert.assertTrue(log.toString().contains("SUCCEEDED, the build ran to completion and all tests passed"));
+  }
+
+  @Test
+  public void successfulRunSomeTestsFail() {
+    TestUtils.TestLogger log = new TestUtils.TestLogger();
+    Properties props = TestUtils.buildProperties(
+        ContainerClient.CFG_CONTAINERCLIENT_IMPL, SuccessfulClient.class.getName(),
+        ContainerCommandFactory.CFG_CONTAINERCOMMANDLIST_IMPL, HelloWorldCommandList.class.getName(),
+        ResultAnalyzer.CFG_RESULTANALYZER_IMPL, SpyingResultAnalyzer.class.getName(),
+        CodeSource.CFG_CODESOURCE_BRANCH, "successful",
+
+        BuildInfo.CFG_BUILDINFO_BASEDIR, System.getProperty("java.io.tmpdir"),
+        BuildInfo.CFG_BUILDINFO_LABEL, "firstTry");
+    logToReturn = TestMavenResultAnalyzer.LOG_SUCCESSFUL_RUN_FAILED_TESTS;
+    DockerTest test = new DockerTest();
+    test.buildConfig(props);
+    test.setLogger(log);
+    BuildState state = test.runBuild();
+    log.dumpToLog();
+    Assert.assertEquals(BuildState.State.HAD_FAILURES_OR_ERRORS, state.getState());
     Assert.assertTrue(imageBuilt);
     Assert.assertEquals(1, errors.size());
     Assert.assertEquals("TestAcidOnTez.testGetSplitsLocks", errors.get(0));
     Assert.assertEquals(1, failures.size());
     Assert.assertEquals("TestActivePassiveHA.testManualFailover", failures.get(0));
     Assert.assertEquals(32, succeeded);
-    Assert.assertFalse(hadTimeouts);
-    Assert.assertTrue(runSucceeded);
-    Assert.assertTrue(outBuffer.toString().contains("Test run SUCCEEDED"));
+    Assert.assertTrue(log.toString().contains("HAD FAILURES OR ERRORS, the build ran to completion but some tests failed or errored out"));
   }
 
   /*
@@ -328,7 +356,8 @@ public class TestDockerTest {
   */
 
   @Test
-  public void timeout() throws IOException {
+  public void timeout() {
+    TestUtils.TestLogger log = new TestUtils.TestLogger();
     Properties props = TestUtils.buildProperties(
         ContainerClient.CFG_CONTAINERCLIENT_IMPL, TimingOutClient.class.getName(),
         ContainerCommandFactory.CFG_CONTAINERCOMMANDLIST_IMPL, HelloWorldCommandList.class.getName(),
@@ -337,17 +366,19 @@ public class TestDockerTest {
         CodeSource.CFG_CODESOURCE_REPO, "repo",
         BuildInfo.CFG_BUILDINFO_BASEDIR, System.getProperty("java.io.tmpdir"),
         BuildInfo.CFG_BUILDINFO_LABEL, "will-time-out");
-    DockerTest test = new DockerTest(out, err);
+    DockerTest test = new DockerTest();
     test.buildConfig(props);
-    test.runBuild();
+    test.setLogger(log);
+    BuildState state = test.runBuild();
+    log.dumpToLog();
+    Assert.assertEquals(BuildState.State.HAD_TIMEOUTS, state.getState());
     Assert.assertTrue(imageBuilt);
-    Assert.assertTrue(hadTimeouts);
-    Assert.assertTrue(runSucceeded);
-    Assert.assertTrue(outBuffer.toString().contains("Test run HAD TIMEOUTS.  Following numbers are incomplete."));
+    Assert.assertTrue(log.toString().contains("HAD TIMEOUTS, the build ran to completion but some containers timed out"));
   }
 
   @Test
-  public void failedRun() throws IOException {
+  public void failedRun() {
+    TestUtils.TestLogger log = new TestUtils.TestLogger();
     Properties props = TestUtils.buildProperties(
         ContainerClient.CFG_CONTAINERCLIENT_IMPL, FailingClient.class.getName(),
         ContainerCommandFactory.CFG_CONTAINERCOMMANDLIST_IMPL, HelloWorldCommandList.class.getName(),
@@ -356,13 +387,14 @@ public class TestDockerTest {
         CodeSource.CFG_CODESOURCE_REPO, "repo",
         BuildInfo.CFG_BUILDINFO_BASEDIR, System.getProperty("java.io.tmpdir"),
         BuildInfo.CFG_BUILDINFO_LABEL, "take2");
-    DockerTest test = new DockerTest(out, err);
+    DockerTest test = new DockerTest();
     test.buildConfig(props);
-    test.runBuild();
+    test.setLogger(log);
+    BuildState state = test.runBuild();
+    log.dumpToLog();
+    Assert.assertEquals(BuildState.State.FAILED, state.getState());
     Assert.assertTrue(imageBuilt);
-    Assert.assertFalse(hadTimeouts);
-    Assert.assertFalse(runSucceeded);
-    Assert.assertTrue(outBuffer.toString().contains("Test run FAILED, this can mean tests failed or mvn commands failed to execute properly."));
+    Assert.assertTrue(log.toString().contains("FAILED, the build did not run to completion"));
   }
 
   @Test

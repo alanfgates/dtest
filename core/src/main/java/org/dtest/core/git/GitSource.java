@@ -27,8 +27,8 @@ public class GitSource extends CodeSource  {
 
   @Override
   public List<String> srcCommands(ContainerClient client) throws IOException {
-    String repo = getConfig().getAsString(CFG_CODESOURCE_REPO);
-    String branch = getConfig().getAsString(CFG_CODESOURCE_BRANCH);
+    String repo = cfg.getAsString(CFG_CODESOURCE_REPO);
+    String branch = cfg.getAsString(CFG_CODESOURCE_BRANCH);
     if (repo == null || branch == null) {
       throw new IOException("You must provide configuration values " + CFG_CODESOURCE_REPO + " and " +
           CFG_CODESOURCE_BRANCH + " to use git");

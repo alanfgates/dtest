@@ -62,7 +62,7 @@ public class HiveContainerCommand extends MavenContainerCommand {
       }
 
       buf.append("/usr/bin/mvn test -Dsurefire.timeout=")
-          .append(getConfig().getAsTime(CFG_CONTAINERCOMMAND_SINGLERUNTIME, TimeUnit.SECONDS, CFG_CONTAINERCOMMAND_SINGLERUNTIME_DEFAULT));
+          .append(cfg.getAsTime(CFG_CONTAINERCOMMAND_SINGLERUNTIME, TimeUnit.SECONDS, CFG_CONTAINERCOMMAND_SINGLERUNTIME_DEFAULT));
 
       if (!tests.isEmpty()) {
         buf.append(" -Dtest=");

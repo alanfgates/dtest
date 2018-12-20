@@ -68,7 +68,8 @@ public class BuildInfo extends Configurable implements Comparable<BuildInfo> {
    */
   public String getBuildDir() throws IOException {
     if (dir != null) return dir;
-    this.label = checkLabelIsDockerable();
+    // This cannot be done in the constructor because it requires the configuration.
+    checkLabelIsDockerable();
     File d = new File(getBaseDir(), label);
     d.mkdir();
     dir = d.getAbsolutePath();
@@ -81,7 +82,7 @@ public class BuildInfo extends Configurable implements Comparable<BuildInfo> {
    * @throws IOException if basedir isn't provided in the configuration.
    */
   public String getBaseDir() throws IOException {
-    String baseDir = getConfig().getAsString(CFG_BUILDINFO_BASEDIR);
+    String baseDir = cfg.getAsString(CFG_BUILDINFO_BASEDIR);
     if (baseDir == null) throw new IOException(CFG_BUILDINFO_BASEDIR + " not set, required");
     return baseDir;
   }
@@ -96,6 +97,10 @@ public class BuildInfo extends Configurable implements Comparable<BuildInfo> {
   }
 
   public String getLabel() {
+    // Don't check validity of label here, we'll do that when we construct the build dir.
+    if (label == null) {
+      label = cfg.getAsString(CFG_BUILDINFO_LABEL);
+    }
     return label;
   }
 
@@ -134,15 +139,15 @@ public class BuildInfo extends Configurable implements Comparable<BuildInfo> {
   }
 
   @VisibleForTesting
-  String checkLabelIsDockerable() throws IOException {
-    String label = getConfig().getAsString(CFG_BUILDINFO_LABEL);
-    if (label == null) throw new IOException("You must specify a build label using " + CFG_BUILDINFO_LABEL);
-    Matcher m = dockerable.matcher(label);
-    if (m.matches()) {
-      return label;
-    } else {
-      throw new IOException("Label must be usable in docker container name, should only contain " +
-          "[A-Za-z0-9_\\-]");
+  void checkLabelIsDockerable() throws IOException {
+    if (label == null) {
+      label = getLabel();
+      if (label == null) throw new IOException("You must specify a build label using " + CFG_BUILDINFO_LABEL);
+      Matcher m = dockerable.matcher(label);
+      if (!m.matches()) {
+        throw new IOException("Label must be usable in docker container name, should only contain " +
+            "[A-Za-z0-9_\\-]");
+      }
     }
   }
 

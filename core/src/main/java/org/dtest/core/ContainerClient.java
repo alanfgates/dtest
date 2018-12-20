@@ -63,44 +63,39 @@ public abstract class ContainerClient extends Configurable {
   /**
    * Build an image.
    * @param cmdFactory factory to generate containers, needed to get the initial build info
-   * @param logger output log for tests
    * @throws IOException if the image fails to build
    */
-  public abstract void buildImage(ContainerCommandFactory cmdFactory, DTestLogger logger) throws IOException;
+  public abstract void buildImage(ContainerCommandFactory cmdFactory) throws IOException;
 
   /**
    * Run a container and return the results.
    * @param cmd command to run
-   * @param logger output log for tests
    * @return results from the container
    * @throws IOException if the container fails to run
    */
-  public abstract ContainerResult runContainer(ContainerCommand cmd, DTestLogger logger) throws IOException;
+  public abstract ContainerResult runContainer(ContainerCommand cmd) throws IOException;
 
   /**
    * Print the contents failed test logs to the log.
    * @param result results from running the container
    * @param targetDir directory to copy files to
-   * @param logger output log for tests
    * @throws IOException if the copy of the log files fails
    */
-  public abstract void copyLogFiles(ContainerResult result, String targetDir, DTestLogger logger)
+  public abstract void copyLogFiles(ContainerResult result, String targetDir)
       throws IOException;
 
   /**
    * Remove a container.
    * @param result results from running the container
-   * @param logger output log for tests
    * @throws IOException if the remove fails
    */
-  public abstract void removeContainer(ContainerResult result, DTestLogger logger) throws IOException;
+  public abstract void removeContainer(ContainerResult result) throws IOException;
 
   /**
    * Remove the docker image
-   * @param logger output log for tests
    * @throws IOException if the remove fails
    */
-  public abstract void removeImage(DTestLogger logger) throws IOException;
+  public abstract void removeImage() throws IOException;
 
   /**
    * Get the name of the project.
@@ -108,10 +103,10 @@ public abstract class ContainerClient extends Configurable {
    */
   public abstract String getProjectName();
 
-  static ContainerClient getInstance(Config cfg) throws IOException {
+  static ContainerClient getInstance(Config cfg, DTestLogger log) throws IOException {
     ContainerClient cc = Utils.getInstance(cfg.getAsClass(ContainerClient.CFG_CONTAINERCLIENT_IMPL,
         ContainerClient.class, DockerContainerClient.class));
-    cc.setConfig(cfg);
+    cc.setConfig(cfg).setLog(log);
     return cc;
   }
 

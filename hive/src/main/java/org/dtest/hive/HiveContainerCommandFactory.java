@@ -44,11 +44,11 @@ public class HiveContainerCommandFactory extends MavenContainerCommandFactory {
   private Map<String, Set<String>> filesFromDirs = new HashMap<>();
 
   @Override
-  public void setup(ContainerClient containerClient, BuildInfo buildInfo, DTestLogger logger)
+  public void setup(ContainerClient containerClient, BuildInfo buildInfo)
       throws IOException {
     // Read the test properties file as a number of things need info in there
     String testPropertiesString = runContainer(containerClient, ".", buildInfo.getLabel(), "read-testconfiguration",
-        "cat itests/src/test/resources/testconfiguration.properties", logger);
+        "cat itests/src/test/resources/testconfiguration.properties");
     testProperties = new Properties();
     testProperties.load(new StringReader(testPropertiesString));
   }
@@ -70,13 +70,13 @@ public class HiveContainerCommandFactory extends MavenContainerCommandFactory {
 
   @Override
   protected void handle(ModuleDirectory simple, ContainerClient containerClient,
-                        BuildInfo buildInfo, DTestLogger logger, int testsPerContainer) throws IOException {
+                        BuildInfo buildInfo, int testsPerContainer) throws IOException {
     assert simple instanceof HiveModuleDirectory;
     HiveModuleDirectory mDir = (HiveModuleDirectory)simple;
     Set<String> qfiles;
     if (mDir.isSetQFilesDir() || mDir.isSetIncludedQFilesProperties()) {
       // If we're supposed to read the qfiles from a directory and/or properties, do that
-      qfiles = findQFiles(containerClient, buildInfo.getLabel(), logger, mDir);
+      qfiles = findQFiles(containerClient, buildInfo.getLabel(), mDir);
     } else {
       // Or if we've been given a list of qfiles, use that
       qfiles = new HashSet<>();
@@ -130,7 +130,7 @@ public class HiveContainerCommandFactory extends MavenContainerCommandFactory {
     return qfiles;
   }
 
-  private Set<String> findQFiles(ContainerClient containerClient, String label, DTestLogger logger,
+  private Set<String> findQFiles(ContainerClient containerClient, String label,
                                  HiveModuleDirectory mDir) throws IOException {
     // Find all of the qfile tests.  The logic here is that if a specific set of included files
     // have been listed, then use those.  Otherwise read all the files from the indicated
@@ -143,7 +143,7 @@ public class HiveContainerCommandFactory extends MavenContainerCommandFactory {
       qfiles = filesFromDirs.computeIfAbsent(mDir.getQFilesDir(), s -> {
         try {
           String allQFiles = runContainer(containerClient, mDir.getQFilesDir(), label,
-              "qfile-finder-" + containerNumber++, "find . -name \\*.q -maxdepth 1", logger);
+              "qfile-finder-" + containerNumber++, "find . -name \\*.q -maxdepth 1");
 
 
           Set<String> runnableQfiles = new HashSet<>();

@@ -16,8 +16,6 @@
 package org.dtest.core.impl;
 
 import org.dtest.core.DTestLogger;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -26,20 +24,18 @@ import java.io.InputStreamReader;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class StreamPumper implements Runnable {
-  private static final Logger LOG = LoggerFactory.getLogger(StreamPumper.class);
 
   private final AtomicBoolean keepGoing;
   private final BufferedReader reader;
   private final StringBuilder buffer;
   private final String containerId;
-  private final DTestLogger logger;
+  private final DTestLogger log;
 
-  StreamPumper(AtomicBoolean keepGoing, InputStream input, String containerId,
-               DTestLogger logger) {
+  StreamPumper(AtomicBoolean keepGoing, InputStream input, String containerId, DTestLogger log) {
     this.keepGoing = keepGoing;
     reader = new BufferedReader(new InputStreamReader(input));
     this.containerId = containerId;
-    this.logger = logger;
+    this.log = log;
     buffer = new StringBuilder();
   }
 
@@ -53,14 +49,14 @@ public class StreamPumper implements Runnable {
       while (keepGoing.get()) {
         if (reader.ready()) {
           String s = reader.readLine();
-          logger.write(containerId, s);
+          log.debug(containerId, s);
           buffer.append(s).append('\n');
         } else {
           Thread.sleep(1000);
         }
       }
     } catch (Exception e) {
-      LOG.error("Caught exception while pumping stream", e);
+      log.error("Caught exception while pumping stream", e);
     }
   }
 
@@ -71,7 +67,7 @@ public class StreamPumper implements Runnable {
     assert !keepGoing.get();
     while (reader.ready()) {
       String s = reader.readLine();
-      logger.write(containerId, s);
+      log.debug(containerId, s);
       buffer.append(s).append('\n');
     }
 

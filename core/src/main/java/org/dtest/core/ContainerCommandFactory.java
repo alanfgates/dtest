@@ -46,10 +46,9 @@ public abstract class ContainerCommandFactory extends Configurable {
    * @param containerClient container client, in case any containers are needed for determining
    *                        commands to run.
    * @param buildInfo information for this build
-   * @param logger logger
    * @throws IOException unable to generate command list.
    */
-  public abstract void buildContainerCommands(ContainerClient containerClient, BuildInfo buildInfo, DTestLogger logger)
+  public abstract void buildContainerCommands(ContainerClient containerClient, BuildInfo buildInfo)
       throws IOException;
 
   /**
@@ -67,17 +66,17 @@ public abstract class ContainerCommandFactory extends Configurable {
 
   /**
    * Get the list of commands.  This must be called after
-   * {@link #buildContainerCommands(ContainerClient, BuildInfo, DTestLogger)}.
+   * {@link #buildContainerCommands(ContainerClient, BuildInfo)}.
    * @return list of commands.
    */
   public List<ContainerCommand> getCmds() {
     return cmds;
   }
 
-  static ContainerCommandFactory getInstance(Config cfg) throws IOException {
+  static ContainerCommandFactory getInstance(Config cfg, DTestLogger log) throws IOException {
     ContainerCommandFactory ccl = Utils.getInstance(cfg.getAsClass(ContainerCommandFactory.CFG_CONTAINERCOMMANDLIST_IMPL,
         ContainerCommandFactory.class, MavenContainerCommandFactory.class));
-    ccl.setConfig(cfg);
+    ccl.setConfig(cfg).setLog(log);
     return ccl;
   }
 }

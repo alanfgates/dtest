@@ -26,6 +26,13 @@ import java.util.List;
  * must understand the results of the build commands.
  */
 public abstract class ResultAnalyzer extends Configurable {
+
+  protected BuildState buildState;
+
+  protected ResultAnalyzer() {
+    buildState = new BuildState();
+  }
+
   // Implementation of ResultAnalyzer
   /**
    * Class to analyze results of the tests.  Defaults to MavenResultAnalyzer.
@@ -58,22 +65,18 @@ public abstract class ResultAnalyzer extends Configurable {
   public abstract List<String> getErrors();
 
   /**
-   * True if at least one test timed out.
-   * @return true if any tests timed out.
+   * Get the state of the build based on the results analysis.
+   * @return state of the build.  This will be an incomplete state as it can't tell if the build as a whole failed
+   *         or timed out.
    */
-  public abstract boolean hadTimeouts();
+  public final BuildState getBuildState() {
+    return buildState;
+  }
 
-  /**
-   * True if the test run succeeded.  Note that this does not mean all tests passed, but that all
-   * tests were run and the container exited normally.  Some tests may have failed or timed out.
-   * @return true if success.
-   */
-  public abstract boolean runSucceeded();
-
-  static ResultAnalyzer getInstance(Config cfg) throws IOException {
+  static ResultAnalyzer getInstance(Config cfg, DTestLogger log) throws IOException {
     ResultAnalyzer ra = Utils.getInstance(cfg.getAsClass(ResultAnalyzer.CFG_RESULTANALYZER_IMPL,
         ResultAnalyzer.class, MavenResultAnalyzer.class));
-    ra.setConfig(cfg);
+    ra.setConfig(cfg).setLog(log);
     return ra;
   }
 }

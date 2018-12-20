@@ -16,8 +16,11 @@
 package org.dtest.hive;
 
 import com.google.common.annotations.VisibleForTesting;
+import org.dtest.core.BuildState;
+import org.dtest.core.Config;
 import org.dtest.core.ContainerCommand;
 import org.dtest.core.ContainerResult;
+import org.dtest.core.TestUtils;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -53,18 +56,20 @@ public class TestHiveResultAnalyzer {
   }
 
   @Test
-  public void unitTestLog() {
+  public void unitTestWithFailures() {
+    TestUtils.TestLogger log = new TestUtils.TestLogger();
     HiveResultAnalyzer analyzer = new HiveResultAnalyzer();
+    analyzer.setConfig(new Config()).setLog(log);
     ContainerResult cr = new ContainerResult(new SimpleContainerCommand("hive-dtest-1_unittests-hive-unit",
-        "/Users/gates/git/hive/itests/hive-unit") , 0, LOG1);
+        "/Users/gates/git/hive/itests/hive-unit") , 0, LOG_UNIT_TESTS_WITH_FAILURES);
     analyzer.analyzeLog(cr);
+    log.dumpToLog();
     Assert.assertEquals(1, analyzer.getErrors().size());
     Assert.assertEquals("TestAcidOnTez.testGetSplitsLocks", analyzer.getErrors().get(0));
     Assert.assertEquals(1, analyzer.getFailed().size());
     Assert.assertEquals("TestActivePassiveHA.testManualFailover", analyzer.getFailed().get(0));
     Assert.assertEquals(32, analyzer.getSucceeded());
-    Assert.assertFalse(analyzer.hadTimeouts());
-    Assert.assertTrue(analyzer.runSucceeded());
+    Assert.assertEquals(BuildState.State.HAD_FAILURES_OR_ERRORS, analyzer.getBuildState().getState());
     Assert.assertEquals(5, cr.getLogFilesToFetch().size());
     SortedSet<String> orderedLogFiles = new TreeSet<>(cr.getLogFilesToFetch());
     Iterator iter = orderedLogFiles.iterator();
@@ -76,19 +81,37 @@ public class TestHiveResultAnalyzer {
   }
 
   @Test
-  public void qtestLog() {
+  public void unitTestAllSucceeded() {
+    TestUtils.TestLogger log = new TestUtils.TestLogger();
     HiveResultAnalyzer analyzer = new HiveResultAnalyzer();
+    analyzer.setConfig(new Config()).setLog(log);
+    ContainerResult cr = new ContainerResult(new SimpleContainerCommand("hive-dtest-1_unittests-hive-unit",
+        "/Users/gates/git/hive/itests/hive-unit") , 0, LOG_UNIT_TESTS_ALL_SUCCEEDED);
+    analyzer.analyzeLog(cr);
+    log.dumpToLog();
+    Assert.assertEquals(0, analyzer.getErrors().size());
+    Assert.assertEquals(0, analyzer.getFailed().size());
+    Assert.assertEquals(19, analyzer.getSucceeded());
+    Assert.assertEquals(BuildState.State.SUCCEEDED, analyzer.getBuildState().getState());
+    Assert.assertEquals(0, cr.getLogFilesToFetch().size());
+  }
+
+  @Test
+  public void qtestLogWithFailures() {
+    TestUtils.TestLogger log = new TestUtils.TestLogger();
+    HiveResultAnalyzer analyzer = new HiveResultAnalyzer();
+    analyzer.setConfig(new Config()).setLog(log);
     ContainerResult cr = new ContainerResult(new SimpleContainerCommand(
         "hive-dtest-1_itests-qtest_TestNegativeCliDriver_a_LF_a-t_RT_._S_",
-        "/Users/gates/git/hive/itests/qtest"), 1, LOG2);
+        "/Users/gates/git/hive/itests/qtest"), 0, LOG_QFILE_WITH_FAILURES);
     analyzer.analyzeLog(cr);
+    log.dumpToLog();
     Assert.assertEquals(1, analyzer.getErrors().size());
     Assert.assertEquals("TestNegativeCliDriver.alter_notnull_constraint_violation", analyzer.getErrors().get(0));
     Assert.assertEquals(1, analyzer.getFailed().size());
     Assert.assertEquals("TestNegativeCliDriver.alter_table_constraint_duplicate_pk", analyzer.getFailed().get(0));
     Assert.assertEquals(72, analyzer.getSucceeded());
-    Assert.assertFalse(analyzer.hadTimeouts());
-    Assert.assertFalse(analyzer.runSucceeded());
+    Assert.assertEquals(BuildState.State.HAD_FAILURES_OR_ERRORS, analyzer.getBuildState().getState());
     Assert.assertEquals(3, cr.getLogFilesToFetch().size());
     SortedSet<String> orderedLogFiles = new TreeSet<>(cr.getLogFilesToFetch());
     Iterator iter = orderedLogFiles.iterator();
@@ -98,35 +121,49 @@ public class TestHiveResultAnalyzer {
   }
 
   @Test
-  public void logWithSkip() {
+  public void qtestLogAllSuccess() {
+    TestUtils.TestLogger log = new TestUtils.TestLogger();
     HiveResultAnalyzer analyzer = new HiveResultAnalyzer();
+    analyzer.setConfig(new Config()).setLog(log);
     ContainerResult cr = new ContainerResult(new SimpleContainerCommand(
-        "unittest-7", "/Users/gates/git/hive/jdbc"), 1, LOG4);
+        "hive-dtest-1_itests-qtest_TestNegativeCliDriver_a_LF_a-t_RT_._S_",
+        "/Users/gates/git/hive/itests/qtest"), 0, LOG_QFILE_ALL_SUCCEEDED);
     analyzer.analyzeLog(cr);
+    log.dumpToLog();
+    Assert.assertEquals(0, analyzer.getErrors().size());
+    Assert.assertEquals(0, analyzer.getFailed().size());
+    Assert.assertEquals(74, analyzer.getSucceeded());
+    Assert.assertEquals(BuildState.State.SUCCEEDED, analyzer.getBuildState().getState());
+    Assert.assertEquals(0, cr.getLogFilesToFetch().size());
+  }
+
+  @Test
+  public void logWithSkip() {
+    TestUtils.TestLogger log = new TestUtils.TestLogger();
+    HiveResultAnalyzer analyzer = new HiveResultAnalyzer();
+    analyzer.setConfig(new Config()).setLog(log);
+    ContainerResult cr = new ContainerResult(new SimpleContainerCommand(
+        "unittest-7", "/Users/gates/git/hive/jdbc"), 0, LOG_WITH_SKIPPED_TESTS);
+    analyzer.analyzeLog(cr);
+    log.dumpToLog();
     Assert.assertEquals(26, analyzer.getSucceeded());
     Assert.assertEquals(0, analyzer.getErrors().size());
     Assert.assertEquals(0, analyzer.getFailed().size());
+    Assert.assertEquals(BuildState.State.SUCCEEDED, analyzer.getBuildState().getState());
   }
 
   @Test
   public void timeoutLog() {
+    TestUtils.TestLogger log = new TestUtils.TestLogger();
     HiveResultAnalyzer analyzer = new HiveResultAnalyzer();
-    analyzer.analyzeLog(new ContainerResult(new SimpleContainerCommand("bla", "bla"), 0, LOG3));
-    Assert.assertTrue(analyzer.hadTimeouts());
-    Assert.assertTrue(analyzer.runSucceeded());
-  }
-
-  @Test
-  public void failedRun() {
-    HiveResultAnalyzer analyzer = new HiveResultAnalyzer();
-    analyzer.analyzeLog(new ContainerResult(new SimpleContainerCommand(
-        "hive-dtest-1_itests-qtest_TestNegativeCliDriver_a_LF_a-t_RT_._S_",
-        "/Users/gates/git/hive/itests/qtest"), 2, LOG2));
-    Assert.assertFalse(analyzer.runSucceeded());
+    analyzer.setConfig(new Config()).setLog(log);
+    analyzer.analyzeLog(new ContainerResult(new SimpleContainerCommand("bla", "bla"), 0, LOG_WITH_TIMEOUT));
+    log.dumpToLog();
+    Assert.assertEquals(BuildState.State.HAD_TIMEOUTS, analyzer.getBuildState().getState());
   }
 
   @VisibleForTesting
-  public static final String LOG1 =
+  public static final String LOG_UNIT_TESTS_WITH_FAILURES =
       "[INFO] ------------------------------------------------------------------------\n" +
       "[INFO] Building Hive Integration - Unit Tests 3.0.0-SNAPSHOT\n" +
       "[INFO] ------------------------------------------------------------------------\n" +
@@ -155,8 +192,23 @@ public class TestHiveResultAnalyzer {
       "[INFO]\n" +
       "[INFO] Tests run: 12, Failures: 0, Errors: 0, Skipped: 0\n";
 
+  public static final String LOG_UNIT_TESTS_ALL_SUCCEEDED =
+      "[INFO] ------------------------------------------------------------------------\n" +
+          "[INFO] Building Hive Integration - Unit Tests 3.0.0-SNAPSHOT\n" +
+          "[INFO] ------------------------------------------------------------------------\n" +
+          "[WARNING] The POM for net.minidev:json-smart:jar:2.3-SNAPSHOT is missing, no dependency information available\n" +
+          "[WARNING] The POM for org.glassfish:javax.el:jar:3.0.1-b06-SNAPSHOT is missing, no dependency information available\n" +
+          "[WARNING] The POM for org.glassfish:javax.el:jar:3.0.1-b07-SNAPSHOT is missing, no dependency information available\n" +
+          "[WARNING] The POM for org.glassfish:javax.el:jar:3.0.1-b08-SNAPSHOT is missing, no dependency information available\n" +
+          "[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 27.497 s - in org.apache.hadoop.hive.ql.txn.compactor.TestCleanerWithReplication\n" +
+          "[INFO] Running org.apache.hadoop.hive.ql.txn.compactor.TestCompactor\n" +
+          "[INFO] Tests run: 15, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 207.35 s - in org.apache.hadoop.hive.ql.txn.compactor.TestCompactor\n" +
+          "[INFO] Results:\n" +
+          "[INFO]\n" +
+          "[INFO] Tests run: 12, Failures: 0, Errors: 0, Skipped: 0\n";
+
   @VisibleForTesting
-  public static final String LOG2 =
+  public static final String LOG_QFILE_WITH_FAILURES =
       "main:\n" +
           "[delete] Deleting directory /root/hive/itests/qtest/target/tmp\n" +
           "[delete] Deleting directory /root/hive/itests/qtest/target/testconf\n" +
@@ -183,7 +235,21 @@ public class TestHiveResultAnalyzer {
           "at org.apache.hadoop.hive.ql.QTestUtil.failedDiff(QTestUtil.java:2166)";
 
   @VisibleForTesting
-  public static final String LOG3 =
+  public static final String LOG_QFILE_ALL_SUCCEEDED =
+      "main:\n" +
+          "[delete] Deleting directory /root/hive/itests/qtest/target/tmp\n" +
+          "[delete] Deleting directory /root/hive/itests/qtest/target/testconf\n" +
+          "[delete] Deleting directory /root/hive/itests/qtest/target/warehouse\n" +
+          "[mkdir] Created dir: /root/hive/itests/qtest/target/tmp\n" +
+          "[mkdir] Created dir: /root/hive/itests/qtest/target/warehouse\n" +
+          "[mkdir] Created dir: /root/hive/itests/qtest/target/testconf\n" +
+          "[copy] Copying 19 files to /root/hive/itests/qtest/target/testconf\n" +
+          "[INFO] Executed tasks\n" +
+          "[INFO] Running org.apache.hadoop.hive.cli.TestNegativeCliDriver\n" +
+          "[INFO] Tests run: 74, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 201.001 s - in org.apache.hadoop.hive.cli.TestNegativeCliDriver\n";
+
+  @VisibleForTesting
+  public static final String LOG_WITH_TIMEOUT =
       "[INFO] -------------------------------------------------------\n" +
       "[INFO]  T E S T S \n" +
       "[INFO] -------------------------------------------------------\n" +
@@ -202,7 +268,7 @@ public class TestHiveResultAnalyzer {
       "[INFO] ------------------------------------------------------------------------\n" +
       "[ERROR] Failed to execute goal org.apache.maven.plugins:maven-surefire-plugin:2.20.1:test (default-test) on project hive-standalone-metastore: There was a timeout or other error in the fork -> [Help 1]";
 
-  private static final String LOG4 =
+  private static final String LOG_WITH_SKIPPED_TESTS =
       "[INFO] -------------------------------------------------------\n" +
       "[INFO]  T E S T S\n" +
       "[INFO] -------------------------------------------------------\n" +

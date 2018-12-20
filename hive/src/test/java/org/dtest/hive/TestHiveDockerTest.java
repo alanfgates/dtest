@@ -17,7 +17,10 @@ package org.dtest.hive;
 
 import org.apache.commons.lang3.StringUtils;
 import org.dtest.core.BuildInfo;
+import org.dtest.core.BuildState;
 import org.dtest.core.CodeSource;
+import org.dtest.core.Config;
+import org.dtest.core.Configurable;
 import org.dtest.core.ContainerClient;
 import org.dtest.core.ContainerCommand;
 import org.dtest.core.ContainerCommandFactory;
@@ -41,14 +44,10 @@ import java.util.Properties;
 
 public class TestHiveDockerTest {
   private static final Logger LOG = LoggerFactory.getLogger(TestHiveDockerTest.class);
-  private static boolean imageBuilt, hadTimeouts, runSucceeded;
+  private static boolean imageBuilt;
   private static int succeeded;
   private static List<String> failures;
   private static List<String> errors;
-
-  private ByteArrayOutputStream outBuffer;
-  private PrintStream out;
-  private PrintStream err;
 
   public static class SuccessfulWithFailingTestsClient extends ContainerClient {
     @Override
@@ -62,37 +61,37 @@ public class TestHiveDockerTest {
     }
 
     @Override
-    public void buildImage(ContainerCommandFactory cmdFactory, DTestLogger logger) throws IOException {
+    public void buildImage(ContainerCommandFactory cmdFactory) throws IOException {
       imageBuilt = true;
     }
 
     @Override
-    public ContainerResult runContainer(ContainerCommand cmd, DTestLogger logger) throws
+    public ContainerResult runContainer(ContainerCommand cmd) throws
         IOException {
       String logs = "Ran: " + StringUtils.join(cmd.shellCommand(), " ") +
-          TestHiveResultAnalyzer.LOG2;
+          TestHiveResultAnalyzer.LOG_QFILE_WITH_FAILURES;
       return new ContainerResult(cmd, 0, logs);
     }
 
     @Override
-    public void copyLogFiles(ContainerResult result, String targetDir, DTestLogger logger) throws IOException {
+    public void copyLogFiles(ContainerResult result, String targetDir) throws IOException {
 
     }
 
     @Override
-    public void removeContainer(ContainerResult result, DTestLogger logger) throws IOException {
+    public void removeContainer(ContainerResult result) throws IOException {
 
     }
 
     @Override
-    public void removeImage(DTestLogger logger) throws IOException {
+    public void removeImage() throws IOException {
 
     }
   }
 
   public static class ItestCommandList extends ContainerCommandFactory {
     @Override
-    public void buildContainerCommands(ContainerClient containerClient, BuildInfo label, DTestLogger logger) throws IOException {
+    public void buildContainerCommands(ContainerClient containerClient, BuildInfo label) throws IOException {
       getCmds().add(new ContainerCommand() {
         @Override
         public String containerSuffix() {
@@ -125,11 +124,6 @@ public class TestHiveDockerTest {
   public static class SpyingResultAnalyzer extends ResultAnalyzer {
     final HiveResultAnalyzer contained = new HiveResultAnalyzer();
     @Override
-    public void analyzeLog(ContainerResult result) {
-      contained.analyzeLog(result);
-    }
-
-    @Override
     public int getSucceeded() {
       succeeded = contained.getSucceeded();
       return succeeded;
@@ -148,15 +142,23 @@ public class TestHiveDockerTest {
     }
 
     @Override
-    public boolean hadTimeouts() {
-      hadTimeouts = contained.hadTimeouts();
-      return hadTimeouts;
+    public Configurable setConfig(Config cfg) {
+      super.setConfig(cfg);
+      contained.setConfig(cfg);
+      return this;
     }
 
     @Override
-    public boolean runSucceeded() {
-      runSucceeded = contained.runSucceeded();
-      return runSucceeded;
+    public Configurable setLog(DTestLogger log) {
+      super.setLog(log);
+      contained.setLog(log);
+      return this;
+    }
+
+    @Override
+    public void analyzeLog(ContainerResult result) {
+      contained.analyzeLog(result);
+      buildState = contained.getBuildState();
     }
   }
 
@@ -166,14 +168,11 @@ public class TestHiveDockerTest {
     succeeded = 0;
     failures = new ArrayList<>();
     errors = new ArrayList<>();
-    hadTimeouts = false;
-    outBuffer = new ByteArrayOutputStream();
-    out = new PrintStream(outBuffer);
-    err = new PrintStream(new ByteArrayOutputStream());
   }
 
   @Test
   public void successfulRunSomeTestsFail() throws IOException {
+    TestUtils.TestLogger log = new TestUtils.TestLogger();
     Properties props = TestUtils.buildProperties(
         ContainerClient.CFG_CONTAINERCLIENT_IMPL, SuccessfulWithFailingTestsClient.class.getName(),
         ContainerCommandFactory.CFG_CONTAINERCOMMANDLIST_IMPL, ItestCommandList.class.getName(),
@@ -182,18 +181,18 @@ public class TestHiveDockerTest {
         CodeSource.CFG_CODESOURCE_REPO, "repo",
         BuildInfo.CFG_BUILDINFO_BASEDIR, System.getProperty("java.io.tmpdir"),
         BuildInfo.CFG_BUILDINFO_LABEL, "secondTry");
-    DockerTest test = new DockerTest(out, err);
+    DockerTest test = new DockerTest();
     test.buildConfig(props);
-    test.runBuild();
+    test.setLogger(log);
+    BuildState state = test.runBuild();
     Assert.assertTrue(imageBuilt);
     Assert.assertEquals(1, errors.size());
     Assert.assertEquals("TestNegativeCliDriver.alter_notnull_constraint_violation", errors.get(0));
     Assert.assertEquals(1, failures.size());
     Assert.assertEquals("TestNegativeCliDriver.alter_table_constraint_duplicate_pk", failures.get(0));
     Assert.assertEquals(72, succeeded);
-    Assert.assertFalse(hadTimeouts);
-    Assert.assertTrue(runSucceeded);
-    Assert.assertTrue(outBuffer.toString().contains("Test run SUCCEEDED"));
+    Assert.assertEquals(BuildState.State.HAD_FAILURES_OR_ERRORS, state.getState());
+    Assert.assertTrue(log.toString().contains("HAD FAILURES OR ERRORS"));
   }
 
 }

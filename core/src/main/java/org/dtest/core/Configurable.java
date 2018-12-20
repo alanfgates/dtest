@@ -17,17 +17,21 @@ package org.dtest.core;
 
 public abstract class Configurable {
 
-  private Config cfg;
+  protected Config cfg;
+  protected DTestLogger log;
 
   /**
    * Set the configuration object for this object.
    * @param cfg config
    */
-  public void setConfig(Config cfg) {
+  public Configurable setConfig(Config cfg) {
     this.cfg = cfg;
+    return this;
   }
 
-  protected Config getConfig() {
-    return cfg;
+  public Configurable setLog(DTestLogger log) {
+    this.log = log;
+    return this;
   }
+
 }

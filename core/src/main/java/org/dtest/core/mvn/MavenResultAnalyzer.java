@@ -15,12 +15,13 @@
  */
 package org.dtest.core.mvn;
 
+import org.dtest.core.BuildState;
 import org.dtest.core.ContainerResult;
 import org.dtest.core.ResultAnalyzer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
+import java.util.ArrayDeque;
 import java.util.Collections;
+import java.util.Deque;
 import java.util.List;
 import java.util.Vector;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -28,25 +29,25 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class MavenResultAnalyzer extends ResultAnalyzer {
-  private static final Logger LOG = LoggerFactory.getLogger(MavenResultAnalyzer.class);
 
-  private boolean hadTimeouts;
-  private boolean runSucceeded;
+  /**
+   * A list of patterns to use to look for errors.  The first pattern that matches will be used, so order matter here.
+   */
+  protected final Deque<Pattern> unitTestErrorPatterns;
+
+  /**
+   * A list of patterns to use to look for failures.  The first pattern that matches will be used, so order matters here.
+   */
+  protected final Deque<Pattern> unitTestFailurePatterns;
+
   private AtomicInteger succeeded;
   private List<String> failed;
   private List<String> errors;
   private final Pattern successLine;
   private final Pattern errorLine;
-  private final Pattern unitTestError;
-  private final Pattern unitTestFailure;
   private final Pattern timeout;
 
   public MavenResultAnalyzer() {
-    // Access to these does not need to be synchronized because they only go from start state to
-    // the opposite state (eg hadTimeouts starts at false and can move to true, but can never
-    // move back to false).
-    hadTimeouts = false;
-    runSucceeded = true;
     // Access to these needs to be synchronized.
     succeeded = new AtomicInteger(0);
     failed = new Vector<>();
@@ -55,12 +56,11 @@ public class MavenResultAnalyzer extends ResultAnalyzer {
         Pattern.compile("\\[(?:INFO|WARNING)\\] Tests run: ([0-9]+), Failures: ([0-9]+), Errors: ([0-9]+).*Time elapsed:.*");
     errorLine =
         Pattern.compile("\\[ERROR\\] Tests run: ([0-9]+), Failures: ([0-9]+), Errors: ([0-9]+).*Time elapsed:.*");
-    unitTestError =
-        Pattern.compile("\\[ERROR\\] ([A-Za-z0-9_]+).*\\.(Test[A-Za-z0-9_]+).*ERROR!");
-    unitTestFailure =
-        Pattern.compile("\\[ERROR\\] ([A-Za-z0-9_]+).*\\.(Test[A-Za-z0-9_]+).*FAILURE!");
-    timeout =
-        Pattern.compile("\\[ERROR\\] Failed to execute goal .* There was a timeout or other error in the fork.*");
+    timeout = Pattern.compile("\\[ERROR\\] Failed to execute goal .* There was a timeout or other error in the fork.*");
+    unitTestErrorPatterns = new ArrayDeque<>();
+    unitTestErrorPatterns.add(Pattern.compile("\\[ERROR\\] ([A-Za-z0-9_]+).*\\.(Test[A-Za-z0-9_]+).*ERROR!"));
+    unitTestFailurePatterns = new ArrayDeque<>();
+    unitTestFailurePatterns.add(Pattern.compile("\\[ERROR\\] ([A-Za-z0-9_]+).*\\.(Test[A-Za-z0-9_]+).*FAILURE!"));
   }
 
   @Override
@@ -83,46 +83,33 @@ public class MavenResultAnalyzer extends ResultAnalyzer {
   @Override
   public void analyzeLog(ContainerResult result) {
     String[] lines = result.getLogs().split("\n");
-    boolean sawTimeout = false;
     for (String line : lines) {
       count(line, successLine);
       count(line, errorLine);
-      sawTimeout |= analyzeLogLine(result, line);
+      analyzeLogLine(result, line);
     }
-    if (sawTimeout) {
-      hadTimeouts = true;
+    if (buildState.getState() == BuildState.State.HAD_TIMEOUTS) {
+      buildState.sawTimeouts();
       result.setAnalysisResult(ContainerResult.ContainerStatus.TIMED_OUT);
     } else if (result.getRc() != 0) {
-      runSucceeded = false;
+      buildState.fail();
       result.setAnalysisResult(ContainerResult.ContainerStatus.FAILED);
     } else {
+      // This can get overwritten by later analysis.  It won't overwrite early analysis if there was a failure
+      buildState.success();
       result.setAnalysisResult(ContainerResult.ContainerStatus.SUCCEEDED);
     }
   }
 
-  @Override
-  public boolean hadTimeouts() {
-    return hadTimeouts;
-  }
-
-  @Override
-  public boolean runSucceeded() {
-    return runSucceeded;
-  }
-
   // Returns true if it sees a timeout
-  protected boolean analyzeLogLine(ContainerResult result, String line) {
-    if (!findErrorsAndFailures(result, line, unitTestError, unitTestFailure)) {
-      // Finally, look for timeouts
-      Matcher m = timeout.matcher(line);
-      if (m.matches()) {
-        return true;
-      }
-    }
-    return false;
+  private void analyzeLogLine(ContainerResult result, String line) {
+    // Look for timeouts
+    Matcher m = timeout.matcher(line);
+    if (m.matches()) buildState.sawTimeouts();
+    else findErrorsAndFailures(result, line);
   }
 
-  protected void count(String line, Pattern pattern) {
+  private void count(String line, Pattern pattern) {
     Matcher m = pattern.matcher(line);
     if (m.matches()) {
       int total = Integer.parseInt(m.group(1));
@@ -132,24 +119,27 @@ public class MavenResultAnalyzer extends ResultAnalyzer {
     }
   }
 
-  protected boolean findErrorsAndFailures(ContainerResult result, String line, Pattern error,
-                                        Pattern failure) {
-    Matcher errorLine = error.matcher(line);
-    if (errorLine.matches()) {
-      String testName = errorLine.group(2) + "." + errorLine.group(1);
-      errors.add(testName);
-      findLogFiles(result, line, errorLine.group(2));
-      return true;
-    } else {
+  private void findErrorsAndFailures(ContainerResult result, String line) {
+    for (Pattern error : unitTestErrorPatterns) {
+      Matcher errorLine = error.matcher(line);
+      if (errorLine.matches()) {
+        String testName = errorLine.group(2) + "." + errorLine.group(1);
+        errors.add(testName);
+        findLogFiles(result, line, errorLine.group(2));
+        buildState.sawTestFailureOrError();
+        break; // If we found an error, don't keep looking or we may double count
+      }
+    }
+    for (Pattern failure : unitTestFailurePatterns) {
       Matcher failureLine = failure.matcher(line);
       if (failureLine.matches()) {
         String testName = failureLine.group(2) + "." + failureLine.group(1);
         failed.add(testName);
         findLogFiles(result, line, failureLine.group(2));
-        return true;
+        buildState.sawTestFailureOrError();
+        break; // If we found a failure, don't keep looking or we may double count
       }
     }
-    return false;
   }
 
   private void findLogFiles(ContainerResult result, String line, String testName) {
@@ -158,7 +148,7 @@ public class MavenResultAnalyzer extends ResultAnalyzer {
     if (!m.matches()) {
       throw new RuntimeException("Failed to find the full name of the failed test.");
     }
-    LOG.debug("Adding log files for container " + result.getCmd().containerSuffix());
+    log.debug("Adding log files for container " + result.getCmd().containerSuffix());
     result.addLogFileToFetch(result.getCmd().containerDirectory() + "/target/tmp/log/hive.log");
     result.addLogFileToFetch(result.getCmd().containerDirectory() + "/target/surefire-reports/" + m.group(1) + ".txt");
     result.addLogFileToFetch(result.getCmd().containerDirectory() + "/target/surefire-reports/" + m.group(1) + "-output.txt");

@@ -15,140 +15,42 @@
  */
 package org.dtest.core;
 
-import org.apache.commons.lang3.StringUtils;
+/**
+ * DTestLogger is a facade for the logging system.  This allows the use of slf4j, maven plugin logger, or others
+ * as appropriate.
+ */
+public interface DTestLogger {
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.PrintStream;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
+  void error(String msg);
 
-// TODO - get rid of this and switch to log4j.  THen we can get rid of teh print streams in DockerTest.
-public class DTestLogger {
-  /**
-   * Log file name.
-   */
-  public static final String LOG_FILE = "dtest.log";
+  void error(String msg, Throwable t);
 
-  private Writer writer;
-  private Thread writerThread;
-  private BlockingQueue<Message> queue;
+  void warn(String msg);
 
-  /**
-   * Constructor for your main program, this one will open a new log file.
-   * @param dir directory where output log will be written
-   * @throws IOException the log cannot be opened or written to.  If you get this you should give
-   * up as nothing will be logged.
-   */
-  public DTestLogger(String dir) throws IOException {
-    queue = new LinkedBlockingQueue<>();
-    writer = new Writer(dir);
-    writerThread = new Thread(writer);
-    writerThread.setDaemon(true);
-    writerThread.start();
+  void warn(String msg, Throwable t);
+
+  default void info(String containerId, String msg) {
+    info("containerId: " + containerId + " " + msg);
   }
 
-  /**
-   * Write a message to the log.  This only puts the message in the queue, a separate thread
-   * writes it to the log later.
-   * @param containerId unique id for this container
-   * @param message message to be logged.
-   */
-  public void write(String containerId, String message) {
-    queue.offer(new Message(System.currentTimeMillis(), containerId, message));
+  void info(String msg);
+
+  void info(String msg, Throwable t);
+
+  default void debug(String containerId, String msg) {
+    debug("containerId: " + containerId + " " + msg);
   }
 
-  /**
-   * Write a message to the log and to print stream (probably stdout).  This calls enqueues the
-   * message, a separate thread writes it to the log and stdout
-   * @param containerId unique id for this container
-   * @param message message to be logged
-   * @param out stream to print the message to in addition to logging
-   */
-  public void writeAndPrint(String containerId, String message, PrintStream out) {
-    queue.offer(new Message(System.currentTimeMillis(), containerId, message, out));
-  }
+  void debug(String msg);
 
-  /**
-   * Close the writer.  It cannot be reopened once this is done.
-   * @throws IOException the closing message cannot be written to the log
-   */
-  public synchronized void close() throws IOException {
-    writer.close();
-    writerThread = null;
-  }
+  void debug(String msg, Throwable t);
 
-  private static class Message {
-    private final long time;
-    private final String containerId;
-    private final String content;
-    private final PrintStream out;
+  boolean isErrorEnabled();
 
-    private Message(long time, String containerId, String content) {
-      this(time, containerId, content, null);
-    }
+  boolean isWarnEnabled();
 
-    private Message(long time, String containerId, String content, PrintStream out) {
-      this.time = time;
-      this.containerId = containerId;
-      this.content = content;
-      this.out = out;
-    }
-  }
+  boolean isInfoEnabled();
 
-  private class Writer implements Runnable {
-    private FileWriter mainWriter;
-
-    Writer(String dir) throws IOException {
-      mainWriter = new FileWriter(dir + File.separatorChar + LOG_FILE);
-      mainWriter.write("Test started at " + new Date().toString());
-    }
-
-    @Override
-    public void run() {
-      while (mainWriter != null) {
-        Message m;
-        Calendar cal = Calendar.getInstance();
-        try {
-          while ((m = queue.take()) != null) {
-            cal.setTimeInMillis(m.time);
-            String msg =
-                StringUtils.leftPad(Integer.toString(cal.get(Calendar.HOUR_OF_DAY)), 2, '0') +
-                ":" + StringUtils.leftPad(Integer.toString(cal.get(Calendar.MINUTE)), 2, '0') +
-                ':' + StringUtils.leftPad(Integer.toString(cal.get(Calendar.SECOND)), 2, '0') +
-                '.' + StringUtils.leftPad(Integer.toString(cal.get(Calendar.MILLISECOND)), 3, '0') +
-                " [" + m.containerId + "] :" + m.content + '\n';
-            mainWriter.write(msg);
-            mainWriter.flush();
-            if (m.out != null) m.out.print(msg);
-          }
-        } catch (InterruptedException e) {
-          // Assume this means we're supposed to quit.
-          mainWriter = null;
-        } catch (IOException ioe) {
-          System.err.println("Log writer died, you won't get any results!");
-          mainWriter = null;
-        }
-      }
-    }
-
-    void close() throws IOException {
-      while (mainWriter != null && queue.size() > 0) {
-        try {
-          Thread.sleep(1000);
-        } catch (InterruptedException e) {
-          // Assume we were interrupted, see if the queue is done.
-        }
-      }
-      if (mainWriter != null) {
-        mainWriter.write("Test completed at " + new Date().toString());
-      }
-      mainWriter = null;
-    }
-  }
-
+  boolean isDebugEnabled();
 
 }

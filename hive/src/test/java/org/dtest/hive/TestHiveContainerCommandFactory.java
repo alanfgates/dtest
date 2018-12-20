@@ -90,16 +90,17 @@ public class TestHiveContainerCommandFactory {
 
   @Test
   public void buildCommands() throws IOException {
+    TestUtils.TestLogger log = new TestUtils.TestLogger();
     Config cfg = TestUtils.buildCfg(
         CodeSource.CFG_CODESOURCE_REPO, "http://myrepo.com/repo.git",
         CodeSource.CFG_CODESOURCE_BRANCH, "mybranch",
         BuildInfo.CFG_BUILDINFO_LABEL, "mylabel");
     HiveContainerCommandFactory cmds = new HiveContainerCommandFactory();
-    cmds.setConfig(cfg);
+    cmds.setConfig(cfg).setLog(log);
     BuildInfo buildInfo = new BuildInfo(TestUtils.getConfDir(), new GitSource(), true);
     buildInfo.setConfig(cfg);
-    DTestLogger logger = new DTestLogger(".");
-    cmds.buildContainerCommands(new TestContainerClient(), buildInfo, logger);
+    cmds.buildContainerCommands(new TestContainerClient(), buildInfo);
+    log.dumpToLog();
     Assert.assertEquals(11, cmds.getCmds().size());
     Assert.assertEquals("/bin/bash -c ( cd /tmp/beeline; /usr/bin/mvn test -Dsurefire.timeout=300)", StringUtils.join(cmds.getCmds().get(0).shellCommand(), " "));
     Assert.assertEquals("/bin/bash -c ( cd /tmp/cli; /usr/bin/mvn test -Dsurefire.timeout=300 -Dtest.excludes.additional=**/TestCliDriverMethods)", StringUtils.join(cmds.getCmds().get(1).shellCommand(), " "));
@@ -126,8 +127,7 @@ public class TestHiveContainerCommandFactory {
     }
 
     @Override
-    public ContainerResult runContainer(ContainerCommand cmd,
-                                        DTestLogger logger) throws IOException {
+    public ContainerResult runContainer(ContainerCommand cmd) throws IOException {
       // Doing our own mocking here
       String shellCmd = StringUtils.join(cmd.shellCommand(), " ");
       if (shellCmd.contains("cat itests/src/test/resources/testconfiguration.properties")) {
@@ -175,22 +175,22 @@ public class TestHiveContainerCommandFactory {
     }
 
     @Override
-    public void buildImage(ContainerCommandFactory cmdFactory, DTestLogger logger) throws IOException {
+    public void buildImage(ContainerCommandFactory cmdFactory) throws IOException {
 
     }
 
     @Override
-    public void copyLogFiles(ContainerResult result, String targetDir, DTestLogger logger) throws IOException {
+    public void copyLogFiles(ContainerResult result, String targetDir) throws IOException {
 
     }
 
     @Override
-    public void removeContainer(ContainerResult result, DTestLogger logger) throws IOException {
+    public void removeContainer(ContainerResult result) throws IOException {
 
     }
 
     @Override
-    public void removeImage(DTestLogger logger) throws IOException {
+    public void removeImage() throws IOException {
 
     }
   }

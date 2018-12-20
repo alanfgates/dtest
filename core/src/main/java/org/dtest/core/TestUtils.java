@@ -15,9 +15,12 @@
  */
 package org.dtest.core;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 
 public class TestUtils {
@@ -35,18 +38,100 @@ public class TestUtils {
     return new Config(buildProperties(vals));
   }
 
-  /*
-  public static void createConfFile() throws IOException {
-    File propertiesFile = new File(getConfDir(), Config.PROPERTIES_FILE);
-    propertiesFile.deleteOnExit();
-    FileWriter writer = new FileWriter(propertiesFile);
-    writer.write("test = test\n");
-    writer.close();
-
-  }
-  */
   public static String getConfDir() {
     return System.getProperty("java.io.tmpdir") + File.separator + "test-classes";
+  }
+
+  public static class TestLogger implements DTestLogger {
+    private Logger log = LoggerFactory.getLogger(TestUtils.class);
+    private List<String> entries = new ArrayList<>();
+
+    @Override
+    public void error(String msg) {
+      append("ERROR", msg);
+    }
+
+    @Override
+    public void error(String msg, Throwable t) {
+      append("ERROR", msg, t);
+    }
+
+    @Override
+    public void warn(String msg) {
+      append("WARN", msg);
+    }
+
+    @Override
+    public void warn(String msg, Throwable t) {
+      append("WARN", msg, t);
+    }
+
+    @Override
+    public void info(String msg) {
+      append("INFO", msg);
+    }
+
+    @Override
+    public void info(String msg, Throwable t) {
+      append("INFO", msg, t);
+    }
+
+    @Override
+    public void debug(String msg) {
+      append("DEBUG", msg);
+    }
+
+    @Override
+    public void debug(String msg, Throwable t) {
+      append("DEBUG", msg, t);
+    }
+
+    @Override
+    public boolean isErrorEnabled() {
+      return true;
+    }
+
+    @Override
+    public boolean isWarnEnabled() {
+      return true;
+    }
+
+    @Override
+    public boolean isInfoEnabled() {
+      return true;
+    }
+
+    @Override
+    public boolean isDebugEnabled() {
+      return true;
+    }
+
+    @Override
+    public String toString() {
+      // Returns the entire log in one big string, with each entry separated by returns
+      StringBuilder buf = new StringBuilder();
+      for (String entry : entries) buf.append(entry).append("\n");
+      return buf.toString();
+    }
+
+    public void dumpToLog() {
+      log.info("Entire logs from test:");
+      for (String entry : entries) log.info(entry);
+    }
+
+    private void append(String level, String msg) {
+      append(level, msg, null);
+    }
+
+    private void append(String level, String msg, Throwable t) {
+      entries.add(level + ": " + msg);
+      if (t != null) {
+        entries.add("Caught exception " + t.getClass().getName() + " with message " + t.getMessage());
+        StackTraceElement[] stack = t.getStackTrace();
+        for (StackTraceElement element : stack) entries.add("   " + element.toString());
+      }
+
+    }
   }
 
 }

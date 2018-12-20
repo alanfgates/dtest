@@ -18,8 +18,6 @@ package org.dtest.core.impl;
 import org.apache.commons.lang3.StringUtils;
 import org.dtest.core.DTestLogger;
 import org.dtest.core.DockerTest;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
@@ -27,7 +25,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
 
 public class Utils {
-  private static final Logger LOG = LoggerFactory.getLogger(Utils.class);
   private static final String CONTAINER_BASE = "dtest-";
 
   @SuppressWarnings(value = "unchecked")
@@ -41,14 +38,12 @@ public class Utils {
   }
 
   public static ProcessResults runProcess(String containerId, long secondsToWait,
-                                          DTestLogger logger, String... cmd) throws IOException {
-    String msg = "Going to run: " + StringUtils.join(cmd, " ");
-    LOG.info(msg);
-    logger.write(DockerTest.EXEC_LOG, msg);
+                                          DTestLogger log, String... cmd) throws IOException {
+    log.info(DockerTest.EXEC_LOG, "Going to run: " + StringUtils.join(cmd, " "));
     Process proc = Runtime.getRuntime().exec(cmd);
     AtomicBoolean running = new AtomicBoolean(true);
-    StreamPumper stdout = new StreamPumper(running, proc.getInputStream(), containerId, logger);
-    StreamPumper stderr = new StreamPumper(running, proc.getErrorStream(), containerId, logger);
+    StreamPumper stdout = new StreamPumper(running, proc.getInputStream(), containerId, log);
+    StreamPumper stderr = new StreamPumper(running, proc.getErrorStream(), containerId, log);
     new Thread(stdout).start();
     new Thread(stderr).start();
     try {
