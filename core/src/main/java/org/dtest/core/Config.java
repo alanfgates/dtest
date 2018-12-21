@@ -42,8 +42,7 @@ import java.util.regex.Pattern;
  */
 public class Config {
 
-  @VisibleForTesting
-  static final String PROPERTIES_FILE = "dtest.properties";
+  public static final String PROPERTIES_FILE = "dtest.properties";
   private static final Pattern TIME_UNIT_SUFFIX = Pattern.compile("([0-9]+)([a-zA-Z]+)");
 
   private final Properties entries;

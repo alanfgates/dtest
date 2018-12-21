@@ -91,12 +91,10 @@ public class DockerTest {
     this.log = log;
   }
 
-  /**
-   * Parse the arguments.
-   * @param args Command line arguments.
-   */
   @SuppressWarnings("static-access")
-  private void parseArgs(String[] args) {
+  private boolean parseArgs(String[] args) {
+    // The logs have not been set up yet when this method is called.  Also, this method should only be used
+    // from the command line.  So any errors encountered here need to be printed out rather than sent to the logs.
     CommandLineParser parser = new GnuParser();
 
     Options opts = new Options();
@@ -118,9 +116,11 @@ public class DockerTest {
       cmd = parser.parse(opts, args);
       cleanupAfter = !cmd.hasOption("m");
       cfgDir = cmd.getOptionValue("c");
+      return true;
     } catch (ParseException e) {
-      log.error("Failed to parse command line: ", e);
+      System.err.println("Failed to parse command line: " + e.getMessage());
       usage(opts);
+      return false;
     }
   }
 
@@ -258,21 +258,31 @@ public class DockerTest {
    */
   public static void main(String[] args) {
     DockerTest test = new DockerTest();
-    test.parseArgs(args);
     int rc;
-    try {
-      test.buildConfig(test.cfgDir, System.getProperties());
-      test.setLogger(new Slf4jLogger());
-      BuildState state = test.runBuild();
-      switch (state.getState()) {
-        case NOT_INITIALIZED: throw new RuntimeException("This shouldn't happen");
-        case SUCCEEDED: rc = 0; break;
-        case HAD_FAILURES_OR_ERRORS: rc = 1; break;
-        default: rc = -1; break;
+    if (test.parseArgs(args)) {
+      try {
+        test.buildConfig(test.cfgDir, System.getProperties());
+        test.setLogger(new Slf4jLogger());
+        BuildState state = test.runBuild();
+        switch (state.getState()) {
+          case NOT_INITIALIZED:
+            throw new RuntimeException("This shouldn't happen");
+          case SUCCEEDED:
+            rc = 0;
+            break;
+          case HAD_FAILURES_OR_ERRORS:
+            rc = 1;
+            break;
+          default:
+            rc = -1;
+            break;
+        }
+      } catch (IOException e) {
+        rc = 1;
+        System.err.println("Failed, see logs for more details: " + e.getMessage());
       }
-    } catch (IOException e) {
-      rc = 1;
-      System.err.println("Failed, see logs for more details: " + e.getMessage());
+    } else {
+      rc = -1;
     }
     System.exit(rc);
   }

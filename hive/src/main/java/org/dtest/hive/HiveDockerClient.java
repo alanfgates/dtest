@@ -16,8 +16,12 @@
 package org.dtest.hive;
 
 import org.dtest.core.docker.DockerContainerClient;
+import org.dtest.core.impl.ProcessResults;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.util.regex.Matcher;
 
 public class HiveDockerClient extends DockerContainerClient {
   private static final Logger LOG = LoggerFactory.getLogger(HiveDockerClient.class);
@@ -26,4 +30,19 @@ public class HiveDockerClient extends DockerContainerClient {
   public String getProjectName() {
     return "hive";
   }
+
+  @Override
+  protected void checkBuildSucceeded(ProcessResults res) throws IOException {
+    Matcher m = IMAGE_SUCCESS.matcher(res.stdout);
+    // We should see "BUILD SUCCESS" twice, once for the main build and once for itests
+    if (res.rc != 0 || !(m.find() && m.find())) {
+      // We might have read some from cache, check that before bailing
+      m = USING_CACHE.matcher(res.stdout);
+      if (res.rc != 0 || !(m.find() && m.find())) {
+        // We might have read some from cache, check that before bailing
+        throw new IOException("Failed to build image, see logs for error message: " + res.stderr);
+      }
+    }
+  }
+
 }

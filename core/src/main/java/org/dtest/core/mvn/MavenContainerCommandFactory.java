@@ -25,7 +25,6 @@ import org.dtest.core.ContainerClient;
 import org.dtest.core.ContainerCommand;
 import org.dtest.core.ContainerCommandFactory;
 import org.dtest.core.ContainerResult;
-import org.dtest.core.DTestLogger;
 import org.dtest.core.impl.Utils;
 
 import java.io.File;
@@ -40,6 +39,9 @@ import java.util.List;
 import java.util.Set;
 
 public class MavenContainerCommandFactory extends ContainerCommandFactory {
+
+  public static final String YAML_FILE = "dtest.yaml";
+
   protected int containerNumber;
 
   public MavenContainerCommandFactory() {
@@ -150,7 +152,7 @@ public class MavenContainerCommandFactory extends ContainerCommandFactory {
 
   /**
    * Check if a subclass should handle this instead of the main class.  If this is true then
-   * @link {@link #handle(ModuleDirectory, ContainerClient, BuildInfo, DTestLogger, int)}
+   * @link {@link #handle(ModuleDirectory, ContainerClient, BuildInfo, int)}
    * will be called.
    * @param mDir information on this directory
    * @return true if the subclass should handle it.
@@ -183,7 +185,7 @@ public class MavenContainerCommandFactory extends ContainerCommandFactory {
   @VisibleForTesting
   public <T> List<T> readYaml(String confDir, Class<? extends ModuleDirectory> clazz)
       throws IOException {
-    String filename = confDir + File.separator + "dtest.yaml";
+    String filename = confDir + File.separator + YAML_FILE;
     File yamlFile = new File(filename);
     ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
     ObjectReader reader = mapper.readerFor(clazz);

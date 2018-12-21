@@ -36,12 +36,19 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class DockerContainerClient extends ContainerClient {
+  /**
+   * Path to the docker executable.  Defaults to /usr/local/bin/docker
+   */
+  public static final String CFG_DOCKERCONTAINERCLIENT_DOCKERPATH = "dtest.docker.dockercontainerclient.dockerpath";
+  private static final String CFG_DOCKERCONTAINERCLIENT_DOCKERPATH_DEFAULT = "/usr/local/bin/docker";
+
+  protected static final Pattern IMAGE_SUCCESS = Pattern.compile("BUILD SUCCESS");
+  protected static final Pattern USING_CACHE = Pattern.compile("Using cache");
   private static final String IMAGE_BASE = "dtest-image-";
-  private static final Pattern IMAGE_SUCCESS = Pattern.compile("BUILD SUCCESS");
-  private static final Pattern USING_CACHE = Pattern.compile("Using cache");
   private static final String BUILD_CONTAINER_NAME = "image_build";
 
   private String imageName;
+  private String dockerExec;
 
   @Override
   public void setBuildInfo(BuildInfo buildInfo) {
@@ -61,14 +68,14 @@ public class DockerContainerClient extends ContainerClient {
     checkBuildSucceeded(Utils.runProcess(BUILD_CONTAINER_NAME,
         cfg.getAsTime(CFG_CONTAINERCLIENT_IMAGEBUILDTIME, TimeUnit.SECONDS,
             CFG_CONTAINERCLIENT_IMAGEBUILDTIME_DEFAULT),
-        log, "docker", "build", "--tag", imageName, buildInfo.getBuildDir()));
+        log, getDockerExec(), "build", "--tag", imageName, buildInfo.getBuildDir()));
   }
 
   @Override
   public ContainerResult runContainer(ContainerCommand cmd) throws IOException {
     List<String> runCmd = new ArrayList<>();
     String containerName = Utils.buildContainerName(buildInfo.getLabel(), cmd.containerSuffix());
-    Collections.addAll(runCmd, "docker", "run", "--name", containerName, imageName);
+    Collections.addAll(runCmd, getDockerExec(), "run", "--name", containerName, imageName);
     Collections.addAll(runCmd, cmd.shellCommand());
     ProcessResults res = Utils.runProcess(cmd.containerSuffix(),
         cfg.getAsTime(CFG_CONTAINERCLIENT_CONTAINERRUNTIME, TimeUnit.SECONDS,
@@ -82,22 +89,8 @@ public class DockerContainerClient extends ContainerClient {
     String containerName = Utils.buildContainerName(buildInfo.getLabel(), result.getCmd().containerSuffix());
     for (String file : result.getLogFilesToFetch()) {
       ProcessResults res = Utils.runProcess("copying-files-for-" + containerName, 60, log,
-          "docker", "cp", containerName + ":" + file, targetDir);
+          getDockerExec(), "cp", containerName + ":" + file, targetDir);
       if (res.rc != 0) throw new IOException("Failed to copy logfile " + res.stderr);
-    }
-  }
-
-  @VisibleForTesting
-  public static void checkBuildSucceeded(ProcessResults res) throws IOException {
-    Matcher m = IMAGE_SUCCESS.matcher(res.stdout);
-    // We should see "BUILD SUCCESS" twice, once for the main build and once for itests
-    if (res.rc != 0 || !(m.find() && m.find())) {
-      // We might have read some from cache, check that before bailing
-      m = USING_CACHE.matcher(res.stdout);
-      if (res.rc != 0 || !(m.find() && m.find())) {
-        // We might have read some from cache, check that before bailing
-        throw new IOException("Failed to build image, see logs for error message: " + res.stderr);
-      }
     }
   }
 
@@ -105,7 +98,7 @@ public class DockerContainerClient extends ContainerClient {
   public void removeContainer(ContainerResult result) throws IOException {
     String containerName = Utils.buildContainerName(buildInfo.getLabel(), result.getCmd().containerSuffix());
     if (buildInfo.shouldCleanupAfter()) {
-      ProcessResults res = Utils.runProcess("cleanup", 300, log, "docker", "rm", containerName);
+      ProcessResults res = Utils.runProcess("cleanup", 300, log, getDockerExec(), "rm", containerName);
       if (res.rc != 0) {
         log.warn("Failed to cleanup containers: " + res.stderr);
       }
@@ -118,7 +111,7 @@ public class DockerContainerClient extends ContainerClient {
   public void removeImage() throws IOException {
     if (buildInfo.shouldCleanupAfter()) {
       ProcessResults res =
-          Utils.runProcess("cleanup", 300, log, "docker", "image", "rm", imageName);
+          Utils.runProcess("cleanup", 300, log, getDockerExec(), "image", "rm", imageName);
       if (res.rc != 0) {
         log.warn("Failed to cleanup containers: " + res.stderr);
       }
@@ -161,6 +154,19 @@ public class DockerContainerClient extends ContainerClient {
     writer.close();
   }
 
+  protected void checkBuildSucceeded(ProcessResults res) throws IOException {
+    Matcher m = IMAGE_SUCCESS.matcher(res.stdout);
+    // We should see "BUILD SUCCESS"
+    if (res.rc != 0 || !(m.find())) {
+      // We might have read some from cache, check that before bailing
+      m = USING_CACHE.matcher(res.stdout);
+      if (res.rc != 0 || !(m.find())) {
+        // We might have read some from cache, check that before bailing
+        throw new IOException("Failed to build image, see logs for error message: " + res.stderr);
+      }
+    }
+  }
+
   protected String getBaseImage() {
     return "FROM centos";
   }
@@ -181,4 +187,10 @@ public class DockerContainerClient extends ContainerClient {
     return "/home/" + getUser();
   }
 
+  private String getDockerExec() {
+    if (dockerExec == null) {
+      dockerExec = cfg.getAsString(CFG_DOCKERCONTAINERCLIENT_DOCKERPATH, CFG_DOCKERCONTAINERCLIENT_DOCKERPATH_DEFAULT);
+    }
+    return dockerExec;
+  }
 }

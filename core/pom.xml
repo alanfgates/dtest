@@ -62,7 +62,7 @@ limitations under the License.
               <goal>single</goal>
             </goals>
             <configuration>
-              <finalName>dtest-simple-${project.version}</finalName>
+              <finalName>dtest-core-${project.version}</finalName>
               <descriptors>
                 <descriptor>src/assembly/bin.xml</descriptor>
               </descriptors>
