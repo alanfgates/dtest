@@ -50,15 +50,16 @@ limitations under the License.
       </includes>
       <outputDirectory>bin</outputDirectory>
     </fileSet>
+
+    <fileSet>
+      <directory>${project.basedir}/src/main/resources/</directory>
+      <fileMode>644</fileMode>
+      <includes>
+        <include>log4j2.xml</include>
+      </includes>
+      <outputDirectory>conf</outputDirectory>
+    </fileSet>
   </fileSets>
 
-  <files>
-    <file>
-      <source>${project.basedir}/src/main/resources/production-log-for-j-settings.xml</source>
-      <outputDirectory>conf</outputDirectory>
-      <destName>log4j2.xml</destName>
-      <fileMode>644</fileMode>
-    </file>
-  </files>
 </assembly>
 

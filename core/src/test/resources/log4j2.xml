@@ -1,10 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- This is a copy of log4j2.xml but with levels set for production.  If you make a change here you need
-     to make it there, unless you only want the change to apply in production. -->
+<!-- This is the test version of the config file.  It is set to minimize the output to the console and maximize
+     it in the logs.  If you intend to change log4j settings for the tool, use the instance of this file in
+     main/resources instead. -->
+
 <Configuration status="warn">
 
     <Properties>
-        <Property name="logfile.name">${env:DTEST_HOME}/log/dtest.log</Property>
+        <Property name="logfile.name">dtest.log</Property>
     </Properties>
 
     <Appenders>
@@ -18,8 +20,8 @@
 
     <Loggers>
         <Root level="debug">
-            <AppenderRef ref="STDERR" level="info"/>
-            <AppenderRef ref="File" level="info"/>
+            <AppenderRef ref="STDERR" level="warn"/>
+            <AppenderRef ref="File" level="debug"/>
         </Root>
     </Loggers>
 

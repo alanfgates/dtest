@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
+<!-- This is the production instance of this file, set to have moderate output to both the screen and the logs.
+     If you want to change log4j output in the tests modify the version of this file in test/resources instead. -->
 <Configuration status="warn">
 
     <Properties>
-        <Property name="logfile.name">dtest.log</Property>
+        <Property name="logfile.name">${env:DTEST_HOME}/log/dtest.log</Property>
     </Properties>
 
     <Appenders>
@@ -17,8 +18,8 @@
 
     <Loggers>
         <Root level="debug">
-            <AppenderRef ref="STDERR" level="warn"/>
-            <AppenderRef ref="File" level="debug"/>
+            <AppenderRef ref="STDERR" level="info"/>
+            <AppenderRef ref="File" level="info"/>
         </Root>
     </Loggers>
 
