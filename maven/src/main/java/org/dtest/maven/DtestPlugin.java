@@ -15,44 +15,160 @@
  */
 package org.dtest.maven;
 
+import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.maven.model.Resource;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
+import org.dtest.core.BuildInfo;
+import org.dtest.core.BuildState;
+import org.dtest.core.Config;
+import org.dtest.core.DTestLogger;
+import org.dtest.core.DockerTest;
+import org.dtest.core.git.GitSource;
+import org.dtest.core.mvn.MavenContainerCommandFactory;
+
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.List;
+import java.util.Properties;
 
 @Mojo(name = "dtest",
-      defaultPhase = LifecyclePhase.TEST,
-      requiresDirectInvocation = true)
+      aggregator = true,
+      defaultPhase = LifecyclePhase.VERIFY)
 public class DtestPlugin extends AbstractMojo {
 
+  private static String DEFAULT_BASE_DIR = "dtest-plugin-build";
+
   /**
-   * Default repository to use in the build.  This must be set.  You can override this with values specific
+   * Default source control repository to use in the build.  Normally you would set this in your dtest.properties
+   * file, but you can override it here if needed.
+   */
+  @Parameter(property = "dtest.repo")
+  private String repo;
+
+  /**
+   * Branch to be used in the source control.  Defaults to something reasonable for the configured source
+   * control system.
+   */
+  @Parameter(property = "dtest.branch")
+  private String branch;
+
+  /**
+   * Label to use with the build.  Usually you don't want to set this as the system will generate a unique
+   * label for this build to make sure it is built from scratch.  Only set this if you explicitly want to rerun
+   * an existing build.
+   */
+  @Parameter(property = "dtest.label")
+  private String label;
+
+  /**
+   * Base directory to run the build in.  Defaults to target/dtest-plugin-build
+   */
+  @Parameter(property = "dtest.basedir", defaultValue = "${project.build.directory}/dtest-plugin-build")
+  private File baseDir;
+
+  /**
+   * Where the plugin will look for the dtest.properties and dtest.yaml files.  Defaults to src/test/resources.
+   */
+  @Parameter(defaultValue = "${project.build.testResources}")
+  private List<Resource> testResources;
+
+  /**
+   * Additional properties to set for the build.  These will be used in constructing the configuration object
+   * for the build.  They will override any values in the build's config file.
    */
   @Parameter
-  String repo;
+  private Properties dtestProperties;
 
-  // Need parameters for
-  // repo - master repo must be set
-  // branch - default to what makes sense for the CodeRepository
-  // label - auto generates something
-  // log4j - configuration
-  // base dir = default to target
-  // Need options for where properties and yaml files are, default to resources
-  // How do I get a hold of properties already set, rather than having a parameter for every config value?
   @Override
   public void execute() throws MojoExecutionException, MojoFailureException {
 
-    // Move dtest.properties and dtest.yaml into target/conf
+    DTestLogger log = new MavenLogger(getLog());
 
-    // Set any passed in values in properties
+    if (dtestProperties == null) dtestProperties = new Properties();
 
-    // build the config object
+    if (repo != null) {
+      dtestProperties.setProperty(GitSource.CFG_CODESOURCE_REPO, repo);
+      log.debug("Building with repo set to " + repo);
+    }
 
-    // preapre the build
+    if (branch != null) {
+      dtestProperties.setProperty(GitSource.CFG_CODESOURCE_BRANCH, branch);
+      log.debug("Building with branch set to " + branch);
+    }
 
-    // run the build
+    if (label == null) {
+      label = RandomStringUtils.randomAlphanumeric(10).toLowerCase();
+    }
+    dtestProperties.setProperty(BuildInfo.CFG_BUILDINFO_LABEL, label);
+    log.info("Building with label " + label);
+
+    baseDir.mkdirs();
+    log.debug("Building in " + baseDir.getAbsolutePath());
+    dtestProperties.setProperty(BuildInfo.CFG_BUILDINFO_BASEDIR, baseDir.getAbsolutePath());
+
+    for (Resource r : testResources) {
+      log.warn("targetPath: " + r.getTargetPath() + " dir: " + r.getDirectory() + " includes: " +
+          StringUtils.join(r.getIncludes(), " "));
+    }
+
+    File propertiesFile = null, yamlFile = null;
+    for (Resource resource : testResources) {
+      File maybeProperties = new File(resource.getDirectory(), Config.PROPERTIES_FILE);
+      if (maybeProperties.exists()) propertiesFile = maybeProperties;
+      File maybeYaml = new File(resource.getDirectory(), MavenContainerCommandFactory.YAML_FILE);
+      if (maybeYaml.exists()) yamlFile = maybeYaml;
+    }
+    if (propertiesFile == null || yamlFile == null) {
+      StringBuilder buf = new StringBuilder("Unable to find properties file and/or yaml file for this build, looked in ");
+      testResources.forEach(r -> buf.append(r.getDirectory()));
+      throw new MojoFailureException(buf.toString());
+    }
+    copyFile(propertiesFile, baseDir);
+    copyFile(yamlFile, baseDir);
+
+    log.debug("Building with properties " + dtestProperties.toString());
+
+    DockerTest dtest = new DockerTest();
+    try {
+      dtest.buildConfig(baseDir.getAbsolutePath(), dtestProperties);
+    } catch (IOException e) {
+      throw new MojoFailureException("Failed to build the configuration for the build", e);
+    }
+    dtest.setLogger(log);
+    BuildState state = dtest.runBuild();
+    switch (state.getState()) {
+      case HAD_FAILURES_OR_ERRORS: throw new MojoFailureException("Build had tests that failed or returned an error.");
+      case HAD_TIMEOUTS: throw new MojoFailureException("Build had tests that timed out.");
+      case FAILED: throw new MojoFailureException("Build failed");
+      case TIMED_OUT: throw new MojoFailureException("Build timed out");
+      case SUCCEEDED: break;
+      default: throw new MojoExecutionException("Unknown build state.");
+    }
+    log.info("Build succeeded.");
+  }
+
+  private void copyFile(File src, File dstDir) throws MojoFailureException {
+    getLog().debug("Going to copy file " + src.getAbsolutePath() + " to " + dstDir.getAbsolutePath());
+    try {
+      BufferedReader reader = new BufferedReader(new FileReader(src));
+      File dstFile = new File(dstDir, src.getName());
+      FileWriter writer = new FileWriter(dstFile);
+      String line;
+      while ((line = reader.readLine()) != null) writer.write(line + "\n");
+      reader.close();
+      writer.close();
+    } catch (IOException e) {
+      throw new MojoFailureException("Unable to copy " + src.getAbsolutePath() + " to " + dstDir.getAbsolutePath(), e);
+    }
 
   }
 

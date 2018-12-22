@@ -75,6 +75,7 @@ public class DockerTest {
    * @throws IOException if we fail to read the config file.
    */
   public void buildConfig(String confDir, Properties override) throws IOException {
+    cfgDir = confDir; // If you came from the outside and not main this won't be set yet.
     cfg = new Config(confDir, override);
   }
 

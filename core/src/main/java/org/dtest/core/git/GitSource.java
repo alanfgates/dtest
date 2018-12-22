@@ -25,13 +25,14 @@ import java.util.List;
 
 public class GitSource extends CodeSource  {
 
+  private static final String CFG_CODESOURCE_BRANCH_DEFAULT = "master";
+
   @Override
   public List<String> srcCommands(ContainerClient client) throws IOException {
     String repo = cfg.getAsString(CFG_CODESOURCE_REPO);
-    String branch = cfg.getAsString(CFG_CODESOURCE_BRANCH);
-    if (repo == null || branch == null) {
-      throw new IOException("You must provide configuration values " + CFG_CODESOURCE_REPO + " and " +
-          CFG_CODESOURCE_BRANCH + " to use git");
+    String branch = cfg.getAsString(CFG_CODESOURCE_BRANCH, CFG_CODESOURCE_BRANCH_DEFAULT);
+    if (repo == null) {
+      throw new IOException("You must provide configuration value " + CFG_CODESOURCE_REPO + " to use git");
     }
     return Arrays.asList(
         "    /usr/bin/git clone " + repo,
