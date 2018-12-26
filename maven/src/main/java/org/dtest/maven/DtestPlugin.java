@@ -30,7 +30,6 @@ import org.dtest.core.Config;
 import org.dtest.core.DTestLogger;
 import org.dtest.core.DockerTest;
 import org.dtest.core.git.GitSource;
-import org.dtest.core.mvn.MavenContainerCommandFactory;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -124,7 +123,7 @@ public class DtestPlugin extends AbstractMojo {
     for (Resource resource : testResources) {
       File maybeProperties = new File(resource.getDirectory(), Config.PROPERTIES_FILE);
       if (maybeProperties.exists()) propertiesFile = maybeProperties;
-      File maybeYaml = new File(resource.getDirectory(), MavenContainerCommandFactory.YAML_FILE);
+      File maybeYaml = new File(resource.getDirectory(), Config.YAML_FILE);
       if (maybeYaml.exists()) yamlFile = maybeYaml;
     }
     if (propertiesFile == null || yamlFile == null) {

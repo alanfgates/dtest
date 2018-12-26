@@ -1,24 +1,24 @@
----
-dir: beeline
----
-dir: cli
-skippedTests:
-  - TestCliDriverMethods
----
-dir: standalone-metastore
-needsSplit: true
-mvnProperties:
-  test.groups: '""'
----
-dir: ql
-needsSplit: true
-testsPerContainer: 4
-skippedTests:
-  - TestWorker
-isolatedTests:
-  - TestCleaner2
----
-dir: itests/qtest
-singleTest: TestContribCliDriver
-mvnProperties:
-  skipSparkTests: null
+baseImage: centos
+requiredPackages:
+  - java-1.8.0-openjdk-devel
+projectName: faky
+dirs:
+  - dir: beeline
+  - dir: cli
+    skippedTests:
+      - TestCliDriverMethods
+  - dir: standalone-metastore
+    needsSplit: true
+    properties:
+      test.groups: '""'
+  - dir: ql
+    needsSplit: true
+    testsPerContainer: 4
+    skippedTests:
+      - TestWorker
+    isolatedTests:
+      - TestCleaner2
+  - dir: itests/qtest
+    singleTest: TestContribCliDriver
+    properties:
+      skipSparkTests: null

@@ -18,7 +18,6 @@ package org.dtest.core;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.dtest.core.git.GitSource;
-import org.dtest.core.mvn.MavenContainerCommandFactory;
 import org.junit.Assert;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -51,12 +50,16 @@ public class ITestCmdLine {
     writer.close();
 
     // Write out our yaml file
-    File yamlFile = new File(confDir + File.separator + MavenContainerCommandFactory.YAML_FILE);
+    File yamlFile = new File(confDir + File.separator + Config.YAML_FILE);
     writer = new FileWriter(yamlFile);
-    writer.write("---\n");
-    writer.write("dir: core\n");
-    writer.write("---\n");
-    writer.write("dir: maven\n");
+    writer.write(
+        "baseImage: centos\n" +
+        "requiredPackages:\n" +
+        "  - java-1.8.0-openjdk-devel\n" +
+        "projectName: dtest\n" +
+        "dirs:\n" +
+        "  - dir: core\n" +
+        "  - dir: maven\n");
     writer.close();
 
     Map<String, String> env = new HashMap<>();

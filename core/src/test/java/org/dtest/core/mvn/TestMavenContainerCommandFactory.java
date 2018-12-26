@@ -22,8 +22,7 @@ import org.dtest.core.ContainerClient;
 import org.dtest.core.ContainerCommand;
 import org.dtest.core.ContainerCommandFactory;
 import org.dtest.core.ContainerResult;
-import org.dtest.core.DTestLogger;
-import org.dtest.core.Slf4jLogger;
+import org.dtest.core.ModuleDirectory;
 import org.dtest.core.TestUtils;
 import org.dtest.core.git.GitSource;
 import org.junit.Assert;
@@ -35,50 +34,16 @@ import java.util.List;
 public class TestMavenContainerCommandFactory {
 
   @Test
-  public void parseYaml() throws IOException {
-    MavenContainerCommandFactory cmds = new MavenContainerCommandFactory();
-    cmds.setConfig(new Config());
-    List<ModuleDirectory> mDirs = cmds.readYaml(TestUtils.getConfDir(), ModuleDirectory.class);
-    Assert.assertEquals(5, mDirs.size());
-    ModuleDirectory mDir = mDirs.get(0);
-    Assert.assertEquals("beeline", mDir.getDir());
-    mDir = mDirs.get(1);
-    Assert.assertEquals("cli", mDir.getDir());
-    Assert.assertEquals(1, mDir.getSkippedTests().length);
-    Assert.assertEquals("TestCliDriverMethods", mDir.getSkippedTests()[0]);
-    mDir = mDirs.get(2);
-    Assert.assertEquals("standalone-metastore", mDir.getDir());
-    Assert.assertTrue(mDir.getNeedsSplit());
-    Assert.assertEquals(1, mDir.getMvnProperties().size());
-    Assert.assertEquals("\"\"", mDir.getMvnProperties().get("test.groups"));
-    mDir = mDirs.get(3);
-    Assert.assertEquals("ql", mDir.getDir());
-    Assert.assertTrue(mDir.getNeedsSplit());
-    Assert.assertEquals(1, mDir.getSkippedTests().length);
-    Assert.assertEquals("TestWorker", mDir.getSkippedTests()[0]);
-    Assert.assertEquals(1, mDir.getIsolatedTests().length);
-    Assert.assertEquals("TestCleaner2", mDir.getIsolatedTests()[0]);
-    mDir = mDirs.get(4);
-    Assert.assertEquals("itests/qtest", mDir.getDir());
-    Assert.assertEquals("TestContribCliDriver", mDir.getSingleTest());
-  }
-
-  @Test(expected = IOException.class)
-  public void nonExistentYamlFile() throws IOException {
-    MavenContainerCommandFactory cmds = new MavenContainerCommandFactory();
-    cmds.setConfig(new Config());
-    List<ModuleDirectory> mDirs = cmds.readYaml("nosuch", ModuleDirectory.class);
-  }
-
-  @Test
   public void buildCommands() throws IOException {
-    Config cfg = TestUtils.buildCfg(BuildInfo.CFG_BUILDINFO_LABEL, "mylabel");
+    Config cfg = TestUtils.buildCfg(BuildInfo.CFG_BUILDINFO_LABEL, "mylabel",
+                                    BuildInfo.CFG_BUILDINFO_BASEDIR, System.getProperty("java.io.tmpdir"));
     TestUtils.TestLogger log = new TestUtils.TestLogger();
     MavenContainerCommandFactory cmds = new MavenContainerCommandFactory();
     cmds.setConfig(cfg);
     cmds.setLog(log);
     BuildInfo buildInfo = new BuildInfo(TestUtils.getConfDir(), new GitSource(), true);
     buildInfo.setConfig(cfg).setLog(log);
+    buildInfo.getBuildDir();
     cmds.buildContainerCommands(new TestContainerClient(), buildInfo);
     Assert.assertEquals(7, cmds.getCmds().size());
     Assert.assertEquals("/bin/bash -c ( cd /tmp/beeline; /usr/bin/mvn test -Dsurefire.timeout=300)", StringUtils.join(cmds.getCmds().get(0).shellCommand(), " "));
@@ -147,10 +112,6 @@ public class TestMavenContainerCommandFactory {
       }
     }
 
-    @Override
-    public String getProjectName() {
-      return null;
-    }
   }
 
 }

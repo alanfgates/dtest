@@ -16,9 +16,12 @@
 package org.dtest.core;
 
 import org.dtest.core.git.GitSource;
+import org.junit.Assert;
 import org.junit.Test;
 
+import java.io.File;
 import java.io.IOException;
+import java.util.Collections;
 
 public class TestBuildInfo {
 
@@ -44,5 +47,40 @@ public class TestBuildInfo {
     BuildInfo info = new BuildInfo(System.getProperty("java.io.tmpdir"), new GitSource(), true);
     info.setConfig(cfg);
     info.checkLabelIsDockerable();
+  }
+
+  @Test
+  public void parseYaml() throws IOException {
+    Config cfg = TestUtils.buildCfg(BuildInfo.CFG_BUILDINFO_LABEL, "parse-yaml",
+                                    BuildInfo.CFG_BUILDINFO_BASEDIR, System.getProperty("java.io.tmpdir"));
+    BuildInfo info = new BuildInfo(TestUtils.getConfDir(), new GitSource(), true);
+    info.setConfig(cfg);
+    info.getBuildDir();
+    BuildYaml yaml = info.getYaml();
+    Assert.assertEquals("centos", yaml.getBaseImage());
+    Assert.assertArrayEquals(new String[] {"java-1.8.0-openjdk-devel"}, yaml.getRequiredPackages());
+    Assert.assertEquals("faky", yaml.getProjectName());
+    Assert.assertEquals(5, yaml.getDirs().length);
+    ModuleDirectory mDir = yaml.getDirs()[0];
+    Assert.assertEquals("beeline", mDir.getDir());
+    mDir = yaml.getDirs()[1];
+    Assert.assertEquals("cli", mDir.getDir());
+    Assert.assertEquals(1, mDir.getSkippedTests().length);
+    Assert.assertEquals("TestCliDriverMethods", mDir.getSkippedTests()[0]);
+    mDir = yaml.getDirs()[2];
+    Assert.assertEquals("standalone-metastore", mDir.getDir());
+    Assert.assertTrue(mDir.getNeedsSplit());
+    Assert.assertEquals(1, mDir.getProperties().size());
+    Assert.assertEquals("\"\"", mDir.getProperties().get("test.groups"));
+    mDir = yaml.getDirs()[3];
+    Assert.assertEquals("ql", mDir.getDir());
+    Assert.assertTrue(mDir.getNeedsSplit());
+    Assert.assertEquals(1, mDir.getSkippedTests().length);
+    Assert.assertEquals("TestWorker", mDir.getSkippedTests()[0]);
+    Assert.assertEquals(1, mDir.getIsolatedTests().length);
+    Assert.assertEquals("TestCleaner2", mDir.getIsolatedTests()[0]);
+    mDir = yaml.getDirs()[4];
+    Assert.assertEquals("itests/qtest", mDir.getDir());
+    Assert.assertEquals("TestContribCliDriver", mDir.getSingleTest());
   }
 }

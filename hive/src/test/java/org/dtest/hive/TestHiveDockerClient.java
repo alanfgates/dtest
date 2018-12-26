@@ -16,6 +16,7 @@
 package org.dtest.hive;
 
 import org.dtest.core.BuildInfo;
+import org.dtest.core.BuildYaml;
 import org.dtest.core.CodeSource;
 import org.dtest.core.Config;
 import org.dtest.core.ContainerCommandFactory;
@@ -43,7 +44,8 @@ public class TestHiveDockerClient {
         BuildInfo.CFG_BUILDINFO_LABEL, "needsomething",
         BuildInfo.CFG_BUILDINFO_BASEDIR, System.getProperty("java.io.tmpdir"),
         GitSource.CFG_CODESOURCE_REPO, "repo",
-        GitSource.CFG_CODESOURCE_BRANCH, "branch");
+        GitSource.CFG_CODESOURCE_BRANCH, "branch",
+        BuildYaml.CFG_BUILDYAML_IMPL, HiveBuildYaml.class.getName());
     log = new TestUtils.TestLogger();
   }
 
@@ -58,7 +60,7 @@ public class TestHiveDockerClient {
     client.setConfig(cfg).setLog(log);
     CodeSource src = new GitSource();
     src.setConfig(cfg).setLog(log);
-    BuildInfo info = new BuildInfo(System.getProperty("java.io.tmpdir"), src, true);
+    BuildInfo info = new BuildInfo(TestUtils.getConfDir(), src, true);
     info.setConfig(cfg).setLog(log);
     client.setBuildInfo(info);
     ContainerCommandFactory cmdFactory = new HiveContainerCommandFactory();
@@ -76,7 +78,8 @@ public class TestHiveDockerClient {
 
     Assert.assertEquals("FROM centos\n" +
         "\n" +
-        "RUN yum upgrade -y && yum update -y && yum install -y java-1.8.0-openjdk-devel git unzip maven \n" +
+        "RUN yum upgrade -y && yum update -y\n" +
+        "RUN yum install -y java-1.8.0-openjdk-devel git unzip maven \n" +
         "\n" +
         "RUN useradd -m dtestuser\n" +
         "\n" +

@@ -13,20 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.dtest.core.mvn;
+package org.dtest.hive;
 
-import org.dtest.core.ModuleDirectory;
-import org.junit.Test;
+import org.dtest.core.BuildYaml;
 
-import java.io.InvalidObjectException;
+public class HiveBuildYaml extends BuildYaml {
 
-public class TestModuleDirectory {
-  @Test(expected = InvalidObjectException.class)
-  public void splitSingle() throws InvalidObjectException {
-    ModuleDirectory dir = new ModuleDirectory();
-    dir.setNeedsSplit(true);
-    dir.setSingleTest("a");
-    dir.validate();
+  private HiveModuleDirectory[] hiveDirs;
+
+  public HiveModuleDirectory[] getHiveDirs() {
+    return hiveDirs;
   }
 
+  public void setHiveDirs(HiveModuleDirectory[] hiveDirs) {
+    this.hiveDirs = hiveDirs;
+  }
 }

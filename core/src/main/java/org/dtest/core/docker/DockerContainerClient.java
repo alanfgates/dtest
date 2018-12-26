@@ -58,7 +58,7 @@ public class DockerContainerClient extends ContainerClient {
 
   @Override
   public String getContainerBaseDir() {
-    return getHomeDir() + File.separator + getProjectName();
+    return getHomeDir() + File.separator + buildInfo.getYaml().getProjectName();
   }
 
   @Override
@@ -120,11 +120,6 @@ public class DockerContainerClient extends ContainerClient {
     }
   }
 
-  @Override
-  public String getProjectName() {
-    return "dtest";
-  }
-
   /**
    * Build the dockerfile for the image.  You can override this completely or you can call the methods
    * below that override specific parts.  The latter is recommended unless you really need to rewrite how things are
@@ -135,17 +130,30 @@ public class DockerContainerClient extends ContainerClient {
   @VisibleForTesting
   public void defineImage(ContainerCommandFactory cmdFactory) throws IOException {
     FileWriter writer = new FileWriter(buildInfo.getBuildDir() + File.separatorChar + "Dockerfile");
-    writer.write(getBaseImage() + "\n");
+    writer.write("FROM " + buildInfo.getYaml().getBaseImage() + "\n");
     writer.write("\n");
-    writer.write(getImageUpgrade(buildInfo.getSrc(), cmdFactory) + "\n");
-    writer.write("\n");
+    String image = buildInfo.getYaml().getBaseImage();
+    if (image.startsWith("centos")) {
+      writer.write("RUN yum upgrade -y && yum update -y\n");
+      writer.write("RUN yum install -y ");
+    } else if (image.startsWith("ubuntu") || image.startsWith("debian")) {
+      writer.write("RUN apt-get update\n");
+      writer.write("RUN apt-get install -y ");
+    } else {
+      throw new IOException("I'm sorry, I don't know how to install packages on " + image +
+          ".  Currently I know how to install packages on centos, ubuntu, and debian.");
+    }
+    for (String pkg : buildInfo.getYaml().getRequiredPackages()) writer.write(pkg + " ");
+    for (String pkg : buildInfo.getSrc().getRequiredPackages()) writer.write(pkg + " ");
+    for (String pkg : cmdFactory.getRequiredPackages()) writer.write(pkg + " ");
+    writer.write("\n\n");
     writer.write("RUN useradd -m " + getUser() + "\n");
     writer.write("\n");
     writer.write("USER " + getUser() + "\n");
     writer.write("\n");
     writer.write("RUN { \\\n");
     writer.write("    cd " + getHomeDir() + "; \\\n");
-    for (String line : buildInfo.getSrc().srcCommands(this)) writer.write(line + "; ");
+    for (String line : buildInfo.getSrc().srcCommands(buildInfo.getYaml().getProjectName())) writer.write(line + "; ");
     writer.write("\\\n");
     for (String line : cmdFactory.getInitialBuildCommand()) writer.write(line + "; ");
     writer.write("\\\n");
@@ -165,18 +173,6 @@ public class DockerContainerClient extends ContainerClient {
         throw new IOException("Failed to build image, see logs for error message: " + res.stderr);
       }
     }
-  }
-
-  protected String getBaseImage() {
-    return "FROM centos";
-  }
-
-  protected String getImageUpgrade(CodeSource codeSource, ContainerCommandFactory cmdFactory) {
-    StringBuilder buf = new StringBuilder("RUN yum upgrade -y && yum update -y && yum install -y java-1.8.0-openjdk-devel ");
-    for (String pkg : codeSource.getRequiredPackages()) buf.append(pkg).append(' ');
-    for (String pkg : cmdFactory.getRequiredPackages()) buf.append(pkg).append(' ');
-    return buf.toString();
-
   }
 
   protected String getUser() {

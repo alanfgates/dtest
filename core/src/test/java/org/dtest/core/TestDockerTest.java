@@ -69,11 +69,6 @@ public class TestDockerTest {
     public void removeImage() throws IOException {
 
     }
-
-    @Override
-    public String getProjectName() {
-      return null;
-    }
   }
 
   public static class TimingOutClient extends ContainerClient {
@@ -110,11 +105,6 @@ public class TestDockerTest {
     public void removeImage() throws IOException {
 
     }
-
-    @Override
-    public String getProjectName() {
-      return null;
-    }
   }
 
   public static class FailingClient extends ContainerClient {
@@ -150,11 +140,6 @@ public class TestDockerTest {
     @Override
     public void removeImage() throws IOException {
 
-    }
-
-    @Override
-    public String getProjectName() {
-      return null;
     }
   }
 
@@ -244,18 +229,18 @@ public class TestDockerTest {
   }
 
   @Test
-  public void successfulRunAllTestsPass() {
+  public void successfulRunAllTestsPass() throws IOException {
     TestUtils.TestLogger log = new TestUtils.TestLogger();
     Properties props = TestUtils.buildProperties(
         ContainerClient.CFG_CONTAINERCLIENT_IMPL, SuccessfulClient.class.getName(),
         ContainerCommandFactory.CFG_CONTAINERCOMMANDLIST_IMPL, HelloWorldCommandList.class.getName(),
         ResultAnalyzer.CFG_RESULTANALYZER_IMPL, SpyingResultAnalyzer.class.getName(),
         CodeSource.CFG_CODESOURCE_BRANCH, "successful",
-        BuildInfo.CFG_BUILDINFO_BASEDIR, System.getProperty("java.io.tmpdir"),
+        BuildInfo.CFG_BUILDINFO_BASEDIR, TestUtils.getConfDir(),
         BuildInfo.CFG_BUILDINFO_LABEL, "firstTry");
     logToReturn = TestMavenResultAnalyzer.LOG_SUCCESSFUL_RUN_ALL_SUCCEEDED;
     DockerTest test = new DockerTest();
-    test.buildConfig(props);
+    test.buildConfig(TestUtils.getConfDir(), props);
     test.setLogger(log);
     BuildState state = test.runBuild();
     log.dumpToLog();
@@ -268,7 +253,7 @@ public class TestDockerTest {
   }
 
   @Test
-  public void successfulRunSomeTestsFail() {
+  public void successfulRunSomeTestsFail() throws IOException {
     TestUtils.TestLogger log = new TestUtils.TestLogger();
     Properties props = TestUtils.buildProperties(
         ContainerClient.CFG_CONTAINERCLIENT_IMPL, SuccessfulClient.class.getName(),
@@ -279,7 +264,7 @@ public class TestDockerTest {
         BuildInfo.CFG_BUILDINFO_LABEL, "firstTry");
     logToReturn = TestMavenResultAnalyzer.LOG_SUCCESSFUL_RUN_FAILED_TESTS;
     DockerTest test = new DockerTest();
-    test.buildConfig(props);
+    test.buildConfig(TestUtils.getConfDir(), props);
     test.setLogger(log);
     BuildState state = test.runBuild();
     log.dumpToLog();
@@ -294,7 +279,7 @@ public class TestDockerTest {
   }
 
   @Test
-  public void timeout() {
+  public void timeout() throws IOException {
     TestUtils.TestLogger log = new TestUtils.TestLogger();
     Properties props = TestUtils.buildProperties(
         ContainerClient.CFG_CONTAINERCLIENT_IMPL, TimingOutClient.class.getName(),
@@ -305,7 +290,7 @@ public class TestDockerTest {
         BuildInfo.CFG_BUILDINFO_BASEDIR, System.getProperty("java.io.tmpdir"),
         BuildInfo.CFG_BUILDINFO_LABEL, "will-time-out");
     DockerTest test = new DockerTest();
-    test.buildConfig(props);
+    test.buildConfig(TestUtils.getConfDir(), props);
     test.setLogger(log);
     BuildState state = test.runBuild();
     log.dumpToLog();
@@ -315,7 +300,7 @@ public class TestDockerTest {
   }
 
   @Test
-  public void failedRun() {
+  public void failedRun() throws IOException {
     TestUtils.TestLogger log = new TestUtils.TestLogger();
     Properties props = TestUtils.buildProperties(
         ContainerClient.CFG_CONTAINERCLIENT_IMPL, FailingClient.class.getName(),
@@ -326,7 +311,7 @@ public class TestDockerTest {
         BuildInfo.CFG_BUILDINFO_BASEDIR, System.getProperty("java.io.tmpdir"),
         BuildInfo.CFG_BUILDINFO_LABEL, "take2");
     DockerTest test = new DockerTest();
-    test.buildConfig(props);
+    test.buildConfig(TestUtils.getConfDir(), props);
     test.setLogger(log);
     BuildState state = test.runBuild();
     log.dumpToLog();

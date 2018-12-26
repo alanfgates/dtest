@@ -43,6 +43,7 @@ import java.util.regex.Pattern;
 public class Config {
 
   public static final String PROPERTIES_FILE = "dtest.properties";
+  public static final String YAML_FILE = "dtest.yaml";
   private static final Pattern TIME_UNIT_SUFFIX = Pattern.compile("([0-9]+)([a-zA-Z]+)");
 
   private final Properties entries;

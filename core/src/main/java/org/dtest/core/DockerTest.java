@@ -79,12 +79,7 @@ public class DockerTest {
     cfg = new Config(confDir, override);
   }
 
-  /**
-   * This is for testing.  You likely want {@link #buildConfig(String, Properties)}.
-   * @param props properties to put in config file
-   */
-  @VisibleForTesting
-  public void buildConfig(Properties props) {
+  private void buildConfig(Properties props) {
     cfg = new Config(props);
   }
 

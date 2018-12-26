@@ -15,16 +15,13 @@
  */
 package org.dtest.core.mvn;
 
-import com.fasterxml.jackson.databind.MappingIterator;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectReader;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
-import com.google.common.annotations.VisibleForTesting;
 import org.dtest.core.BuildInfo;
+import org.dtest.core.BuildYaml;
 import org.dtest.core.ContainerClient;
 import org.dtest.core.ContainerCommand;
 import org.dtest.core.ContainerCommandFactory;
 import org.dtest.core.ContainerResult;
+import org.dtest.core.ModuleDirectory;
 import org.dtest.core.impl.Utils;
 
 import java.io.File;
@@ -40,8 +37,6 @@ import java.util.Set;
 
 public class MavenContainerCommandFactory extends ContainerCommandFactory {
 
-  public static final String YAML_FILE = "dtest.yaml";
-
   protected int containerNumber;
 
   public MavenContainerCommandFactory() {
@@ -54,79 +49,14 @@ public class MavenContainerCommandFactory extends ContainerCommandFactory {
       throws IOException {
     setup(containerClient, buildInfo);
 
-    List<ModuleDirectory> mDirs = readYaml(buildInfo.getConfDir(), getModuleDirectoryClass());
+    ModuleDirectory[] mDirs = getModuleDirs(buildInfo.getYaml());
     for (ModuleDirectory mDir : mDirs) {
       mDir.validate();
       int testsPerContainer = mDir.isSetTestsPerContainer() ?
           mDir.getTestsPerContainer() : cfg.getAsInt(CFG_CONTAINERCOMMANDFACTORY_TESTSPERCONTAINER,
           CFG_CONTAINERCOMMANDFACTORY_TESTSPERCONTAINER_DEFAULT);
-      if (subclassShouldHandle(mDir)) {
-        handle(mDir, containerClient, buildInfo, testsPerContainer);
-      } else if (!mDir.getNeedsSplit() && !mDir.isSetSingleTest()) {
-        // This is the simple case.  Remove any skipped tests and set any environment variables
-        // and we're good
-        MavenContainerCommand mvn = new MavenContainerCommand(containerClient.getContainerBaseDir()
-            + "/" + mDir.getDir(), containerNumber++);
-        setEnvsAndProperties(mDir, mvn);
-        if (mDir.isSetSkippedTests()) mvn.excludeTests(mDir.getSkippedTests());
-        cmds.add(mvn);
-      } else if (mDir.getNeedsSplit()) {
-        // Tests that need split
-        Set<String> excludedTests = new HashSet<>();
-        if (mDir.isSetSkippedTests()) Collections.addAll(excludedTests, mDir.getSkippedTests());
-        String unitTests = runContainer(containerClient, mDir.getDir(), buildInfo.getLabel(),
-            "find-tests-" + containerNumber++, "find . -name Test\\*\\*.java");
-        Deque<String> tests = new ArrayDeque<>();
-        for (String line : unitTests.split("\n")) {
-          String testPath = line.trim();
-
-          // Isolate the test name
-          String[] pathElements = testPath.split("/");
-          String testName = pathElements[pathElements.length - 1];
-          if (testName.endsWith(".java")) testName = testName.substring(0, testName.length() - 5);
-          if (!excludedTests.contains(testName)) tests.add(testName);
-        }
-
-        // deal with isolated tests
-        if (mDir.isSetIsolatedTests()) {
-          for (String test : mDir.getIsolatedTests()) {
-            MavenContainerCommand mvn =
-                new MavenContainerCommand(containerClient.getContainerBaseDir() + "/" +
-                    mDir.getDir(), containerNumber++);
-            setEnvsAndProperties(mDir, mvn);
-            mvn.addTest(test);
-            log.debug("Isolating test " + test + " in container " + (containerNumber - 1));
-            cmds.add(mvn);
-            tests.remove(test);
-          }
-        }
-
-        while (!tests.isEmpty()) {
-          MavenContainerCommand mvn =
-              new MavenContainerCommand(containerClient.getContainerBaseDir() + "/" +
-              mDir.getDir(), containerNumber++);
-          setEnvsAndProperties(mDir, mvn);
-          for (int i = 0; i < testsPerContainer && !tests.isEmpty(); i++) {
-            String single = tests.pop();
-            log.debug("Adding test " + single + " to container " + (containerNumber - 1));
-            mvn.addTest(single);
-          }
-          cmds.add(mvn);
-        }
-      } else if (mDir.isSetSingleTest()) {
-        // Running a single test
-        MavenContainerCommand mvn =
-            new MavenContainerCommand(containerClient.getContainerBaseDir() + "/" + mDir.getDir(),
-            containerNumber++);
-        mvn.addTest(mDir.getSingleTest());
-        setEnvsAndProperties(mDir, mvn);
-        cmds.add(mvn);
-      } else {
-          throw new InvalidObjectException("Help, I don't understand what you want me to do for " +
-              "directory " + mDir.getDir());
-      }
+      buildOneContainerCommand(mDir, containerClient, buildInfo, testsPerContainer);
     }
-
   }
 
   @Override
@@ -151,51 +81,96 @@ public class MavenContainerCommandFactory extends ContainerCommandFactory {
   }
 
   /**
-   * Check if a subclass should handle this instead of the main class.  If this is true then
-   * @link {@link #handle(ModuleDirectory, ContainerClient, BuildInfo, int)}
-   * will be called.
-   * @param mDir information on this directory
-   * @return true if the subclass should handle it.
-   */
-  protected boolean subclassShouldHandle(ModuleDirectory mDir) {
-    return false;
-  }
-
-  /**
-   * A chance for subclasses to handle a situation that this class didn't understand.  Default
-   * implementation returns false.
+   * Build an individual container command.  This implementation works with the options present in
+   * {@link BuildYaml}.  If a subclass has subclassed BuildYaml and wishes to handle things differently
+   * they can override this method.
    * @param mDir information on this directory
    * @param containerClient container client handle
    * @param buildInfo build information
    * @param testsPerContainer number tests to run in this container
    * @throws IOException if it fails to read a file or something else it needs
    */
-  protected void handle(ModuleDirectory mDir, ContainerClient containerClient,
-                        BuildInfo buildInfo, int testsPerContainer) throws IOException {
+  protected void buildOneContainerCommand(ModuleDirectory mDir, ContainerClient containerClient,
+                                          BuildInfo buildInfo, int testsPerContainer) throws IOException {
+    if (!mDir.getNeedsSplit() && !mDir.isSetSingleTest()) {
+      // This is the simple case.  Remove any skipped tests and set any environment variables
+      // and we're good
+      MavenContainerCommand mvn = new MavenContainerCommand(containerClient.getContainerBaseDir()
+          + "/" + mDir.getDir(), containerNumber++);
+      setEnvsAndProperties(mDir, mvn);
+      if (mDir.isSetSkippedTests()) mvn.excludeTests(mDir.getSkippedTests());
+      cmds.add(mvn);
+    } else if (mDir.getNeedsSplit()) {
+      // Tests that need split
+      Set<String> excludedTests = new HashSet<>();
+      if (mDir.isSetSkippedTests()) Collections.addAll(excludedTests, mDir.getSkippedTests());
+      String unitTests = runContainer(containerClient, mDir.getDir(), buildInfo.getLabel(),
+          "find-tests-" + containerNumber++, "find . -name Test\\*\\*.java");
+      Deque<String> tests = new ArrayDeque<>();
+      for (String line : unitTests.split("\n")) {
+        String testPath = line.trim();
+
+        // Isolate the test name
+        String[] pathElements = testPath.split("/");
+        String testName = pathElements[pathElements.length - 1];
+        if (testName.endsWith(".java")) testName = testName.substring(0, testName.length() - 5);
+        if (!excludedTests.contains(testName)) tests.add(testName);
+      }
+
+      // deal with isolated tests
+      if (mDir.isSetIsolatedTests()) {
+        for (String test : mDir.getIsolatedTests()) {
+          MavenContainerCommand mvn =
+              new MavenContainerCommand(containerClient.getContainerBaseDir() + "/" +
+                  mDir.getDir(), containerNumber++);
+          setEnvsAndProperties(mDir, mvn);
+          mvn.addTest(test);
+          log.debug("Isolating test " + test + " in container " + (containerNumber - 1));
+          cmds.add(mvn);
+          tests.remove(test);
+        }
+      }
+
+      while (!tests.isEmpty()) {
+        MavenContainerCommand mvn =
+            new MavenContainerCommand(containerClient.getContainerBaseDir() + "/" +
+                mDir.getDir(), containerNumber++);
+        setEnvsAndProperties(mDir, mvn);
+        for (int i = 0; i < testsPerContainer && !tests.isEmpty(); i++) {
+          String single = tests.pop();
+          log.debug("Adding test " + single + " to container " + (containerNumber - 1));
+          mvn.addTest(single);
+        }
+        cmds.add(mvn);
+      }
+    } else if (mDir.isSetSingleTest()) {
+      // Running a single test
+      MavenContainerCommand mvn =
+          new MavenContainerCommand(containerClient.getContainerBaseDir() + "/" + mDir.getDir(),
+              containerNumber++);
+      mvn.addTest(mDir.getSingleTest());
+      setEnvsAndProperties(mDir, mvn);
+      cmds.add(mvn);
+    } else {
+      throw new InvalidObjectException("Help, I don't understand what you want me to do for " +
+          "directory " + mDir.getDir());
+    }
   }
 
   /**
-   * A chance for the subclass to change the ModuleDirectory class used parse the yaml.
-   * @return class
+   * A chance for the subclass to override how the module directories are obtained.  This should be used if the
+   * subclass have overridden the implemenation of BuildYaml and it wants to return module directories with
+   * information specific to itself, and thus needs a call other than getDirs from BuildYaml.
+   * @param yaml yaml file information
+   * @return array of module directories, probably really of some subclass of ModuleDirectory.
    */
-  protected Class<? extends ModuleDirectory> getModuleDirectoryClass() {
-    return ModuleDirectory.class;
-  }
-
-  @VisibleForTesting
-  public <T> List<T> readYaml(String confDir, Class<? extends ModuleDirectory> clazz)
-      throws IOException {
-    String filename = confDir + File.separator + YAML_FILE;
-    File yamlFile = new File(filename);
-    ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
-    ObjectReader reader = mapper.readerFor(clazz);
-    MappingIterator<T> iter = reader.readValues(yamlFile);
-    return iter.readAll();
+  protected ModuleDirectory[] getModuleDirs(BuildYaml yaml) {
+    return yaml.getDirs();
   }
 
   protected void setEnvsAndProperties(ModuleDirectory mDir, MavenContainerCommand mvn) {
     if (mDir.getEnv() != null) mvn.addEnvs(mDir.getEnv());
-    if (mDir.getMvnProperties() != null) mvn.addProperties(mDir.getMvnProperties());
+    if (mDir.getProperties() != null) mvn.addProperties(mDir.getProperties());
     mvn.setConfig(cfg).setLog(log);
   }
 

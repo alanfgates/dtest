@@ -18,6 +18,7 @@ package org.dtest.hive;
 import org.apache.commons.lang3.StringUtils;
 import org.dtest.core.BuildInfo;
 import org.dtest.core.BuildState;
+import org.dtest.core.BuildYaml;
 import org.dtest.core.CodeSource;
 import org.dtest.core.Config;
 import org.dtest.core.Configurable;
@@ -50,11 +51,6 @@ public class TestHiveDockerTest {
   private static List<String> errors;
 
   public static class SuccessfulWithFailingTestsClient extends ContainerClient {
-    @Override
-    public String getProjectName() {
-      return null;
-    }
-
     @Override
     public String getContainerBaseDir() {
       return null;
@@ -180,9 +176,10 @@ public class TestHiveDockerTest {
         CodeSource.CFG_CODESOURCE_BRANCH, "successful",
         CodeSource.CFG_CODESOURCE_REPO, "repo",
         BuildInfo.CFG_BUILDINFO_BASEDIR, System.getProperty("java.io.tmpdir"),
-        BuildInfo.CFG_BUILDINFO_LABEL, "secondTry");
+        BuildInfo.CFG_BUILDINFO_LABEL, "secondTry",
+        BuildYaml.CFG_BUILDYAML_IMPL, HiveBuildYaml.class.getName());
     DockerTest test = new DockerTest();
-    test.buildConfig(props);
+    test.buildConfig(TestUtils.getConfDir(), props);
     test.setLogger(log);
     BuildState state = test.runBuild();
     Assert.assertTrue(imageBuilt);

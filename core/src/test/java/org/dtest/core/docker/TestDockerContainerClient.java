@@ -58,7 +58,7 @@ public class TestDockerContainerClient {
     client.setConfig(cfg).setLog(log);
     CodeSource src = new GitSource();
     src.setConfig(cfg).setLog(log);
-    BuildInfo info = new BuildInfo(System.getProperty("java.io.tmpdir"), src, true);
+    BuildInfo info = new BuildInfo(TestUtils.getConfDir(), src, true);
     info.setConfig(cfg).setLog(log);
     client.setBuildInfo(info);
     ContainerCommandFactory cmdFactory = new MavenContainerCommandFactory();
@@ -76,7 +76,8 @@ public class TestDockerContainerClient {
 
     Assert.assertEquals("FROM centos\n" +
         "\n" +
-        "RUN yum upgrade -y && yum update -y && yum install -y java-1.8.0-openjdk-devel git unzip maven \n" +
+        "RUN yum upgrade -y && yum update -y\n" +
+        "RUN yum install -y java-1.8.0-openjdk-devel git unzip maven \n" +
         "\n" +
         "RUN useradd -m dtestuser\n" +
         "\n" +
@@ -84,7 +85,7 @@ public class TestDockerContainerClient {
         "\n" +
         "RUN { \\\n" +
         "    cd /home/dtestuser; \\\n" +
-        "    /usr/bin/git clone repo;     cd dtest;     /usr/bin/git checkout branch; \\\n" +
+        "    /usr/bin/git clone repo;     cd faky;     /usr/bin/git checkout branch; \\\n" +
         "/usr/bin/mvn install -DskipTests; \\\n" +
         "    echo This build is labeled needsomething; \\\n" +
         "}\n", buf.toString());

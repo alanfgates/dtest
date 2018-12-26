@@ -97,12 +97,6 @@ public abstract class ContainerClient extends Configurable {
    */
   public abstract void removeImage() throws IOException;
 
-  /**
-   * Get the name of the project.
-   * @return name of the project.
-   */
-  public abstract String getProjectName();
-
   static ContainerClient getInstance(Config cfg, DTestLogger log) throws IOException {
     ContainerClient cc = Utils.getInstance(cfg.getAsClass(ContainerClient.CFG_CONTAINERCLIENT_IMPL,
         ContainerClient.class, DockerContainerClient.class));

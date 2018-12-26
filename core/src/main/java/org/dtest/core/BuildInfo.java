@@ -15,6 +15,9 @@
  */
 package org.dtest.core;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectReader;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.google.common.annotations.VisibleForTesting;
 
 import java.io.File;
@@ -45,6 +48,7 @@ public class BuildInfo extends Configurable implements Comparable<BuildInfo> {
   private final boolean cleanupAfter;
   private String label;
   private String dir;
+  private BuildYaml yaml;
 
   /**
    *
@@ -68,6 +72,9 @@ public class BuildInfo extends Configurable implements Comparable<BuildInfo> {
    */
   public String getBuildDir() throws IOException {
     if (dir != null) return dir;
+    // Read our yaml file
+    readYaml();
+
     // This cannot be done in the constructor because it requires the configuration.
     checkLabelIsDockerable();
     File d = new File(getBaseDir(), label);
@@ -138,6 +145,10 @@ public class BuildInfo extends Configurable implements Comparable<BuildInfo> {
     return label.compareTo(o.label);
   }
 
+  public BuildYaml getYaml() {
+    return yaml;
+  }
+
   @VisibleForTesting
   void checkLabelIsDockerable() throws IOException {
     if (label == null) {
@@ -149,6 +160,14 @@ public class BuildInfo extends Configurable implements Comparable<BuildInfo> {
             "[A-Za-z0-9_\\-]");
       }
     }
+  }
+
+  private void readYaml() throws IOException {
+    String filename = confDir + File.separator + Config.YAML_FILE;
+    File yamlFile = new File(filename);
+    ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
+    ObjectReader reader = mapper.readerFor(BuildYaml.getBuildYamlClass(cfg));
+    yaml = reader.readValue(yamlFile);
   }
 
 }

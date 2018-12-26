@@ -1,52 +1,50 @@
----
-dir: beeline
----
-dir: cli
-skippedTests:
-  - TestCliDriverMethods
----
-dir: standalone-metastore
-needsSplit: true
-mvnProperties:
-  test.groups: '""'
----
-dir: ql
-needsSplit: true
-testsPerContainer: 4
-skippedTests:
-  - TestWorker
-isolatedTests:
-  - TestCleaner2
----
-dir: itests/qtest
-singleTest: TestContribCliDriver
-mvnProperties:
-  skipSparkTests: null
----
-dir: itests/qtest
-singleTest: TestMiniLlapLocalCliDriver
-includedQFilesProperties:
-  - minillap.query.files
-  - minillap.shared.query.files
-excludedQFilesProperties:
-  - minitez.query.files
-env:
-  USER: dtestuser
-mvnProperties:
-  skipSparkTests: null
----
-dir: itests/qtest
-singleTest: TestCliDriver
-qfilesDir: ql/src/test/queries/clientpositive
-testsPerContainer: 4
-isolatedQFiles:
-  - authorization_show_grant.q
-excludedQFilesProperties:
-  - minillap.query.files
-  - minillap.shared.query.files
-  - minitez.query.files
-excludedQFiles:
-  - masking_5.q
-  - orc_merge10.q
-mvnProperties:
-  skipSparkTests: null
+baseImage: centos
+requiredPackages:
+  - java-1.8.0-openjdk-devel
+projectName: hive
+hiveDirs:
+  - dir: beeline
+  - dir: cli
+    skippedTests:
+      - TestCliDriverMethods
+  - dir: standalone-metastore
+    needsSplit: true
+    properties:
+      test.groups: '""'
+  - dir: ql
+    needsSplit: true
+    testsPerContainer: 4
+    skippedTests:
+      - TestWorker
+    isolatedTests:
+      - TestCleaner2
+  - dir: itests/qtest
+    singleTest: TestContribCliDriver
+    properties:
+      skipSparkTests: null
+  - dir: itests/qtest
+    singleTest: TestMiniLlapLocalCliDriver
+    includedQFilesProperties:
+      - minillap.query.files
+      - minillap.shared.query.files
+    excludedQFilesProperties:
+      - minitez.query.files
+    env:
+      USER: dtestuser
+    properties:
+      skipSparkTests: null
+  - dir: itests/qtest
+    singleTest: TestCliDriver
+    qfilesDir: ql/src/test/queries/clientpositive
+    testsPerContainer: 4
+    isolatedQFiles:
+      - authorization_show_grant.q
+    excludedQFilesProperties:
+      - minillap.query.files
+      - minillap.shared.query.files
+      - minitez.query.files
+    excludedQFiles:
+      - masking_5.q
+      - orc_merge10.q
+    properties:
+      skipSparkTests: null

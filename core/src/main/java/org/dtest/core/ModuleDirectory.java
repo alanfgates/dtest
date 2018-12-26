@@ -13,20 +13,57 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.dtest.core.mvn;
+package org.dtest.core;
 
 import java.io.InvalidObjectException;
 import java.util.Map;
 
 public class ModuleDirectory {
-  private String   dir;                // build directory
-  private boolean  needsSplit;         // if false, run all tests in single container, else split them up
-  private int      testsPerContainer;  // if needsSplit = true, how many tests per container to run
-  private String[] isolatedTests;      // tests to run in a separate container
-  private String   singleTest;         // if set, run only this test
-  private String[] skippedTests;       // tests to skip
-  private Map<String, String> env;     // environment variables to set when running the mvn cmd
-  private Map<String, String> mvnProperties;  // properties to set via -D when running mvn cmd
+
+  /**
+   * Directory to run tests in.
+   */
+  private String   dir;
+
+  /**
+   * Whether to run all tests in this module in a single container or split them up.  Default is to run them
+   * all in the same container.
+   */
+  private boolean  needsSplit;
+
+  /**
+   * If {@link #needsSplit} is set to true, how many tests to run per container.  Defaults to
+   * {@link ContainerCommandFactory#CFG_CONTAINERCOMMANDFACTORY_TESTSPERCONTAINER_DEFAULT}.
+   */
+  private int      testsPerContainer;
+
+  /**
+   * Tests that should be run in their own container.  Some tests take a lot of resources, take a long time, or
+   * just plain don't play with others and need to isolated.  {@link #needsSplit} should be set to true if there
+   * are any elements in this list.  Defaults to empty.
+   */
+  private String[] isolatedTests;
+
+  /**
+   * If set, then only run one test in this container.  Another container may handle other tests in this directory.
+   * Defaults to null.
+   */
+  private String   singleTest;
+
+  /**
+   * List of tests to skip.  Defaults to empty.
+   */
+  private String[] skippedTests;
+
+  /**
+   * Environment variables that should be set as part of running the tests.
+   */
+  private Map<String, String> env;
+
+  /**
+   * Java properties that should be set as part of running the tests.
+   */
+  private Map<String, String> properties;
 
   public String getDir() {
     return dir;
@@ -100,12 +137,12 @@ public class ModuleDirectory {
     this.env = env;
   }
 
-  public Map<String, String> getMvnProperties() {
-    return mvnProperties;
+  public Map<String, String> getProperties() {
+    return properties;
   }
 
-  public void setMvnProperties(Map<String, String> mvnProperties) {
-    this.mvnProperties = mvnProperties;
+  public void setProperties(Map<String, String> properties) {
+    this.properties = properties;
   }
 
   /**
@@ -115,7 +152,7 @@ public class ModuleDirectory {
    * object hold all the options and then validate that users don't do something silly.
    * @throws InvalidObjectException if the object is invalid
    */
-  protected void validate() throws InvalidObjectException {
+  public void validate() throws InvalidObjectException {
     if (dir == null) {
       throw new InvalidObjectException("You must specify a directory");
     }
@@ -123,4 +160,5 @@ public class ModuleDirectory {
       throw new InvalidObjectException("You cannot specify a split on a single test, " + dir);
     }
   }
+
 }

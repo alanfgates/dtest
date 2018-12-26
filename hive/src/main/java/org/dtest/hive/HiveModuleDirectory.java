@@ -15,7 +15,7 @@
  */
 package org.dtest.hive;
 
-import org.dtest.core.mvn.ModuleDirectory;
+import org.dtest.core.ModuleDirectory;
 
 import java.io.InvalidObjectException;
 
@@ -117,7 +117,7 @@ public class HiveModuleDirectory extends ModuleDirectory {
    * @throws InvalidObjectException if the object is invalid
    */
   @Override
-  protected void validate() throws InvalidObjectException {
+  public void validate() throws InvalidObjectException {
     super.validate();
     if (getSingleTest() == null && hasQFiles()) {
       throw new InvalidObjectException("You cannot specify qfiles for more than one test, " + getDir());

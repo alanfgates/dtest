@@ -16,7 +16,6 @@
 package org.dtest.core.git;
 
 import org.dtest.core.CodeSource;
-import org.dtest.core.ContainerClient;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -28,7 +27,7 @@ public class GitSource extends CodeSource  {
   private static final String CFG_CODESOURCE_BRANCH_DEFAULT = "master";
 
   @Override
-  public List<String> srcCommands(ContainerClient client) throws IOException {
+  public List<String> srcCommands(String projectDir) throws IOException {
     String repo = cfg.getAsString(CFG_CODESOURCE_REPO);
     String branch = cfg.getAsString(CFG_CODESOURCE_BRANCH, CFG_CODESOURCE_BRANCH_DEFAULT);
     if (repo == null) {
@@ -36,7 +35,7 @@ public class GitSource extends CodeSource  {
     }
     return Arrays.asList(
         "    /usr/bin/git clone " + repo,
-        "    cd " + client.getProjectName(),
+        "    cd " + projectDir,
         "    /usr/bin/git checkout " + branch);
   }
 

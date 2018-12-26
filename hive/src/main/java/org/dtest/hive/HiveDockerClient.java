@@ -27,11 +27,6 @@ public class HiveDockerClient extends DockerContainerClient {
   private static final Logger LOG = LoggerFactory.getLogger(HiveDockerClient.class);
 
   @Override
-  public String getProjectName() {
-    return "hive";
-  }
-
-  @Override
   protected void checkBuildSucceeded(ProcessResults res) throws IOException {
     Matcher m = IMAGE_SUCCESS.matcher(res.stdout);
     // We should see "BUILD SUCCESS" twice, once for the main build and once for itests

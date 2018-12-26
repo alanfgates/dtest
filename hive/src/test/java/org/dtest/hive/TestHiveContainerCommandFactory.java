@@ -17,76 +17,22 @@ package org.dtest.hive;
 
 import org.apache.commons.lang3.StringUtils;
 import org.dtest.core.BuildInfo;
+import org.dtest.core.BuildYaml;
 import org.dtest.core.CodeSource;
 import org.dtest.core.Config;
 import org.dtest.core.ContainerClient;
 import org.dtest.core.ContainerCommand;
 import org.dtest.core.ContainerCommandFactory;
 import org.dtest.core.ContainerResult;
-import org.dtest.core.DTestLogger;
 import org.dtest.core.TestUtils;
 import org.dtest.core.git.GitSource;
 import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.IOException;
-import java.util.List;
 
 public class TestHiveContainerCommandFactory {
 
-  @Test
-  public void parseYaml() throws IOException {
-    HiveContainerCommandFactory factory = new HiveContainerCommandFactory();
-    List<HiveModuleDirectory> mDirs = factory.readYaml(TestUtils.getConfDir(), HiveModuleDirectory.class);
-    Assert.assertEquals(7, mDirs.size());
-    HiveModuleDirectory mDir = mDirs.get(0);
-    Assert.assertEquals("beeline", mDir.getDir());
-    mDir = mDirs.get(1);
-    Assert.assertEquals("cli", mDir.getDir());
-    Assert.assertEquals(1, mDir.getSkippedTests().length);
-    Assert.assertEquals("TestCliDriverMethods", mDir.getSkippedTests()[0]);
-    mDir = mDirs.get(2);
-    Assert.assertEquals("standalone-metastore", mDir.getDir());
-    Assert.assertTrue(mDir.getNeedsSplit());
-    Assert.assertEquals(1, mDir.getMvnProperties().size());
-    Assert.assertEquals("\"\"", mDir.getMvnProperties().get("test.groups"));
-    mDir = mDirs.get(3);
-    Assert.assertEquals("ql", mDir.getDir());
-    Assert.assertTrue(mDir.getNeedsSplit());
-    Assert.assertEquals(1, mDir.getSkippedTests().length);
-    Assert.assertEquals("TestWorker", mDir.getSkippedTests()[0]);
-    Assert.assertEquals(1, mDir.getIsolatedTests().length);
-    Assert.assertEquals("TestCleaner2", mDir.getIsolatedTests()[0]);
-    mDir = mDirs.get(4);
-    Assert.assertEquals("itests/qtest", mDir.getDir());
-    Assert.assertEquals("TestContribCliDriver", mDir.getSingleTest());
-    mDir = mDirs.get(5);
-    Assert.assertEquals("itests/qtest", mDir.getDir());
-    Assert.assertEquals("TestMiniLlapLocalCliDriver", mDir.getSingleTest());
-    Assert.assertEquals(2, mDir.getIncludedQFilesProperties().length);
-    Assert.assertEquals("minillap.query.files", mDir.getIncludedQFilesProperties()[0]);
-    Assert.assertEquals("minillap.shared.query.files", mDir.getIncludedQFilesProperties()[1]);
-    Assert.assertEquals(1, mDir.getExcludedQFilesProperties().length);
-    Assert.assertEquals("minitez.query.files", mDir.getExcludedQFilesProperties()[0]);
-    Assert.assertEquals(1, mDir.getEnv().size());
-    Assert.assertEquals("dtestuser", mDir.getEnv().get("USER"));
-    Assert.assertEquals(1, mDir.getMvnProperties().size());
-    Assert.assertTrue(mDir.getMvnProperties().containsKey("skipSparkTests"));
-    mDir = mDirs.get(6);
-    Assert.assertEquals("itests/qtest", mDir.getDir());
-    Assert.assertEquals("TestCliDriver", mDir.getSingleTest());
-    Assert.assertEquals("ql/src/test/queries/clientpositive", mDir.getQFilesDir());
-    Assert.assertEquals(4, mDir.getTestsPerContainer());
-    Assert.assertEquals(1, mDir.getIsolatedQFiles().length);
-    Assert.assertEquals("authorization_show_grant.q", mDir.getIsolatedQFiles()[0]);
-    Assert.assertEquals(3, mDir.getExcludedQFilesProperties().length);
-    Assert.assertEquals("minillap.query.files", mDir.getExcludedQFilesProperties()[0]);
-    Assert.assertEquals("minillap.shared.query.files", mDir.getExcludedQFilesProperties()[1]);
-    Assert.assertEquals("minitez.query.files", mDir.getExcludedQFilesProperties()[2]);
-    Assert.assertEquals(2, mDir.getExcludedQFiles().length);
-    Assert.assertEquals("masking_5.q", mDir.getExcludedQFiles()[0]);
-    Assert.assertEquals("orc_merge10.q", mDir.getExcludedQFiles()[1]);
-  }
 
   @Test
   public void buildCommands() throws IOException {
@@ -94,11 +40,14 @@ public class TestHiveContainerCommandFactory {
     Config cfg = TestUtils.buildCfg(
         CodeSource.CFG_CODESOURCE_REPO, "http://myrepo.com/repo.git",
         CodeSource.CFG_CODESOURCE_BRANCH, "mybranch",
-        BuildInfo.CFG_BUILDINFO_LABEL, "mylabel");
+        BuildInfo.CFG_BUILDINFO_LABEL, "mylabel",
+        BuildInfo.CFG_BUILDINFO_BASEDIR, System.getProperty("java.io.tmpdir"),
+        BuildYaml.CFG_BUILDYAML_IMPL, HiveBuildYaml.class.getName());
     HiveContainerCommandFactory cmds = new HiveContainerCommandFactory();
     cmds.setConfig(cfg).setLog(log);
     BuildInfo buildInfo = new BuildInfo(TestUtils.getConfDir(), new GitSource(), true);
-    buildInfo.setConfig(cfg);
+    buildInfo.setConfig(cfg).setLog(log);
+    buildInfo.getBuildDir();
     cmds.buildContainerCommands(new TestContainerClient(), buildInfo);
     log.dumpToLog();
     Assert.assertEquals(11, cmds.getCmds().size());
@@ -116,11 +65,6 @@ public class TestHiveContainerCommandFactory {
   }
 
   private static class TestContainerClient extends ContainerClient {
-    @Override
-    public String getProjectName() {
-      return null;
-    }
-
     @Override
     public String getContainerBaseDir() {
       return "/tmp";

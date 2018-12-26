@@ -46,10 +46,10 @@ public abstract class CodeSource extends Configurable {
 
   /**
    * Get the list of commands that should be executed during image creation to checkout the appropriate source code
-   * @param client container client instance
+   * @param projectDir name of the directory the project is in
    * @return list of shell commands
    */
-  public abstract List<String> srcCommands(ContainerClient client) throws IOException;
+  public abstract List<String> srcCommands(String projectDir) throws IOException;
 
   /**
    * A list of package names that must be included in the container image in order for this source control system

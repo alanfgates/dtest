@@ -16,11 +16,11 @@
 package org.dtest.hive;
 
 import org.dtest.core.BuildInfo;
+import org.dtest.core.BuildYaml;
 import org.dtest.core.ContainerClient;
 import org.dtest.core.ContainerCommand;
-import org.dtest.core.DTestLogger;
 import org.dtest.core.mvn.MavenContainerCommandFactory;
-import org.dtest.core.mvn.ModuleDirectory;
+import org.dtest.core.ModuleDirectory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -62,48 +62,47 @@ public class HiveContainerCommandFactory extends MavenContainerCommandFactory {
   }
 
   @Override
-  protected boolean subclassShouldHandle(ModuleDirectory simple) {
+  protected void buildOneContainerCommand(ModuleDirectory simple, ContainerClient containerClient,
+                                          BuildInfo buildInfo, int testsPerContainer) throws IOException {
     assert simple instanceof HiveModuleDirectory;
     HiveModuleDirectory mDir = (HiveModuleDirectory)simple;
-    return mDir.isSetSingleTest() && mDir.hasQFiles();
-  }
+    if (mDir.isSetSingleTest() && mDir.hasQFiles()) {
+      // We only need to handle this if it's working with qtest.  Otherwise, pass it back to our parent.
+      Set<String> qfiles;
+      if (mDir.isSetQFilesDir() || mDir.isSetIncludedQFilesProperties()) {
+        // If we're supposed to read the qfiles from a directory and/or properties, do that
+        qfiles = findQFiles(containerClient, buildInfo.getLabel(), mDir);
+      } else {
+        // Or if we've been given a list of qfiles, use that
+        qfiles = new HashSet<>();
+        Collections.addAll(qfiles, mDir.getQFiles());
+      }
+      // Deal with any tests that need to be run alone
+      if (mDir.isSetIsolatedQFiles()) {
+        for (String test : mDir.getIsolatedQFiles()) {
+          cmds.add(buildOneQFilesCmd(containerClient, Collections.singleton(test), mDir));
+          qfiles.remove(test);
+        }
+      }
 
-  @Override
-  protected void handle(ModuleDirectory simple, ContainerClient containerClient,
-                        BuildInfo buildInfo, int testsPerContainer) throws IOException {
-    assert simple instanceof HiveModuleDirectory;
-    HiveModuleDirectory mDir = (HiveModuleDirectory)simple;
-    Set<String> qfiles;
-    if (mDir.isSetQFilesDir() || mDir.isSetIncludedQFilesProperties()) {
-      // If we're supposed to read the qfiles from a directory and/or properties, do that
-      qfiles = findQFiles(containerClient, buildInfo.getLabel(), mDir);
+      while (!qfiles.isEmpty()) {
+        List<String> oneSet = new ArrayList<>(testsPerContainer);
+        for (String qFile : qfiles) {
+          if (oneSet.size() >= testsPerContainer) break;
+          oneSet.add(qFile);
+        }
+        cmds.add(buildOneQFilesCmd(containerClient, oneSet, mDir));
+        qfiles.removeAll(oneSet);
+      }
     } else {
-      // Or if we've been given a list of qfiles, use that
-      qfiles = new HashSet<>();
-      Collections.addAll(qfiles, mDir.getQFiles());
-    }
-    // Deal with any tests that need to be run alone
-    if (mDir.isSetIsolatedQFiles()) {
-      for (String test : mDir.getIsolatedQFiles()) {
-        cmds.add(buildOneQFilesCmd(containerClient, Collections.singleton(test), mDir));
-        qfiles.remove(test);
-      }
-    }
-
-    while (!qfiles.isEmpty()) {
-      List<String> oneSet = new ArrayList<>(testsPerContainer);
-      for (String qFile : qfiles) {
-        if (oneSet.size() >= testsPerContainer) break;
-        oneSet.add(qFile);
-      }
-      cmds.add(buildOneQFilesCmd(containerClient, oneSet, mDir));
-      qfiles.removeAll(oneSet);
+      super.buildOneContainerCommand(simple, containerClient, buildInfo, testsPerContainer);
     }
   }
 
   @Override
-  protected Class<? extends ModuleDirectory> getModuleDirectoryClass() {
-    return HiveModuleDirectory.class;
+  protected ModuleDirectory[] getModuleDirs(BuildYaml yaml) {
+    assert yaml instanceof HiveBuildYaml;
+    return ((HiveBuildYaml)yaml).getHiveDirs();
   }
 
   private ContainerCommand buildOneQFilesCmd(ContainerClient containerClient,
