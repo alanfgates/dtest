@@ -48,8 +48,9 @@ public abstract class ContainerClient extends Configurable {
   /**
    * Pass in the build information.  This must be called before any of the other calls.
    * @param buildInfo build information
+   * @throws IOException if we fail to read the yaml file that tells us how to start constructing the build info
    */
-  public void setBuildInfo(BuildInfo buildInfo) {
+  public void setBuildInfo(BuildInfo buildInfo) throws IOException {
     this.buildInfo = buildInfo;
   }
 

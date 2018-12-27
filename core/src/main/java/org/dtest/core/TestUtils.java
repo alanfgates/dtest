@@ -134,4 +134,19 @@ public class TestUtils {
     }
   }
 
+  public static BuildYaml getYaml() {
+    BuildYaml yaml = new BuildYaml();
+    yaml.setBaseImage("centos");
+    yaml.setRequiredPackages(new String[] {"java-1.8.0-openjdk-devel"});
+    yaml.setProjectName("dtest");
+    yaml.setJavaPackages(new String[] {"org.dtest"});
+    ModuleDirectory[] dirs = new ModuleDirectory[2];
+    dirs[0] = new ModuleDirectory();
+    dirs[0].setDir("core");
+    dirs[1] = new ModuleDirectory();
+    dirs[1].setDir("maven");
+    yaml.setDirs(dirs);
+    return yaml;
+  }
+
 }

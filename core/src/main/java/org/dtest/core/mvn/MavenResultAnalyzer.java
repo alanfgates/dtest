@@ -16,9 +16,12 @@
 package org.dtest.core.mvn;
 
 import org.dtest.core.BuildState;
+import org.dtest.core.BuildYaml;
 import org.dtest.core.ContainerResult;
 import org.dtest.core.ResultAnalyzer;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayDeque;
 import java.util.Collections;
 import java.util.Deque;
@@ -81,18 +84,16 @@ public class MavenResultAnalyzer extends ResultAnalyzer {
   }
 
   @Override
-  public void analyzeLog(ContainerResult result) {
+  public void analyzeLog(ContainerResult result, BuildYaml yaml) throws IOException {
     String[] lines = result.getLogs().split("\n");
     for (String line : lines) {
       count(line, successLine);
       count(line, errorLine);
-      analyzeLogLine(result, line);
+      analyzeLogLine(result, line, yaml);
     }
     if (buildState.getState() == BuildState.State.HAD_TIMEOUTS) {
-      buildState.sawTimeouts();
       result.setAnalysisResult(ContainerResult.ContainerStatus.TIMED_OUT);
-    } else if (result.getRc() != 0) {
-      buildState.fail();
+    } else if (buildState.getState() == BuildState.State.HAD_FAILURES_OR_ERRORS) {
       result.setAnalysisResult(ContainerResult.ContainerStatus.FAILED);
     } else {
       // This can get overwritten by later analysis.  It won't overwrite early analysis if there was a failure
@@ -102,11 +103,11 @@ public class MavenResultAnalyzer extends ResultAnalyzer {
   }
 
   // Returns true if it sees a timeout
-  private void analyzeLogLine(ContainerResult result, String line) {
+  private void analyzeLogLine(ContainerResult result, String line, BuildYaml yaml) throws IOException {
     // Look for timeouts
     Matcher m = timeout.matcher(line);
     if (m.matches()) buildState.sawTimeouts();
-    else findErrorsAndFailures(result, line);
+    else findErrorsAndFailures(result, line, yaml);
   }
 
   private void count(String line, Pattern pattern) {
@@ -119,13 +120,13 @@ public class MavenResultAnalyzer extends ResultAnalyzer {
     }
   }
 
-  private void findErrorsAndFailures(ContainerResult result, String line) {
+  private void findErrorsAndFailures(ContainerResult result, String line, BuildYaml yaml) throws IOException {
     for (Pattern error : unitTestErrorPatterns) {
       Matcher errorLine = error.matcher(line);
       if (errorLine.matches()) {
         String testName = errorLine.group(2) + "." + errorLine.group(1);
         errors.add(testName);
-        findLogFiles(result, line, errorLine.group(2));
+        findLogFiles(result, line, errorLine.group(2), yaml);
         buildState.sawTestFailureOrError();
         break; // If we found an error, don't keep looking or we may double count
       }
@@ -135,26 +136,31 @@ public class MavenResultAnalyzer extends ResultAnalyzer {
       if (failureLine.matches()) {
         String testName = failureLine.group(2) + "." + failureLine.group(1);
         failed.add(testName);
-        findLogFiles(result, line, failureLine.group(2));
+        findLogFiles(result, line, failureLine.group(2), yaml);
         buildState.sawTestFailureOrError();
         break; // If we found a failure, don't keep looking or we may double count
       }
     }
   }
 
-  private void findLogFiles(ContainerResult result, String line, String testName) {
-    Pattern p = Pattern.compile(".*(" + getTestClassPrefix() + testName + ").*");
-    Matcher m = p.matcher(line);
-    if (!m.matches()) {
-      throw new RuntimeException("Failed to find the full name of the failed test.");
-    }
+  private void findLogFiles(ContainerResult result, String line, String testName, BuildYaml yaml) throws IOException {
     log.debug("Adding log files for container " + result.getCmd().containerSuffix());
-    result.addLogFileToFetch(result.getCmd().containerDirectory() + "/target/tmp/log/hive.log");
-    result.addLogFileToFetch(result.getCmd().containerDirectory() + "/target/surefire-reports/" + m.group(1) + ".txt");
-    result.addLogFileToFetch(result.getCmd().containerDirectory() + "/target/surefire-reports/" + m.group(1) + "-output.txt");
-  }
-
-  protected String getTestClassPrefix() {
-    return "org\\.dtest\\.";
+    // Make sure we found at least some log files
+    boolean foundOne = false;
+    for (String pkg : yaml.getJavaPackages()) {
+      Pattern p = Pattern.compile(".*(" + pkg + "[a-zA-Z0-9.\\-]*" + testName + ").*");
+      Matcher m = p.matcher(line);
+      if (m.matches()) {
+        foundOne = true;
+        result.addLogFileToFetch(result.getCmd().containerDirectory() + File.separator + "target" + File.separator +
+            "surefire-reports" + File.separator + "" + m.group(1) + ".txt");
+        result.addLogFileToFetch(result.getCmd().containerDirectory() + File.separator + "target" + File.separator +
+            "surefire-reports" + File.separator + m.group(1) + "-output.txt");
+      }
+    }
+    if (!foundOne) throw new IOException("Unable to find logfile for test " + testName + " from line <" + line + ">");
+    for (String log : yaml.getAdditionalLogs()) {
+      result.addLogFileToFetch(result.getCmd().containerDirectory() + File.separator + log);
+    }
   }
 }

@@ -48,8 +48,7 @@ public class TestDockerTest {
     }
 
     @Override
-    public ContainerResult runContainer(ContainerCommand cmd) throws
-        IOException {
+    public ContainerResult runContainer(ContainerCommand cmd) throws IOException {
       String logs = "Ran: " + StringUtils.join(cmd.shellCommand(), " ") + logToReturn;
           //TestMavenResultAnalyzer.LOG_SUCCESSFUL_RUN_FAILED_TESTS;
       return new ContainerResult(cmd, 0, logs);
@@ -124,7 +123,8 @@ public class TestDockerTest {
         IOException {
       String logs = "Ran: " + StringUtils.join(cmd.shellCommand(), " ") +
           TestMavenResultAnalyzer.LOG_SUCCESSFUL_RUN_FAILED_TESTS;
-      return new ContainerResult(cmd, 130, logs);
+      //return new ContainerResult(cmd, 130, logs);
+      throw new IOException("Help me!");
     }
 
     @Override
@@ -196,8 +196,8 @@ public class TestDockerTest {
     }
 
     @Override
-    public void analyzeLog(ContainerResult result) {
-      contained.analyzeLog(result);
+    public void analyzeLog(ContainerResult result, BuildYaml yaml) throws IOException {
+      contained.analyzeLog(result, yaml);
       buildState = contained.buildState;
     }
 

@@ -51,14 +51,21 @@ public class DockerContainerClient extends ContainerClient {
   private String dockerExec;
 
   @Override
-  public void setBuildInfo(BuildInfo buildInfo) {
+  public void setBuildInfo(BuildInfo buildInfo) throws IOException {
     super.setBuildInfo(buildInfo);
-    imageName = IMAGE_BASE + buildInfo.getLabel();
+    imageName = IMAGE_BASE + buildInfo.getYaml().getProjectName().toLowerCase() + "-" + buildInfo.getLabel();
   }
 
   @Override
   public String getContainerBaseDir() {
-    return getHomeDir() + File.separator + buildInfo.getYaml().getProjectName();
+    try {
+      return getHomeDir() + File.separator + buildInfo.getYaml().getProjectName();
+    } catch (IOException e) {
+      // this should never happen, as buildInfo.getYaml has been called already in setBuildInfo and would have
+      // throw there if it was going to throw.
+      log.error("Unexpected IOException", e);
+      throw new RuntimeException(e);
+    }
   }
 
   @Override
@@ -90,7 +97,8 @@ public class DockerContainerClient extends ContainerClient {
     for (String file : result.getLogFilesToFetch()) {
       ProcessResults res = Utils.runProcess("copying-files-for-" + containerName, 60, log,
           getDockerExec(), "cp", containerName + ":" + file, targetDir);
-      if (res.rc != 0) throw new IOException("Failed to copy logfile " + res.stderr);
+      // Don't throw if we fail to copy a file.  It's possible not every system generates every possible type of
+      // output file.
     }
   }
 

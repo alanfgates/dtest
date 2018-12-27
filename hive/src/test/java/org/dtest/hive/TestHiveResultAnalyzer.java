@@ -17,6 +17,7 @@ package org.dtest.hive;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.dtest.core.BuildState;
+import org.dtest.core.BuildYaml;
 import org.dtest.core.Config;
 import org.dtest.core.ContainerCommand;
 import org.dtest.core.ContainerResult;
@@ -24,6 +25,7 @@ import org.dtest.core.TestUtils;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.io.IOException;
 import java.util.Iterator;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -56,13 +58,13 @@ public class TestHiveResultAnalyzer {
   }
 
   @Test
-  public void unitTestWithFailures() {
+  public void unitTestWithFailures() throws IOException  {
     TestUtils.TestLogger log = new TestUtils.TestLogger();
     HiveResultAnalyzer analyzer = new HiveResultAnalyzer();
     analyzer.setConfig(new Config()).setLog(log);
     ContainerResult cr = new ContainerResult(new SimpleContainerCommand("hive-dtest-1_unittests-hive-unit",
         "/Users/gates/git/hive/itests/hive-unit") , 0, LOG_UNIT_TESTS_WITH_FAILURES);
-    analyzer.analyzeLog(cr);
+    analyzer.analyzeLog(cr, getYaml());
     log.dumpToLog();
     Assert.assertEquals(1, analyzer.getErrors().size());
     Assert.assertEquals("TestAcidOnTez.testGetSplitsLocks", analyzer.getErrors().get(0));
@@ -81,13 +83,13 @@ public class TestHiveResultAnalyzer {
   }
 
   @Test
-  public void unitTestAllSucceeded() {
+  public void unitTestAllSucceeded() throws IOException {
     TestUtils.TestLogger log = new TestUtils.TestLogger();
     HiveResultAnalyzer analyzer = new HiveResultAnalyzer();
     analyzer.setConfig(new Config()).setLog(log);
     ContainerResult cr = new ContainerResult(new SimpleContainerCommand("hive-dtest-1_unittests-hive-unit",
         "/Users/gates/git/hive/itests/hive-unit") , 0, LOG_UNIT_TESTS_ALL_SUCCEEDED);
-    analyzer.analyzeLog(cr);
+    analyzer.analyzeLog(cr, getYaml());
     log.dumpToLog();
     Assert.assertEquals(0, analyzer.getErrors().size());
     Assert.assertEquals(0, analyzer.getFailed().size());
@@ -97,14 +99,14 @@ public class TestHiveResultAnalyzer {
   }
 
   @Test
-  public void qtestLogWithFailures() {
+  public void qtestLogWithFailures() throws IOException {
     TestUtils.TestLogger log = new TestUtils.TestLogger();
     HiveResultAnalyzer analyzer = new HiveResultAnalyzer();
     analyzer.setConfig(new Config()).setLog(log);
     ContainerResult cr = new ContainerResult(new SimpleContainerCommand(
         "hive-dtest-1_itests-qtest_TestNegativeCliDriver_a_LF_a-t_RT_._S_",
         "/Users/gates/git/hive/itests/qtest"), 0, LOG_QFILE_WITH_FAILURES);
-    analyzer.analyzeLog(cr);
+    analyzer.analyzeLog(cr, getYaml());
     log.dumpToLog();
     Assert.assertEquals(1, analyzer.getErrors().size());
     Assert.assertEquals("TestNegativeCliDriver.alter_notnull_constraint_violation", analyzer.getErrors().get(0));
@@ -121,14 +123,14 @@ public class TestHiveResultAnalyzer {
   }
 
   @Test
-  public void qtestLogAllSuccess() {
+  public void qtestLogAllSuccess() throws IOException {
     TestUtils.TestLogger log = new TestUtils.TestLogger();
     HiveResultAnalyzer analyzer = new HiveResultAnalyzer();
     analyzer.setConfig(new Config()).setLog(log);
     ContainerResult cr = new ContainerResult(new SimpleContainerCommand(
         "hive-dtest-1_itests-qtest_TestNegativeCliDriver_a_LF_a-t_RT_._S_",
         "/Users/gates/git/hive/itests/qtest"), 0, LOG_QFILE_ALL_SUCCEEDED);
-    analyzer.analyzeLog(cr);
+    analyzer.analyzeLog(cr, getYaml());
     log.dumpToLog();
     Assert.assertEquals(0, analyzer.getErrors().size());
     Assert.assertEquals(0, analyzer.getFailed().size());
@@ -138,13 +140,13 @@ public class TestHiveResultAnalyzer {
   }
 
   @Test
-  public void logWithSkip() {
+  public void logWithSkip() throws IOException {
     TestUtils.TestLogger log = new TestUtils.TestLogger();
     HiveResultAnalyzer analyzer = new HiveResultAnalyzer();
     analyzer.setConfig(new Config()).setLog(log);
     ContainerResult cr = new ContainerResult(new SimpleContainerCommand(
         "unittest-7", "/Users/gates/git/hive/jdbc"), 0, LOG_WITH_SKIPPED_TESTS);
-    analyzer.analyzeLog(cr);
+    analyzer.analyzeLog(cr, getYaml());
     log.dumpToLog();
     Assert.assertEquals(26, analyzer.getSucceeded());
     Assert.assertEquals(0, analyzer.getErrors().size());
@@ -153,17 +155,33 @@ public class TestHiveResultAnalyzer {
   }
 
   @Test
-  public void timeoutLog() {
+  public void timeoutLog() throws IOException {
     TestUtils.TestLogger log = new TestUtils.TestLogger();
     HiveResultAnalyzer analyzer = new HiveResultAnalyzer();
     analyzer.setConfig(new Config()).setLog(log);
-    analyzer.analyzeLog(new ContainerResult(new SimpleContainerCommand("bla", "bla"), 0, LOG_WITH_TIMEOUT));
+    analyzer.analyzeLog(new ContainerResult(new SimpleContainerCommand("bla", "bla"), 0, LOG_WITH_TIMEOUT), getYaml());
     log.dumpToLog();
     Assert.assertEquals(BuildState.State.HAD_TIMEOUTS, analyzer.getBuildState().getState());
   }
 
+  private BuildYaml getYaml() {
+    HiveBuildYaml yaml = new HiveBuildYaml();
+    yaml.setBaseImage("centos");
+    yaml.setRequiredPackages(new String[] {"java-1.8.0-openjdk-devel"});
+    yaml.setProjectName("dtest");
+    yaml.setJavaPackages(new String[] {"org.apache.hadoop.hive", "org.apache.hive"});
+    HiveModuleDirectory[] dirs = new HiveModuleDirectory[2];
+    dirs[0] = new HiveModuleDirectory();
+    dirs[0].setDir("core");
+    dirs[1] = new HiveModuleDirectory();
+    dirs[1].setDir("maven");
+    yaml.setHiveDirs(dirs);
+    yaml.setAdditionalLogs(new String[] {"target/tmp/log/hive.log"});
+    return yaml;
+  }
+
   @VisibleForTesting
-  public static final String LOG_UNIT_TESTS_WITH_FAILURES =
+  private static final String LOG_UNIT_TESTS_WITH_FAILURES =
       "[INFO] ------------------------------------------------------------------------\n" +
       "[INFO] Building Hive Integration - Unit Tests 3.0.0-SNAPSHOT\n" +
       "[INFO] ------------------------------------------------------------------------\n" +
@@ -192,7 +210,7 @@ public class TestHiveResultAnalyzer {
       "[INFO]\n" +
       "[INFO] Tests run: 12, Failures: 0, Errors: 0, Skipped: 0\n";
 
-  public static final String LOG_UNIT_TESTS_ALL_SUCCEEDED =
+  private static final String LOG_UNIT_TESTS_ALL_SUCCEEDED =
       "[INFO] ------------------------------------------------------------------------\n" +
           "[INFO] Building Hive Integration - Unit Tests 3.0.0-SNAPSHOT\n" +
           "[INFO] ------------------------------------------------------------------------\n" +
@@ -208,7 +226,7 @@ public class TestHiveResultAnalyzer {
           "[INFO] Tests run: 12, Failures: 0, Errors: 0, Skipped: 0\n";
 
   @VisibleForTesting
-  public static final String LOG_QFILE_WITH_FAILURES =
+  static final String LOG_QFILE_WITH_FAILURES =
       "main:\n" +
           "[delete] Deleting directory /root/hive/itests/qtest/target/tmp\n" +
           "[delete] Deleting directory /root/hive/itests/qtest/target/testconf\n" +
@@ -235,7 +253,7 @@ public class TestHiveResultAnalyzer {
           "at org.apache.hadoop.hive.ql.QTestUtil.failedDiff(QTestUtil.java:2166)";
 
   @VisibleForTesting
-  public static final String LOG_QFILE_ALL_SUCCEEDED =
+  private static final String LOG_QFILE_ALL_SUCCEEDED =
       "main:\n" +
           "[delete] Deleting directory /root/hive/itests/qtest/target/tmp\n" +
           "[delete] Deleting directory /root/hive/itests/qtest/target/testconf\n" +
@@ -249,7 +267,7 @@ public class TestHiveResultAnalyzer {
           "[INFO] Tests run: 74, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 201.001 s - in org.apache.hadoop.hive.cli.TestNegativeCliDriver\n";
 
   @VisibleForTesting
-  public static final String LOG_WITH_TIMEOUT =
+  private static final String LOG_WITH_TIMEOUT =
       "[INFO] -------------------------------------------------------\n" +
       "[INFO]  T E S T S \n" +
       "[INFO] -------------------------------------------------------\n" +

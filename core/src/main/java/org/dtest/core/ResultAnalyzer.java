@@ -43,8 +43,10 @@ public abstract class ResultAnalyzer extends Configurable {
    * Analyze a log.  This can be called a number of times on logs returned by containers.
    * @param containerResult the result from the container run.  Information in the result will be
    *                       appended by this method.
+   * @param yaml Build information from the yaml file.
+   * @throws IOException if it fails to find the information it needs when analyzing the log.
    */
-  public abstract void analyzeLog(ContainerResult containerResult);
+  public abstract void analyzeLog(ContainerResult containerResult, BuildYaml yaml) throws IOException;
 
   /**
    * Get aggregate count of succeeded tests.

@@ -2,6 +2,8 @@ baseImage: centos
 requiredPackages:
   - java-1.8.0-openjdk-devel
 projectName: faky
+javaPackages:
+- org.dtest
 dirs:
   - dir: beeline
   - dir: cli

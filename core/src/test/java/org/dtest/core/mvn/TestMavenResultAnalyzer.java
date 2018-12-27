@@ -23,6 +23,7 @@ import org.dtest.core.TestUtils;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.io.IOException;
 import java.util.Iterator;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -54,38 +55,37 @@ public class TestMavenResultAnalyzer {
   }
 
   @Test
-  public void unitTestLog() {
+  public void unitTestLog() throws IOException {
     TestUtils.TestLogger log = new TestUtils.TestLogger();
     MavenResultAnalyzer analyzer = new MavenResultAnalyzer();
     analyzer.setLog(log);
     ContainerResult cr = new ContainerResult(new SimpleContainerCommand("hive-dtest-1_unittests-hive-unit",
         "/Users/gates/git/hive/itests/hive-unit") , 0, LOG_SUCCESSFUL_RUN_FAILED_TESTS);
-    analyzer.analyzeLog(cr);
+    analyzer.analyzeLog(cr, TestUtils.getYaml());
     Assert.assertEquals(1, analyzer.getErrors().size());
     Assert.assertEquals("TestAcidOnTez.testGetSplitsLocks", analyzer.getErrors().get(0));
     Assert.assertEquals(1, analyzer.getFailed().size());
     Assert.assertEquals("TestActivePassiveHA.testManualFailover", analyzer.getFailed().get(0));
     Assert.assertEquals(32, analyzer.getSucceeded());
     Assert.assertEquals(BuildState.State.HAD_FAILURES_OR_ERRORS, analyzer.getBuildState().getState());
-    Assert.assertEquals(5, cr.getLogFilesToFetch().size());
+    Assert.assertEquals(4, cr.getLogFilesToFetch().size());
     SortedSet<String> orderedLogFiles = new TreeSet<>(cr.getLogFilesToFetch());
     Iterator iter = orderedLogFiles.iterator();
     Assert.assertEquals("/Users/gates/git/hive/itests/hive-unit/target/surefire-reports/org.dtest.TestAcidOnTez-output.txt", iter.next());
     Assert.assertEquals("/Users/gates/git/hive/itests/hive-unit/target/surefire-reports/org.dtest.TestAcidOnTez.txt", iter.next());
     Assert.assertEquals("/Users/gates/git/hive/itests/hive-unit/target/surefire-reports/org.dtest.TestActivePassiveHA-output.txt", iter.next());
     Assert.assertEquals("/Users/gates/git/hive/itests/hive-unit/target/surefire-reports/org.dtest.TestActivePassiveHA.txt", iter.next());
-    Assert.assertEquals("/Users/gates/git/hive/itests/hive-unit/target/tmp/log/hive.log", iter.next());
     log.dumpToLog();
   }
 
   @Test
-  public void successfulLog() {
+  public void successfulLog() throws IOException {
     TestUtils.TestLogger log = new TestUtils.TestLogger();
     MavenResultAnalyzer analyzer = new MavenResultAnalyzer();
     analyzer.setLog(log);
     ContainerResult cr = new ContainerResult(new SimpleContainerCommand("hive-dtest-1_unittests-hive-unit",
         "/Users/gates/git/hive/itests/hive-unit") , 0, LOG_SUCCESSFUL_RUN_ALL_SUCCEEDED);
-    analyzer.analyzeLog(cr);
+    analyzer.analyzeLog(cr, TestUtils.getYaml());
     Assert.assertEquals(0, analyzer.getErrors().size());
     Assert.assertEquals(0, analyzer.getFailed().size());
     Assert.assertEquals(19, analyzer.getSucceeded());
@@ -96,9 +96,9 @@ public class TestMavenResultAnalyzer {
   }
 
   @Test
-  public void timeoutLog() {
+  public void timeoutLog() throws IOException {
     MavenResultAnalyzer analyzer = new MavenResultAnalyzer();
-    analyzer.analyzeLog(new ContainerResult(new SimpleContainerCommand("bla", "bla"), 0, LOG_TIMED_OUT));
+    analyzer.analyzeLog(new ContainerResult(new SimpleContainerCommand("bla", "bla"), 0, LOG_TIMED_OUT), TestUtils.getYaml());
     Assert.assertEquals(BuildState.State.HAD_TIMEOUTS, analyzer.getBuildState().getState());
   }
 

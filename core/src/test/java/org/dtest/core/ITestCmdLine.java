@@ -57,6 +57,8 @@ public class ITestCmdLine {
         "requiredPackages:\n" +
         "  - java-1.8.0-openjdk-devel\n" +
         "projectName: dtest\n" +
+        "javaPackages:\n" +
+        "  - org.dtest\n" +
         "dirs:\n" +
         "  - dir: core\n" +
         "  - dir: maven\n");

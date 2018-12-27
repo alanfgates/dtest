@@ -15,7 +15,6 @@
  */
 package org.dtest.hive;
 
-import org.dtest.core.ContainerResult;
 import org.dtest.core.mvn.MavenResultAnalyzer;
 
 import java.util.regex.Pattern;
@@ -30,8 +29,4 @@ public class HiveResultAnalyzer extends MavenResultAnalyzer {
   }
 
 
-  @Override
-  protected String getTestClassPrefix() {
-    return "org\\.apache\\..*\\.";
-  }
 }

@@ -72,8 +72,6 @@ public class BuildInfo extends Configurable implements Comparable<BuildInfo> {
    */
   public String getBuildDir() throws IOException {
     if (dir != null) return dir;
-    // Read our yaml file
-    readYaml();
 
     // This cannot be done in the constructor because it requires the configuration.
     checkLabelIsDockerable();
@@ -145,7 +143,8 @@ public class BuildInfo extends Configurable implements Comparable<BuildInfo> {
     return label.compareTo(o.label);
   }
 
-  public BuildYaml getYaml() {
+  public BuildYaml getYaml() throws IOException {
+    if (yaml == null) readYaml();
     return yaml;
   }
 

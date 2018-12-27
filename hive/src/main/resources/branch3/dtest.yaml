@@ -3,6 +3,11 @@ requiredPackages:
   - java-1.8.0-openjdk-devel
 projectName: hive
 comment: hive branch-3 yaml file
+javaPackages:
+- org.apache.hadoop.hive
+- org.apache.hive
+additionalLogs:
+- target/tmp/log/hive.log
 hiveDirs:
   - dir: accumulo-handler
   - dir: beeline

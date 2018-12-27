@@ -34,6 +34,8 @@ public class BuildYaml {
   public static final String CFG_BUILDYAML_IMPL = "dtest.core.buildyaml.impl";
   private static final Class<? extends BuildYaml> CFG_BUILDYAML_IMPL_DEFAULT = BuildYaml.class;
 
+  private static final String[] EMPTY_STRING_ARRAY = new String[0];
+
   // TODO - figure out if javadoc will pick these up or I need to change them to another privacy level.
   /**
    * Base image to use.  Currently supported values are centos, ubuntu, or debian.  These can also include
@@ -61,6 +63,19 @@ public class BuildYaml {
    */
   private String comment;
 
+  /**
+   * Top level Java packages that the tests are in.  These are not the individual modules but top level ones, such
+   * as org.apache.hadoop or org.dtest.  Done as a list because some projects have tests in multiple top level
+   * packages, e.g. Apache Hive has org.apache.hadoop.hive and org.apache.hive.
+   */
+  private String[] javaPackages;
+
+  /**
+   * Any additional log files that should be picked up as part of the collection of log files to ship back to
+   * the user.
+   */
+  private String[] additionalLogs;
+
   static Class<? extends BuildYaml> getBuildYamlClass(Config cfg) throws IOException {
     return cfg.getAsClass(CFG_BUILDYAML_IMPL, BuildYaml.class, CFG_BUILDYAML_IMPL_DEFAULT);
   }
@@ -74,7 +89,7 @@ public class BuildYaml {
   }
 
   public String[] getRequiredPackages() {
-    return requiredPackages;
+    return requiredPackages == null ? EMPTY_STRING_ARRAY : requiredPackages;
   }
 
   public void setRequiredPackages(String[] requiredPackages) {
@@ -103,5 +118,21 @@ public class BuildYaml {
 
   public void setComment(String comment) {
     this.comment = comment;
+  }
+
+  public String[] getJavaPackages() {
+    return javaPackages == null ? EMPTY_STRING_ARRAY : javaPackages;
+  }
+
+  public void setJavaPackages(String[] javaPackages) {
+    this.javaPackages = javaPackages;
+  }
+
+  public String[] getAdditionalLogs() {
+    return additionalLogs == null ? EMPTY_STRING_ARRAY : additionalLogs;
+  }
+
+  public void setAdditionalLogs(String[] additionalLogs) {
+    this.additionalLogs = additionalLogs;
   }
 }
