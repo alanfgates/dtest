@@ -52,7 +52,7 @@ public class BuildInfo extends Configurable implements Comparable<BuildInfo> {
 
   /**
    *
-   * @param confDir directory where we expect to find dtest.properties file
+   * @param confDir directory where we expect to find dtest.properties and dtest.yaml files
    * @param repo code source object that will be used to fetch code.
    * @param cleanupAfter whether we should cleanup after this build
    */
@@ -64,8 +64,9 @@ public class BuildInfo extends Configurable implements Comparable<BuildInfo> {
   }
 
   /**
-   * Get the directory for this build.  This is the directory on the build machine that will be used as the
-   * base for the build.  If the directory does not exist this call will create it.
+   * Get the directory for this build.  This is the directory on the build machine that will be the working directory
+   * for the build.  The dtest.log for the build will be in this directory.  It is constructed by using
+   * baseDir/labelname.  If the directory does not exist this call will create it.
    * You must call {@link #setConfig(Config)} before calling this.
    * @return directory name
    * @throws IOException if the directory can't be built.
@@ -82,7 +83,8 @@ public class BuildInfo extends Configurable implements Comparable<BuildInfo> {
   }
 
   /**
-   * Get the base directory for this build.
+   * Get the base directory for this build.  The build directory will be in a subdirectory of this directory, named with
+   * the label of this build.  This allows all dtest builds to use the same base directory.
    * @return base directory
    * @throws IOException if basedir isn't provided in the configuration.
    */
@@ -94,13 +96,17 @@ public class BuildInfo extends Configurable implements Comparable<BuildInfo> {
 
 
   /**
-   * Get the object that controls how the code is checked out from source
+   * Get the object that controls how the code is checked out from source.
    * @return code source
    */
   public CodeSource getSrc() {
     return src;
   }
 
+  /**
+   * Get the label for the build.
+   * @return build label.
+   */
   public String getLabel() {
     // Don't check validity of label here, we'll do that when we construct the build dir.
     if (label == null) {
@@ -110,13 +116,10 @@ public class BuildInfo extends Configurable implements Comparable<BuildInfo> {
   }
 
   /**
-   * Get the configuration directory for dtest.
-   * @return dtest conf dir
+   * Whether the system should cleanup after the build.  Defaults to true, but can be set via the command line
+   * to false for debugging.
+   * @return whether to clean up after the build.
    */
-  public String getConfDir() {
-    return confDir;
-  }
-
   public boolean shouldCleanupAfter() {
     return cleanupAfter;
   }

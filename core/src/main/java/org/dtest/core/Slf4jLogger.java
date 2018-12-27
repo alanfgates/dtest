@@ -18,6 +18,10 @@ package org.dtest.core;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * Default implementation of DTestLogger that writes to sl4j.Logger.  This is used when the tool is run from the
+ * command line.
+ */
 public class Slf4jLogger implements DTestLogger {
   private final Logger log;
 

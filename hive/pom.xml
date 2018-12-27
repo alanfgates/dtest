@@ -29,6 +29,7 @@ limitations under the License.
   <artifactId>dtest-hive</artifactId>
   <packaging>jar</packaging>
   <name>dtest hive implementation</name>
+  <description>Dtest implementation for Hive.  This needs to move to Hive proper.</description>
 
   <dependencies>
     <dependency>

@@ -50,6 +50,12 @@ public class HiveContainerCommand extends MavenContainerCommand {
     return Utils.shellCmdInRoot(buildDir, new HiveMvnCommandSupplier());
   }
 
+  @Override
+  protected void addTest(String test) {
+    // Overridden just so that HiveContainerCommandFactory can call this method, since it is protected in
+    // MavenContainerCommand and cannot be called directly.
+    super.addTest(test);
+  }
 
   private class HiveMvnCommandSupplier implements Supplier<String> {
     public String get() {

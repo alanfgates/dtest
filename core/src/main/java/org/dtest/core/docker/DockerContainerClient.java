@@ -15,9 +15,7 @@
  */
 package org.dtest.core.docker;
 
-import com.google.common.annotations.VisibleForTesting;
 import org.dtest.core.BuildInfo;
-import org.dtest.core.CodeSource;
 import org.dtest.core.ContainerClient;
 import org.dtest.core.ContainerCommand;
 import org.dtest.core.ContainerCommandFactory;
@@ -35,6 +33,9 @@ import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ * Default implementation of ContainerClient.  Implements container client for Docker.
+ */
 public class DockerContainerClient extends ContainerClient {
   /**
    * Path to the docker executable.  Defaults to /usr/local/bin/docker
@@ -135,7 +136,6 @@ public class DockerContainerClient extends ContainerClient {
    * @param cmdFactory used to generate the initial build command.
    * @throws IOException if the file cannot be written.
    */
-  @VisibleForTesting
   public void defineImage(ContainerCommandFactory cmdFactory) throws IOException {
     FileWriter writer = new FileWriter(buildInfo.getBuildDir() + File.separatorChar + "Dockerfile");
     writer.write("FROM " + buildInfo.getYaml().getBaseImage() + "\n");
@@ -170,6 +170,12 @@ public class DockerContainerClient extends ContainerClient {
     writer.close();
   }
 
+  /**
+   * Determine whether the build succeeded.  The default implementations looks for one instance of "BUILD SUCCESS" in
+   * the results.  It also checks that the return code from the run is 0.
+   * @param res Result from the docker run command.
+   * @throws IOException if the build did not succeed.
+   */
   protected void checkBuildSucceeded(ProcessResults res) throws IOException {
     Matcher m = IMAGE_SUCCESS.matcher(res.stdout);
     // We should see "BUILD SUCCESS"
@@ -183,10 +189,18 @@ public class DockerContainerClient extends ContainerClient {
     }
   }
 
+  /**
+   * Get the user to run the container as.  Defaults to 'dtestuser'.
+   * @return user name
+   */
   protected String getUser() {
     return "dtestuser";
   }
 
+  /**
+   * Get the home directory of the user.  Defaults to /home/<i>username</i>
+   * @return user home directory.
+   */
   protected String getHomeDir() {
     return "/home/" + getUser();
   }

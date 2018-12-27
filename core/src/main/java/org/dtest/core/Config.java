@@ -35,14 +35,21 @@ import java.util.regex.Pattern;
  * will be used instead.
  *
  * Properties can also be read from a file.  Any properties already set in the passed in properties object will
- * not be overridden by the values in the file.
+ * override the values in the file.
  *
- * The intent of this bare bones config system is to build something that plugins can easily tap into.  The
+ * The intent of this bare bones config system is to build something that plugins can easily use.  The
  * envisioned usage is that each component defines its own config values and only that component reads them.
  */
 public class Config {
 
+  /**
+   * Name of the properties file containing config information for dtest.
+   */
   public static final String PROPERTIES_FILE = "dtest.properties";
+
+  /**
+   * Name of the yaml file that describes the build for this instance of dtest.
+   */
   public static final String YAML_FILE = "dtest.yaml";
   private static final Pattern TIME_UNIT_SUFFIX = Pattern.compile("([0-9]+)([a-zA-Z]+)");
 
@@ -82,16 +89,36 @@ public class Config {
     input.close();
   }
 
+  /**
+   * Get a configuration value as a Class object.
+   * @param key properties key
+   * @param clazz Class that this object must extend.
+   * @param defaultVal Default class object to return if the key is unset.
+   * @param <T> class that the resulting value must extend.
+   * @return instance of the class, either found in the properties or the default value if not found.
+   * @throws IOException if the class cannot be loaded.
+   */
   public <T> Class<? extends T> getAsClass(String key, Class<T> clazz, Class<? extends T> defaultVal) throws IOException {
     String val = entries.getProperty(key);
     return val == null ? defaultVal : Utils.getClass(val, clazz);
   }
 
+  /**
+   * Get a configuration value as an integer.
+   * @param key properties key
+   * @param defaultVal default value to return if the key is not set
+   * @return properties value
+   */
   public int getAsInt(String key, int defaultVal) {
     String val = entries.getProperty(key);
     return val == null ? defaultVal : Integer.valueOf(val);
   }
 
+  /**
+   * Get a configuration value as an integer.  Returns 0 if the key is not set.
+   * @param key properties key
+   * @return properties value, or 0 if the key is not set.
+   */
   public int getAsInt(String key) {
     return getAsInt(key, 0);
   }
@@ -135,7 +162,7 @@ public class Config {
   }
 
   /**
-   * Get the value as a time.
+   * Get the value as a time.  0 will be returned if the key is not set.
    * @param key key to look up
    * @param outUnit time unit to return this as
    * @return time as a long, or 0 if key not present

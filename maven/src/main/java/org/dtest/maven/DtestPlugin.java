@@ -39,6 +39,11 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Properties;
 
+/**
+ * A maven plugin for dtest.  It is not suggested that you set this up to run by default, as you are probably only
+ * using dtest if you have a complex and long build process.  This plugin can be invoked by doing 'mvn dtest:dtest'.
+ * It is built as an aggregator plugin so it will only run at the top level of your build, not in each module.
+ */
 @Mojo(name = "dtest",
       aggregator = true,
       defaultPhase = LifecyclePhase.VERIFY)
@@ -86,6 +91,13 @@ public class DtestPlugin extends AbstractMojo {
    */
   @Parameter
   private Properties dtestProperties;
+
+  /**
+   * Whether to cleanup after the build.  Defaults to true.  If set to false the docker image and containers
+   * used in the build will be left around.  Useful for debugging.
+   */
+  @Parameter(defaultValue = "true")
+  private boolean cleanupAfter;
 
   @Override
   public void execute() throws MojoExecutionException, MojoFailureException {
@@ -138,7 +150,7 @@ public class DtestPlugin extends AbstractMojo {
 
     DockerTest dtest = new DockerTest();
     try {
-      dtest.buildConfig(baseDir.getAbsolutePath(), dtestProperties);
+      dtest.buildConfig(baseDir.getAbsolutePath(), dtestProperties, cleanupAfter);
     } catch (IOException e) {
       throw new MojoFailureException("Failed to build the configuration for the build", e);
     }

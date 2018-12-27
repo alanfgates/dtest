@@ -13,30 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.dtest.core.impl;
-
 /**
- * Results of running a process.
+ * Default implementations of core classes that implement git specific functionality.
  */
-public class ProcessResults {
-  /**
-   * Stdout of the process, concatenated together into a string.
-   */
-  public final String stdout;
-
-  /**
-   * Stderr of the process, concatenated together into a string.
-   */
-  public final String stderr;
-
-  /**
-   * Return code from running the process.
-   */
-  public final int rc;
-
-  public ProcessResults(String stdout, String stderr, int rc) {
-    this.stdout = stdout;
-    this.stderr = stderr;
-    this.rc = rc;
-  }
-}
+package org.dtest.core.git;

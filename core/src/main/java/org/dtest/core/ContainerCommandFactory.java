@@ -23,8 +23,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * ContainerCommandFactory builds a list of {@link ContainerCommand}s.  The default implementation produces maven
- * commands that run the tests for each module in the directory in a separate container.
+ * ContainerCommandFactory builds a list of {@link ContainerCommand}s.  It also provides information for
+ * building the initial image.
  */
 public abstract class ContainerCommandFactory extends Configurable {
 
@@ -59,7 +59,8 @@ public abstract class ContainerCommandFactory extends Configurable {
   public abstract List<String> getInitialBuildCommand();
 
   /**
-   * Get a list of packages required to use the commands in this factory
+   * Get a list of packages required to use the commands in this factory.  These are rpm or deb packages that need
+   * to be installed in the container as part of the image.
    * @return list of packages
    */
   public abstract List<String> getRequiredPackages();

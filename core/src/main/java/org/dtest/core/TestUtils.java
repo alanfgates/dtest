@@ -23,8 +23,16 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
+/**
+ * Utilities for testing.  In this package so that implementations don't have to include a specific test module.
+ */
 public class TestUtils {
 
+  /**
+   * Construct a set of properties from string pairs.
+   * @param vals property keys and values, as key, value, [key, value...].  There must be an even number of strings.
+   * @return properties object.
+   */
   public static Properties buildProperties(String... vals) {
     Properties props = new Properties();
     assert vals.length % 2 == 0 : "Requires even number of args";
@@ -34,14 +42,28 @@ public class TestUtils {
     return props;
   }
 
+  /**
+   * Construct a config file from string pairs.
+   * @param vals property keys and values, as key, value, [key, value...].  There must be an even number of strings.
+   * @return config object.
+   */
   public static Config buildCfg(String... vals) {
     return new Config(buildProperties(vals));
   }
 
+  /**
+   * Get the configuration directory for running unit tests.  This assumes that any dtest.properites or dtest.yaml
+   * files are in src/test/resources and you have defined java.io.tmpdir to point to your target directory.
+   * @return directory where the configuration files are
+   */
   public static String getConfDir() {
     return System.getProperty("java.io.tmpdir") + File.separator + "test-classes";
   }
 
+  /**
+   * An implementation of DTestLogger that collects all of the log output so it can be examined by tests.  Results can,
+   * and should, be dumped to Slf4j log by calling {@link #dumpToLog()} at the end of the test.
+   */
   public static class TestLogger implements DTestLogger {
     private Logger log = LoggerFactory.getLogger(TestUtils.class);
     private List<String> entries = new ArrayList<>();
@@ -114,6 +136,9 @@ public class TestUtils {
       return buf.toString();
     }
 
+    /**
+     * Dump the contents of this log to the slf4j log, at info level.
+     */
     public void dumpToLog() {
       log.info("Entire logs from test:");
       for (String entry : entries) log.info(entry);
@@ -134,6 +159,10 @@ public class TestUtils {
     }
   }
 
+  /**
+   * Build a yaml file specific to dtest.
+   * @return a yaml file.
+   */
   public static BuildYaml getYaml() {
     BuildYaml yaml = new BuildYaml();
     yaml.setBaseImage("centos");

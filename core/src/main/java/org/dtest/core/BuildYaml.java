@@ -19,7 +19,7 @@ import java.io.IOException;
 
 /**
  * BuildYaml is the top level file for holding the object described in the build.yaml file.  It contains general
- * build information as well as a list of ModuleDirectory.  Implementations can override this class in order to
+ * build information as well as an array of ModuleDirectory.  Implementations can override this class in order to
  * get information specific to their build.  They can add top level information or subclass
  * {@link ModuleDirectory} in order to add additional information in each module.  If an implementation subclasses
  * ModuleDirectory it will also need to subclass {@link org.dtest.core.mvn.MavenContainerCommandFactory} and
@@ -28,8 +28,7 @@ import java.io.IOException;
 public class BuildYaml {
 
   /**
-   * Implementation of BuildYaml to use to interpret test directory in build.yaml.  Defaults to
-   * ModuleDirectory.
+   * Implementation of BuildYaml to use to interpret build.yaml.  Defaults to BuildYaml.
    */
   public static final String CFG_BUILDYAML_IMPL = "dtest.core.buildyaml.impl";
   private static final Class<? extends BuildYaml> CFG_BUILDYAML_IMPL_DEFAULT = BuildYaml.class;
@@ -65,7 +64,7 @@ public class BuildYaml {
 
   /**
    * Top level Java packages that the tests are in.  These are not the individual modules but top level ones, such
-   * as org.apache.hadoop or org.dtest.  Done as a list because some projects have tests in multiple top level
+   * as org.apache.hadoop or org.dtest.  Done as an array because some projects have tests in multiple top level
    * packages, e.g. Apache Hive has org.apache.hadoop.hive and org.apache.hive.
    */
   private String[] javaPackages;

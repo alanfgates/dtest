@@ -18,6 +18,9 @@ package org.dtest.maven;
 import org.apache.maven.plugin.logging.Log;
 import org.dtest.core.DTestLogger;
 
+/**
+ * Implementation of DTestLogger for maven's logging facility.
+ */
 public class MavenLogger implements DTestLogger {
   private final Log log;
 

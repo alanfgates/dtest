@@ -15,20 +15,37 @@
  */
 package org.dtest.core;
 
+/**
+ * A simple super class that keeps track of the config object and the log.
+ */
 public abstract class Configurable {
 
+  /**
+   * Configuration object for this build.
+   */
   protected Config cfg;
+
+  /**
+   * Logger.  This should be used by all classes for logging as it coordinates which underlying logging system
+   * is currently being used.
+   */
   protected DTestLogger log;
 
   /**
    * Set the configuration object for this object.
    * @param cfg config
+   * @return reference to this object.
    */
   public Configurable setConfig(Config cfg) {
     this.cfg = cfg;
     return this;
   }
 
+  /**
+   * Set the log object for this object.
+   * @param log log
+   * @return reference to this object.
+   */
   public Configurable setLog(DTestLogger log) {
     this.log = log;
     return this;

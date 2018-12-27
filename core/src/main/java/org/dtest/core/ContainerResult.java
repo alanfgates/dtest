@@ -26,14 +26,20 @@ public class ContainerResult {
 
   private final ContainerCommand cmd;
   private final int rc;
-  private final String logs;
+  private final String stdout;
   private ContainerStatus analysisResult;
   private Set<String> logFilesToFetch;
 
-  public ContainerResult(ContainerCommand cmd, int rc, String logs) {
+  /**
+   *
+   * @param cmd the command run in the container.
+   * @param rc result code from running the command.
+   * @param stdout the output of the container as printed on stdout.
+   */
+  public ContainerResult(ContainerCommand cmd, int rc, String stdout) {
     this.cmd = cmd;
     this.rc = rc;
-    this.logs = logs;
+    this.stdout = stdout;
     logFilesToFetch = new HashSet<>();
   }
 
@@ -54,11 +60,11 @@ public class ContainerResult {
   }
 
   /**
-   * Get any logs from the container, concatenated together as one strings
-   * @return the logs
+   * Get the output from the container, concatenated together as one string
+   * @return what the container sent to stdout.
    */
-  public String getLogs() {
-    return logs;
+  public String getStdout() {
+    return stdout;
   }
 
   /**

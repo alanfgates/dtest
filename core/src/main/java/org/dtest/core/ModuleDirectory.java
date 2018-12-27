@@ -18,6 +18,10 @@ package org.dtest.core;
 import java.io.InvalidObjectException;
 import java.util.Map;
 
+/**
+ * Information from {@link BuildYaml} specific to each set of tests in the build.  Should probably be named
+ * TestGroup or something since the directory is not unique.
+ */
 public class ModuleDirectory {
 
   /**

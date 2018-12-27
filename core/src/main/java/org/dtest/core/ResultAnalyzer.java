@@ -27,20 +27,23 @@ import java.util.List;
  */
 public abstract class ResultAnalyzer extends Configurable {
 
+  /**
+   * State of this build based on analyzing logs from the test containers.
+   */
   protected BuildState buildState;
 
   protected ResultAnalyzer() {
     buildState = new BuildState();
   }
 
-  // Implementation of ResultAnalyzer
   /**
    * Class to analyze results of the tests.  Defaults to MavenResultAnalyzer.
    */
   public final static String CFG_RESULTANALYZER_IMPL = "dtest.core.resultanalyzer.impl";
 
   /**
-   * Analyze a log.  This can be called a number of times on logs returned by containers.
+   * Analyze a log.  This can be called a on logs returned by containers.  Implementations of this method must
+   * be thread safe.
    * @param containerResult the result from the container run.  Information in the result will be
    *                       appended by this method.
    * @param yaml Build information from the yaml file.

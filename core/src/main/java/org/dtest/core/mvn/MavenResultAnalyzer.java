@@ -31,6 +31,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ * Implementation of ResultAnalyzer with maven specific logic.  This class understands how to parse maven output
+ * to interpret test failures, etc.
+ */
 public class MavenResultAnalyzer extends ResultAnalyzer {
 
   /**
@@ -85,7 +89,7 @@ public class MavenResultAnalyzer extends ResultAnalyzer {
 
   @Override
   public void analyzeLog(ContainerResult result, BuildYaml yaml) throws IOException {
-    String[] lines = result.getLogs().split("\n");
+    String[] lines = result.getStdout().split("\n");
     for (String line : lines) {
       count(line, successLine);
       count(line, errorLine);
@@ -102,7 +106,6 @@ public class MavenResultAnalyzer extends ResultAnalyzer {
     }
   }
 
-  // Returns true if it sees a timeout
   private void analyzeLogLine(ContainerResult result, String line, BuildYaml yaml) throws IOException {
     // Look for timeouts
     Matcher m = timeout.matcher(line);
@@ -152,10 +155,9 @@ public class MavenResultAnalyzer extends ResultAnalyzer {
       Matcher m = p.matcher(line);
       if (m.matches()) {
         foundOne = true;
-        result.addLogFileToFetch(result.getCmd().containerDirectory() + File.separator + "target" + File.separator +
-            "surefire-reports" + File.separator + "" + m.group(1) + ".txt");
-        result.addLogFileToFetch(result.getCmd().containerDirectory() + File.separator + "target" + File.separator +
-            "surefire-reports" + File.separator + m.group(1) + "-output.txt");
+        // Don't use File.separator here as we are running these in the container, which is guaranteed to be Linux based.
+        result.addLogFileToFetch(result.getCmd().containerDirectory() + "/target/surefire-reports/" + m.group(1) + ".txt");
+        result.addLogFileToFetch(result.getCmd().containerDirectory() + "/target/surefire-reports/" + m.group(1) + "-output.txt");
       }
     }
     if (!foundOne) throw new IOException("Unable to find logfile for test " + testName + " from line <" + line + ">");

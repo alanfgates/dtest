@@ -22,6 +22,9 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+/**
+ * Implementation of {@link CodeSource} for git.  Uses 'master' as the default branch name for builds.
+ */
 public class GitSource extends CodeSource  {
 
   private static final String CFG_CODESOURCE_BRANCH_DEFAULT = "master";

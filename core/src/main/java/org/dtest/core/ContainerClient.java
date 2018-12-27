@@ -27,9 +27,10 @@ public abstract class ContainerClient extends Configurable {
 
   // Implementation of ContainerClient
   /**
-   * Class used to implement the container.  Defaults to simple Docker.
+   * Class used to implement the container.  Defaults to DockerContainerClient.
    */
   public static final String CFG_CONTAINERCLIENT_IMPL = "dtest.core.containerclient.impl";
+  private static final Class<? extends ContainerClient> CFG_CONTAINERCLIENT_IMPL_DEFAULT = DockerContainerClient.class;
 
   /**
    * Maximum amount of time to wait for a container to run.  Defaults to 30 minutes.
@@ -77,9 +78,10 @@ public abstract class ContainerClient extends Configurable {
   public abstract ContainerResult runContainer(ContainerCommand cmd) throws IOException;
 
   /**
-   * Print the contents failed test logs to the log.
+   * Picks up the list of logs from tests that failed or returned an error and copies them to a directory on the
+   * target machine.
    * @param result results from running the container
-   * @param targetDir directory to copy files to
+   * @param targetDir directory on the build machine to copy files to
    * @throws IOException if the copy of the log files fails
    */
   public abstract void copyLogFiles(ContainerResult result, String targetDir)
@@ -100,7 +102,7 @@ public abstract class ContainerClient extends Configurable {
 
   static ContainerClient getInstance(Config cfg, DTestLogger log) throws IOException {
     ContainerClient cc = Utils.getInstance(cfg.getAsClass(ContainerClient.CFG_CONTAINERCLIENT_IMPL,
-        ContainerClient.class, DockerContainerClient.class));
+        ContainerClient.class, CFG_CONTAINERCLIENT_IMPL_DEFAULT));
     cc.setConfig(cfg).setLog(log);
     return cc;
   }

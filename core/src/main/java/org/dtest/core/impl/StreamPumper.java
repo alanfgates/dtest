@@ -23,6 +23,13 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+/**
+ * Utility class used to pull in the output of a stream.  This is useful for running processes that generate large
+ * amounts of output that would overflow the buffer of a {@link Process}.  This is connected to a single stream
+ * (usually stdout or stderr).  It is designed to be run in a separate thread so that it can continually read its
+ * input stream and buffer up the contents without the main thread needing to loop.  The contents of the stream can
+ * be fetched at any time.
+ */
 public class StreamPumper implements Runnable {
 
   private final AtomicBoolean keepGoing;
@@ -31,6 +38,16 @@ public class StreamPumper implements Runnable {
   private final String containerId;
   private final DTestLogger log;
 
+  /**
+   *
+   * @param keepGoing An AtomicBoolean shared between the calling thread and this class.  When the calling thread wishes
+   *                  to terminate the pumping the stream it sets this value to false.  This should be done after
+   *                  the process whose output is being pumped has terminated and before calling
+   *                  {@link #finalPump()} to assure that all the output is collected.
+   * @param input input stream to read.
+   * @param containerId id of the container whose output is being pumped.  This value is used in the log.
+   * @param log log object
+   */
   StreamPumper(AtomicBoolean keepGoing, InputStream input, String containerId, DTestLogger log) {
     this.keepGoing = keepGoing;
     reader = new BufferedReader(new InputStreamReader(input));
@@ -39,6 +56,11 @@ public class StreamPumper implements Runnable {
     buffer = new StringBuilder();
   }
 
+  /**
+   * Get the result of the output.  This does not guarantee all output has been collected, it grabs whatever
+   * is currently available.
+   * @return output
+   */
   String getOutput() {
     return buffer.toString();
   }
@@ -61,7 +83,9 @@ public class StreamPumper implements Runnable {
   }
 
   /**
-   * Run this after you've finished the process to make sure the last lines are collected.
+   * Run this after you've finished the process to make sure the last lines are collected.  It checks to make sure
+   * the calling thread has told the stream to stop pumping.
+   * @throws IOException if the read from the stream fails.
    */
   public void finalPump() throws IOException {
     assert !keepGoing.get();

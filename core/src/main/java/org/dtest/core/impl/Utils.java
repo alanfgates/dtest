@@ -24,9 +24,20 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
 
+/**
+ * Utility methods.
+ */
 public class Utils {
   private static final String CONTAINER_BASE = "dtest-";
 
+  /**
+   * Get a Class object using the name of the class.
+   * @param className the name of the class.
+   * @param clazz class instance.  Junk argument so that the generic method knows what type to return.
+   * @param <T> type of class instance to instantiate.
+   * @return class instance.
+   * @throws IOException if the class cannot be found or loaded.
+   */
   @SuppressWarnings(value = "unchecked")
   public static <T> Class<? extends T> getClass(String className, Class<T> clazz)
       throws IOException {
@@ -37,6 +48,34 @@ public class Utils {
     }
   }
 
+  /**
+   * Get an instance of a class using the class name.  This assumes the class has a no argument constructor.
+   * @param theClass the class to get an instance of
+   * @param <T> type the class should either be or extend
+   * @return an instance of the class
+   * @throws IOException if the class could not be found or the program doesn't have rights to instantiate the class
+   */
+  public static <T> T getInstance(Class<? extends T> theClass) throws IOException {
+    if (theClass == null) return null;
+    try {
+      return theClass.newInstance();
+    } catch (InstantiationException|IllegalAccessException e) {
+      throw new IOException("Unable to instantiate " + theClass.getName(), e);
+    }
+  }
+
+  /**
+   * Run a process.  It is assumed these processes may generate large amounts of output and {@link StreamPumper} is
+   * used to handle the output.
+   * @param containerId id of the container, used in logging
+   * @param secondsToWait how long to wait for this process, in seconds, before timing out.
+   * @param log log object
+   * @param cmd Command to run.  Executable should be the first element in the array, and the arguments passed
+   *            as one element each.
+   * @return the results of running the process.
+   * @throws IOException if the process times out or is interrupted.  Note that this will not be thrown if running
+   * the process itself fails.  That will be reflected in the return code of the ProcessResults.
+   */
   public static ProcessResults runProcess(String containerId, long secondsToWait,
                                           DTestLogger log, String... cmd) throws IOException {
     log.info(DockerTest.EXEC_LOG, "Going to run: " + StringUtils.join(cmd, " "));
@@ -87,19 +126,4 @@ public class Utils {
     return CONTAINER_BASE + label + "_" + name;
   }
 
-  /**
-   * Get an instance of a class
-   * @param theClass the class to get an instance of
-   * @param <T> type it should either be or extend
-   * @return an instance of the class
-   * @throws IOException if the class could not be found or the program doesn't have rights to instantiate the class
-   */
-  public static <T> T getInstance(Class<? extends T> theClass) throws IOException {
-    if (theClass == null) return null;
-    try {
-      return theClass.newInstance();
-    } catch (InstantiationException|IllegalAccessException e) {
-      throw new IOException("Unable to instantiate " + theClass.getName(), e);
-    }
-  }
 }

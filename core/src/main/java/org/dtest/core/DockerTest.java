@@ -15,7 +15,6 @@
  */
 package org.dtest.core;
 
-import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.GnuParser;
@@ -28,7 +27,6 @@ import org.dtest.core.impl.Utils;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
@@ -39,8 +37,8 @@ import java.util.concurrent.Future;
 
 /**
  * DockerTest is the main class.  It can be accessed via the command line or called from a tool.  If using from
- * a tool you need to first setup the configuration via {@link #buildConfig(String, Properties)}, then
- * run the build using {@link #runBuild()}.
+ * a tool you need to first setup the configuration via {@link #buildConfig(String, Properties)}, the log
+ * using {@link #setLogger(DTestLogger)}, then run the build using {@link #runBuild()}.
  */
 public class DockerTest {
   /**
@@ -69,20 +67,36 @@ public class DockerTest {
   }
 
   /**
-   * Setup the configuration.  Call this first.
-   * @param confDir directory with configuration file in it.
-   * @param override properties we were passed that take precedence over values in the file.
-   * @throws IOException if we fail to read the config file.
+   * Setup the configuration.  Call this or {@link #buildConfig(String, Properties, boolean)} first.  This sets
+   * cleanupAfter to true.
+   * @param confDir directory with dtest.properties and dtest.yaml configurations file in it.
+   * @param override properties that take precedence over values in dtest.properties file.
+   * @throws IOException if the config file cannot be read.
    */
   public void buildConfig(String confDir, Properties override) throws IOException {
+    buildConfig(confDir, override, true);
+  }
+
+  /**
+   * Setup the configuration.  This or {@link #buildConfig(String, Properties)} should be called before other
+   * methods in this class.
+   * @param confDir directory with dtest.properties and dtest.yaml configuration files in it.
+   * @param override properties that take precedence over values in dtest.properties.
+   * @param cleanupAfter whether to cleanup after the build.  Usually you want this to be true to avoid leaving
+   *                     docker images and containers lying around.  But setting it to false can be useful if you
+   *                     are seeing unexpected errors in your run and want to debug them.
+   * @throws IOException if the config file cannot be read.
+   */
+  public void buildConfig(String confDir, Properties override, boolean cleanupAfter) throws IOException {
+    this.cleanupAfter = cleanupAfter;
     cfgDir = confDir; // If you came from the outside and not main this won't be set yet.
     cfg = new Config(confDir, override);
   }
 
-  private void buildConfig(Properties props) {
-    cfg = new Config(props);
-  }
-
+  /**
+   * Set the logger implementation for this instance.  This must be called before {@link #runBuild()}.
+   * @param log logger implementation.
+   */
   public void setLogger(DTestLogger log) {
     this.log = log;
   }
@@ -121,8 +135,9 @@ public class DockerTest {
   }
 
   /**
-   * Run the build.  This may take a while (obviously) and will launch a number of threads.
-   * @return status of the build, 0 for success 1 for failure, -1 for error.
+   * Run the build.  This may take a while (obviously) and will launch a number of threads.  You must call one of
+   * the buildConfig methods and {@link #setLogger(DTestLogger)} before calling this.
+   * @return BuildState indicating the status of the build.
    */
   public BuildState runBuild() {
     BuildState state = null;

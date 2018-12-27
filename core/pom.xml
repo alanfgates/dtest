@@ -29,6 +29,10 @@ limitations under the License.
   <artifactId>dtest-core</artifactId>
   <packaging>jar</packaging>
   <name>dtest core interfaces and implementation</name>
+  <description>Core classes and base implementation of DTest.  If you want to use the command line tool and don&apos;t
+  need a custom implementation of how to build the tests this is all you need.  If you want to run this from maven
+  you also need the dtest-maven-plugin module.  You can build your own implementations of the base classes in this
+  file if you have more elaborate requirements.</description>
 
   <dependencies>
     <dependency>

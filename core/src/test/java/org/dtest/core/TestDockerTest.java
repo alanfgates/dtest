@@ -275,7 +275,7 @@ public class TestDockerTest {
     Assert.assertEquals(1, failures.size());
     Assert.assertEquals("TestActivePassiveHA.testManualFailover", failures.get(0));
     Assert.assertEquals(32, succeeded);
-    Assert.assertTrue(log.toString().contains("HAD FAILURES OR ERRORS, the build ran to completion but some tests failed or errored out"));
+    Assert.assertTrue(log.toString().contains("HAD FAILURES OR ERRORS"));
   }
 
   @Test

@@ -26,6 +26,9 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
+/**
+ * Container command that implements maven specific logic.
+ */
 public class MavenContainerCommand extends ContainerCommand {
 
   protected final String buildDir;
@@ -35,33 +38,18 @@ public class MavenContainerCommand extends ContainerCommand {
   protected Map<String, String> envs;
   protected Map<String, String> properties; // properties to pass to maven (-DX=Y) val can be null
 
-  public MavenContainerCommand(String buildDir, int cmdNumber) {
+  /**
+   * Protected because it should only be called by {@link MavenContainerCommandFactory} or subclasses.
+   * @param buildDir working directory on the build machine.
+   * @param cmdNumber command number for this command, used in logging and labeling containers.
+   */
+  protected MavenContainerCommand(String buildDir, int cmdNumber) {
     this.buildDir = buildDir;
     this.cmdNumber = cmdNumber;
     tests = new ArrayList<>();
     excludedTests = new ArrayList<>();
     envs = new HashMap<>();
     properties = new HashMap<>();
-  }
-
-  public void addTest(String test) {
-    tests.add(test);
-  }
-
-  public void excludeTests(String[] toExclude) {
-    Collections.addAll(excludedTests, toExclude);
-  }
-
-  public void setEnv(String envVar, String value) {
-    envs.put(envVar, value);
-  }
-
-  public void addEnvs(Map<String, String> envs) {
-    this.envs.putAll(envs);
-  }
-
-  public void addProperties(Map<String, String> props) {
-    properties.putAll(props);
   }
 
   @Override
@@ -77,6 +65,47 @@ public class MavenContainerCommand extends ContainerCommand {
   @Override
   public String containerDirectory() {
     return buildDir;
+  }
+
+  /**
+   * Add a test to this container's list of tests.
+   * @param test test to add
+   */
+  protected void addTest(String test) {
+    tests.add(test);
+  }
+
+  /**
+   * Give a list of tests that should not be run by this container.
+   * @param toExclude tests to not run.
+   */
+  protected void excludeTests(String[] toExclude) {
+    Collections.addAll(excludedTests, toExclude);
+  }
+
+  /**
+   * Set a single environment variable for this container.
+   * @param envVar variable name
+   * @param value variable value.
+   */
+  protected void setEnv(String envVar, String value) {
+    envs.put(envVar, value);
+  }
+
+  /**
+   * Pass a set of environment variables to set for this container.
+   * @param envs environment variables.
+   */
+  protected void addEnvs(Map<String, String> envs) {
+    this.envs.putAll(envs);
+  }
+
+  /**
+   * Pass a set of properties to set for this container.
+   * @param props properties.
+   */
+  protected void addProperties(Map<String, String> props) {
+    properties.putAll(props);
   }
 
   private class SimpleMvnCommandSupplier implements Supplier<String> {

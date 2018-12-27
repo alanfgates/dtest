@@ -29,6 +29,10 @@ limitations under the License.
   <artifactId>dtest-maven-plugin</artifactId>
   <packaging>maven-plugin</packaging>
   <name>dtest maven plugin</name>
+  <description>Maven plugin for dtest.  To use this include the dtest-maven-plugin in your top level pom.  You will
+  also need to include dtest.properties and dtest.yaml files in your build.  By default these are expected to be in
+  src/test/resources.  You can set this by passing testResources in your pom.xml.  For a full list of
+  configuration values see the javadoc for DtestPlugin.</description>
 
   <dependencies>
     <dependency>

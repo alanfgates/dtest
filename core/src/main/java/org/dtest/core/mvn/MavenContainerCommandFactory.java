@@ -24,7 +24,6 @@ import org.dtest.core.ContainerResult;
 import org.dtest.core.ModuleDirectory;
 import org.dtest.core.impl.Utils;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InvalidObjectException;
 import java.util.ArrayDeque;
@@ -35,8 +34,14 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+/**
+ * Default implementation of ContainerCommandFactory with maven specific logic.
+ */
 public class MavenContainerCommandFactory extends ContainerCommandFactory {
 
+  /**
+   * Next container number to use.  Each container gets a number for use in its name and logging.
+   */
   protected int containerNumber;
 
   public MavenContainerCommandFactory() {
@@ -73,7 +78,7 @@ public class MavenContainerCommandFactory extends ContainerCommandFactory {
    * A chance for subclasses to do any setup they need.
    * @param containerClient container client handle.
    * @param buildInfo build information.
-   * @throws IOException
+   * @throws IOException if the setup fails
    */
   protected void setup(ContainerClient containerClient, BuildInfo buildInfo)
       throws IOException {
@@ -159,7 +164,7 @@ public class MavenContainerCommandFactory extends ContainerCommandFactory {
 
   /**
    * A chance for the subclass to override how the module directories are obtained.  This should be used if the
-   * subclass have overridden the implemenation of BuildYaml and it wants to return module directories with
+   * subclass has overridden the implementation of BuildYaml and it wants to return module directories with
    * information specific to itself, and thus needs a call other than getDirs from BuildYaml.
    * @param yaml yaml file information
    * @return array of module directories, probably really of some subclass of ModuleDirectory.
@@ -168,12 +173,32 @@ public class MavenContainerCommandFactory extends ContainerCommandFactory {
     return yaml.getDirs();
   }
 
+  /**
+   * Translate environment variable and properties from the yaml file to the container command.  Protected so
+   * that subclasses can use it when constructing commands.
+   * @param mDir information for this command from the yaml file.
+   * @param mvn container command
+   */
   protected void setEnvsAndProperties(ModuleDirectory mDir, MavenContainerCommand mvn) {
     if (mDir.getEnv() != null) mvn.addEnvs(mDir.getEnv());
     if (mDir.getProperties() != null) mvn.addProperties(mDir.getProperties());
     mvn.setConfig(cfg).setLog(log);
   }
 
+  /**
+   * Run a container as part of building container commands.  This is not intended to run the test commands,
+   * {@link MavenContainerCommand} is for that.  This is used to run quick running containers that are used
+   * for things like listing the contents of a directory and finding all of the tests.  Protected so that subclasses
+   * can use it in constructing their commands.
+   * @param containerClient used to run the container
+   * @param dir directory in the container in which the command should be run.  This is relative to the container
+   *            base directory.
+   * @param label label for this build
+   * @param containerName name of this particular container, should be unique
+   * @param cmd command to run as a single string.  This will be run as a shell command with no escaping etc. done.
+   * @return the stdout of the container.
+   * @throws IOException if the container fails to run, including if the command returns a non-zero return code.
+   */
   protected String runContainer(ContainerClient containerClient, final String dir,
                                 final String label, final String containerName,
                                 final String cmd) throws IOException {
@@ -201,6 +226,6 @@ public class MavenContainerCommandFactory extends ContainerCommandFactory {
       throw new IOException(msg);
     }
     containerClient.removeContainer(result);
-    return result.getLogs();
+    return result.getStdout();
   }
 }

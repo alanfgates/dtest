@@ -24,8 +24,13 @@ limitations under the License.
   <version>0.2-SNAPSHOT</version>
   <packaging>pom</packaging>
 
-  <name>Docket Test Utility</name>
+  <name>Docker Test Utility</name>
   <url>https://github.com/alanfgates/dtest</url>
+  <description>Docker Test is a utility for testing large projects in parallel using Docker.  If your project
+  has unit tests that need > 10 minutes to run because there are a so many, you can use this tool to break up
+  the test execution into a number of parallel builds.  The build (without tests) is first done as part of a
+  Docker image build.  Then containers are spun up for each module (or parts of a module, depending on configuration)
+  and the tests run.  This can be run as a command line tool or via its maven plugin.</description>
 
   <modules>
     <module>core</module>
@@ -73,6 +78,7 @@ limitations under the License.
 
   <build>
     <plugins>
+      <!-- stuff for compile phase -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
@@ -82,6 +88,7 @@ limitations under the License.
           <target>1.8</target>
         </configuration>
       </plugin>
+      <!-- stuff for test phase -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
@@ -96,6 +103,7 @@ limitations under the License.
           <failIfNoTests>false</failIfNoTests>
         </configuration>
       </plugin>
+      <!-- stuff for integration/verify phase -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-failsafe-plugin</artifactId>
@@ -119,7 +127,23 @@ limitations under the License.
           </systemPropertyVariables>
         </configuration>
       </plugin>
+      <!-- stuff for site lifecycle -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-site-plugin</artifactId>
+        <version>3.7.1</version>
+      </plugin>
     </plugins>
   </build>
+
+  <reporting>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <version>3.0.1</version>
+      </plugin>
+    </plugins>
+  </reporting>
 
 </project>
