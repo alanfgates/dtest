@@ -49,8 +49,6 @@ import java.util.Properties;
       defaultPhase = LifecyclePhase.VERIFY)
 public class DtestPlugin extends AbstractMojo {
 
-  private static String DEFAULT_BASE_DIR = "dtest-plugin-build";
-
   /**
    * Default source control repository to use in the build.  Normally you would set this in your dtest.properties
    * file, but you can override it here if needed.
@@ -89,14 +87,14 @@ public class DtestPlugin extends AbstractMojo {
    * Additional properties to set for the build.  These will be used in constructing the configuration object
    * for the build.  They will override any values in the build's config file.
    */
-  @Parameter
+  @Parameter(property = "dtest.properties")
   private Properties dtestProperties;
 
   /**
    * Whether to cleanup after the build.  Defaults to true.  If set to false the docker image and containers
    * used in the build will be left around.  Useful for debugging.
    */
-  @Parameter(defaultValue = "true")
+  @Parameter(property = "dtest.cleanupafter", defaultValue = "true")
   private boolean cleanupAfter;
 
   @Override
