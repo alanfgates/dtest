@@ -33,6 +33,7 @@ limitations under the License.
   and the tests run.  This can be run as a command line tool or via its maven plugin.</description>
 
   <modules>
+    <module>documentation</module>
     <module>core</module>
     <module>hive</module>
     <module>maven</module>

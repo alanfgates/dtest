@@ -15,18 +15,23 @@
  */
 package org.dtest.documentation.annotation;
 
+import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * A comment to be placed in a {@link Document}.  This comment must identify the name and section of the
- * <code>Document</code> that it belong in.  If it is an element of the list, there is no control over where
- * in the list it is placed.  @Target is intentionally not used here so that any type of entity can be annotated
- * using a Comment.
+ * An entry to be placed in a {@link Document}.  A <code>DocumentEntry</code> must identify the <code>Document</code>
+ * it belongs to and provide the name of the section in that document.
+ * <p>
+ * The format of the entry is Atlassian's commond markdown.
+ * <p>
+ * To make it easier for the document generation tool to find the entries they are only allowed on types, fields,
+ * constructors, and methods.
  */
 @Retention(RetentionPolicy.RUNTIME)
-public @interface Comment {
+@Target({ElementType.FIELD, ElementType.TYPE, ElementType.CONSTRUCTOR, ElementType.METHOD})
+public @interface DocumentEntry {
 
   /**
    * Name of the document this comment should be placed in.
