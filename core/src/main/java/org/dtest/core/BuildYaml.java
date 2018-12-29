@@ -15,11 +15,36 @@
  */
 package org.dtest.core;
 
-import org.dtest.documentation.annotation.Document;
-import org.dtest.documentation.annotation.DocumentEntry;
-
 import java.io.IOException;
 
+/*~~
+ * @document yamlfile
+ * @section header
+ * # YAML Build File
+ * The dtest.yaml file determines how the project is built.  It contains information that defines how to
+ * build the image (such as the base image and required packages that must be installed) as well as
+ * information for each set of tests that must be run.
+ * An example dtest.yaml file might look like:
+ * ```
+ * baseImage: centos
+ * requiredPackages:
+ *   - java-1.8.0-openjdk-devel
+ * projectName: myproject
+ * javaPackages:
+ *   - org.myproject
+ * dirs:
+ *   - dir: core
+ *   - dir: apps
+ *     skippedTests:
+ *       - TestThatDoesNotWork
+ *     needsSplit: true
+ * ```
+ * You can extend the functionality of the system by extending the BuildYaml class and adding new elements.
+ * If you do this, be sure to set dtest.core.buildyaml.impl in your properties file to the name of your
+ * new class.
+ *
+ * The following list describes all valid entries in the build.yaml file
+ */
 /**
  * BuildYaml is the top level file for holding the object described in the build.yaml file.  It contains general
  * build information as well as an array of ModuleDirectory.  Implementations can override this class in order to
@@ -28,28 +53,6 @@ import java.io.IOException;
  * ModuleDirectory it will also need to subclass {@link org.dtest.core.mvn.MavenContainerCommandFactory} and
  * implement {@link org.dtest.core.mvn.MavenContainerCommandFactory#getModuleDirs(BuildYaml)}.
  */
-@Document(name = "yamlfile", sections = {"header", "elementlist", "mdelements"})
-@DocumentEntry(documentName = "yamlfile", documentSection = "header", text="# YAML Build File\n" +
-    "The dtest.yaml file determines how the project is built.  It contains information that defines how to" +
-    "build the image (such as the base image and required packages that must be installed) as well as " +
-    "information for each set of tests that must be run.\n" +
-    "An example dtest.yaml file might look like:\n" +
-    "> baseImage: centos\n" +
-    "> requiredPackages:\n" +
-    ">   - java-1.8.0-openjdk-devel\n" +
-    "> projectName: myproject\n" +
-    "> javaPackages:\n" +
-    "> - org.myproject\n" +
-    "> dirs:\n" +
-    ">   - dir: core\n" +
-    ">   - dir: apps\n" +
-    ">     skippedTests:\n" +
-    ">       - TestThatDoesNotWork\n" +
-    ">     needsSplit: true\n" +
-    "You can extend the functionality of the system by extending the BuildYaml class and adding new elements." +
-    "If you do this, be sure to set dtest.core.buildyaml.impl in your properties file to the name of your" +
-    "new class.\n" +
-    "The following list describes all valid entries in the build.yaml file")
 public class BuildYaml {
 
   /**
@@ -60,21 +63,72 @@ public class BuildYaml {
 
   private static final String[] EMPTY_STRING_ARRAY = new String[0];
 
+  /*~~
+   * @document yamlfile
+   * @section el_i1
+   * @after header
+   * - baseImage: Base docker image to use.  Currently supported values are centos, ubuntu, or debian.  These
+   * can also include a version number if desired.
+   */
   private String baseImage;
+
+  /*~~
+   * @document yamlfile
+   * @section el_i2
+   * @after el_i1
+   * - requiredPackages: A list ofrequired packages that should be installed for your build to work.
+   */
   private String[] requiredPackages;
+
+  /*~~
+   * @document yamlfile
+   * @section el_i3
+   * @after el_i2
+   * - projectName: Name of the project.  When using git, this needs to match the directory name of your project
+   * when the project is cloned.
+   */
   private String projectName;
+
+  // TODO Add a link to module dirs here, which should be in the same doc
+  /*~~
+   * @document yamlfile
+   * @section el_i4
+   * @after el_i3
+   * dirs: A list of test groups to run.
+   */
   private ModuleDirectory[] dirs;
+
+  /*~~
+   * @document yamlfile
+   * @section el_i5
+   * @after el_i4
+   * - comment: Freeform, all for you to comment as you please.
+   */
   private String comment;
+
+  /*~~
+   * @document yamlfile
+   * @section el_i6
+   * @after el_i5
+   * - javaPackages: A list of top level Java packages that the tests are in.  These are not the individual
+   * modules but top level ones, such as org.apache.hadoop or org.dtest.  Done as an array because some projects
+   * have tests in multiple top level packages, e.g. Apache Hive has org.apache.hadoop.hive and org.apache.hive.
+   */
   private String[] javaPackages;
+
+  /*~~
+   * @document yamlfile
+   * @section el_i7
+   * @after el_i6
+   * - additionalLogs: A list of any additional log files that should be picked up as part of the collection of
+   * log files to ship back to the user.
+   */
   private String[] additionalLogs;
 
   static Class<? extends BuildYaml> getBuildYamlClass(Config cfg) throws IOException {
     return cfg.getAsClass(CFG_BUILDYAML_IMPL, BuildYaml.class, CFG_BUILDYAML_IMPL_DEFAULT);
   }
 
-  @DocumentEntry(documentName = "yamlfile", documentSection = "elementlist", text="- baseImage: Base docker image" +
-      "to use.  Currently supported values are centos, ubuntu, or debian.  These can also include a version" +
-      "number if desired.")
   public String getBaseImage() {
     return baseImage;
   }
@@ -83,8 +137,6 @@ public class BuildYaml {
     this.baseImage = baseImage;
   }
 
-  @DocumentEntry(documentName = "yamlfile", documentSection = "elementlist", text="- requiredPackages: A list of" +
-      "required packages that should be installed for your build to work.")
   public String[] getRequiredPackages() {
     return requiredPackages == null ? EMPTY_STRING_ARRAY : requiredPackages;
   }
@@ -93,8 +145,6 @@ public class BuildYaml {
     this.requiredPackages = requiredPackages;
   }
 
-  @DocumentEntry(documentName = "yamlfile", documentSection = "elementlist", text="- projectName: Name of the project.  " +
-      "When using git, this needs to match the directory name of your project when the project is cloned.")
   public String getProjectName() {
     return projectName;
   }
@@ -103,9 +153,6 @@ public class BuildYaml {
     this.projectName = projectName;
   }
 
-  // TODO figure out how to put a link the text here to ModuleDirectory
-  @DocumentEntry(documentName = "yamlfile", documentSection = "elementlist", text="- dirs: A list of test groups to" +
-      "run.")
   public ModuleDirectory[] getDirs() {
     return dirs;
   }
@@ -114,8 +161,6 @@ public class BuildYaml {
     this.dirs = dirs;
   }
 
-  @DocumentEntry(documentName = "yamlfile", documentSection = "elementlist", text="- comment: Freeform, all for you" +
-      "to comment as you please.")
   public String getComment() {
     return comment;
   }
@@ -124,10 +169,6 @@ public class BuildYaml {
     this.comment = comment;
   }
 
-  @DocumentEntry(documentName = "yamlfile", documentSection = "elementlist", text="- javaPackages: A list of top level" +
-      "Java packages that the tests are in.  These are not the individual modules but top level ones, such as" +
-      "org.apache.hadoop or org.dtest.  Done as an array because some projects have tests in multiple top level" +
-      "packages, e.g. Apache Hive has org.apache.hadoop.hive and org.apache.hive.")
   public String[] getJavaPackages() {
     return javaPackages == null ? EMPTY_STRING_ARRAY : javaPackages;
   }
@@ -136,8 +177,6 @@ public class BuildYaml {
     this.javaPackages = javaPackages;
   }
 
-  @DocumentEntry(documentName = "yamlfile", documentSection = "elementlist", text="- additionalLogs: A list of any" +
-      "additional log files that should be picked up as part of the collection of log files to ship back to the user.")
   public String[] getAdditionalLogs() {
     return additionalLogs == null ? EMPTY_STRING_ARRAY : additionalLogs;
   }

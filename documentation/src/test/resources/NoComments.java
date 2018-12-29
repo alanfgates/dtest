@@ -13,9 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/**
- * Annotations for documenting code beyond what is possible in Javadoc.  These annotations allow developers to
- * write documentation in line with their code, and distributed across packages, classes, and modules when
- * necessary.
- */
-package org.dtest.documentation.annotation;
+public class NoComments {
+
+  private static final String SOMETHING = something;
+
+  /**
+   * A constructor
+   */
+  public NoComments() {
+  }
+
+  /**
+   * A method
+   * @returns a string
+   */
+  public String myMethod() {
+    return "";
+  }
+
+  public String anotherMethod() {
+    return "";
+  }
+
+}

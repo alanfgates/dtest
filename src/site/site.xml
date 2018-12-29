@@ -18,6 +18,7 @@ limitations under the License.
   <body>
     <links>
       <item name="Javadoc" href="apidocs/index.html"/>
+      <item name="Yaml file reference" href="dtest-core/yamlfile.html"/>
     </links>
     <menu name="Plugin">
       <!-- <item name="Introduction" href="index.html"/> -->
