@@ -18,54 +18,90 @@ package org.dtest.core;
 import java.io.InvalidObjectException;
 import java.util.Map;
 
+/*~~
+ * @document yamlfile
+ * @section module_directory
+ * @after el_i7
+ * *Module Directory*
+ *
+ * Module directory describes how to run a group of tests.  The `dir` name is required, all other values
+ * are optional.  By default all tests in the directory are run in one command.
+ *
+ * `ModuleDirectory` can be subclassed just as `BuildYaml` can.  Values specific to the
+ * subclass of `ModuleDirectory` can then be used in the `dtest.yaml` file.
+ */
 /**
  * Information from {@link BuildYaml} specific to each set of tests in the build.  Should probably be named
  * TestGroup or something since the directory is not unique.
  */
 public class ModuleDirectory {
 
-  /**
-   * Directory to run tests in.
+  /*~~
+   * @document yamlfile
+   * @section md_i1
+   * @after module_directory
+   * - dir: Directory to run tests in.  With no other values all tests in this directory will be run in a
+   * single command, `mvn test`.
    */
   private String   dir;
 
-  /**
-   * Whether to run all tests in this module in a single container or split them up.  Default is to run them
+  /*~~
+   * @document yamlfile
+   * @section md_i2
+   * @after md_i1
+   * - needsSplit: Whether to run all tests in this module in a single container or split them up.  Default is to run them
    * all in the same container.
    */
   private boolean  needsSplit;
 
-  /**
-   * If {@link #needsSplit} is set to true, how many tests to run per container.  Defaults to
-   * {@link ContainerCommandFactory#CFG_CONTAINERCOMMANDFACTORY_TESTSPERCONTAINER_DEFAULT}.
+  /*~~
+   * @document yamlfile
+   * @section md_i3
+   * @after md_i2
+   * - testsPerContainer: If `needsSplit` is set to true, how many tests to run per container.  Defaults to 10.
    */
   private int      testsPerContainer;
 
-  /**
-   * Tests that should be run in their own container.  Some tests take a lot of resources, take a long time, or
-   * just plain don't play with others and need to isolated.  {@link #needsSplit} should be set to true if there
+  /*~~
+   * @document yamlfile
+   * @section md_i4
+   * @after md_i3
+   * - isolatedTests:  List of tests that to run in their own container.  Some tests take a lot of resources, take a long time, or
+   * don't play well with others and need to isolated.  `needsSplit` should be set to true if there
    * are any elements in this list.  Defaults to empty.
    */
   private String[] isolatedTests;
 
-  /**
-   * If set, then only run one test in this container.  Another container may handle other tests in this directory.
-   * Defaults to null.
+  /*~~
+   * @document yamlfile
+   * @section md_i5
+   * @after md_i4
+   * - singleTest: If set, then only run one test in this container.  This differs from `isolatedTests` in that all
+   * other tests in this directory will be ignored. Defaults to null.
    */
   private String   singleTest;
 
-  /**
-   * List of tests to skip.  Defaults to empty.
+  /*~~
+   * @document yamlfile
+   * @section md_i6
+   * @after md_i5
+   * - skippedTests:  List of tests to skip.  Defaults to empty.
    */
   private String[] skippedTests;
 
-  /**
-   * Environment variables that should be set as part of running the tests.
+  /*~~
+   * @document yamlfile
+   * @section md_i7
+   * @after md_i6
+   * - env: Map of environment variables to set when running the tests.
    */
   private Map<String, String> env;
 
-  /**
-   * Java properties that should be set as part of running the tests.
+  /*~~
+   * @document yamlfile
+   * @section md_i8
+   * @after md_i7
+   * - properties: Map of Java properties to set when running the tests.
    */
   private Map<String, String> properties;
 

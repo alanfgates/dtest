@@ -16,10 +16,10 @@ limitations under the License.
 -->
 <project>
   <body>
-    <links>
+    <menu name="Documentation">
       <item name="Javadoc" href="apidocs/index.html"/>
       <item name="Yaml file reference" href="dtest-core/yamlfile.html"/>
-    </links>
+    </menu>
     <menu name="Plugin">
       <!-- <item name="Introduction" href="index.html"/> -->
       <item name="Goals" href="dtest-maven-plugin/plugin-info.html"/>

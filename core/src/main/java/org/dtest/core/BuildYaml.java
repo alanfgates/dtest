@@ -21,10 +21,11 @@ import java.io.IOException;
  * @document yamlfile
  * @section header
  * # YAML Build File
- * The dtest.yaml file determines how the project is built.  It contains information that defines how to
+ * The `dtest.yaml` file determines how the project is built.  It contains information that defines how to
  * build the image (such as the base image and required packages that must be installed) as well as
- * information for each set of tests that must be run.
- * An example dtest.yaml file might look like:
+ * how to run each set of tests.
+ *
+ * ### Example `dtest.yaml`
  * ```
  * baseImage: centos
  * requiredPackages:
@@ -39,14 +40,16 @@ import java.io.IOException;
  *       - TestThatDoesNotWork
  *     needsSplit: true
  * ```
- * You can extend the functionality of the system by extending the BuildYaml class and adding new elements.
- * If you do this, be sure to set dtest.core.buildyaml.impl in your properties file to the name of your
- * new class.
+ * You can extend the functionality of the system by extending the `BuildYaml` class and adding new elements.
+ * If you do this, be sure to set `dtest.core.buildyaml.impl` in your properties file to the name of your
+ * new class.  Doing this allows the implementation to define its own values to be placed in `dtest.yaml`.  To
+ * make use of this you will also need to subclass `MavenContainerCommandFactory` so that the custom values are used
+ * when generating test commands.
  *
- * The following list describes all valid entries in the build.yaml file
+ * The following list describes all valid entries in `dtest.yaml`.
  */
 /**
- * BuildYaml is the top level file for holding the object described in the build.yaml file.  It contains general
+ * BuildYaml is the top level file for holding the object described in the dtest.yaml file.  It contains general
  * build information as well as an array of ModuleDirectory.  Implementations can override this class in order to
  * get information specific to their build.  They can add top level information or subclass
  * {@link ModuleDirectory} in order to add additional information in each module.  If an implementation subclasses
@@ -56,7 +59,7 @@ import java.io.IOException;
 public class BuildYaml {
 
   /**
-   * Implementation of BuildYaml to use to interpret build.yaml.  Defaults to BuildYaml.
+   * Implementation of BuildYaml to use to interpret dtest.yaml.  Defaults to BuildYaml.
    */
   public static final String CFG_BUILDYAML_IMPL = "dtest.core.buildyaml.impl";
   private static final Class<? extends BuildYaml> CFG_BUILDYAML_IMPL_DEFAULT = BuildYaml.class;
@@ -67,7 +70,7 @@ public class BuildYaml {
    * @document yamlfile
    * @section el_i1
    * @after header
-   * - baseImage: Base docker image to use.  Currently supported values are centos, ubuntu, or debian.  These
+   * - baseImage: Base docker image to use.  Currently supported values are `centos`, `ubuntu`, or `debian`.  These
    * can also include a version number if desired.
    */
   private String baseImage;
@@ -76,7 +79,7 @@ public class BuildYaml {
    * @document yamlfile
    * @section el_i2
    * @after el_i1
-   * - requiredPackages: A list ofrequired packages that should be installed for your build to work.
+   * - requiredPackages: A list of required packages that should be installed for your build to work.
    */
   private String[] requiredPackages;
 
@@ -89,12 +92,11 @@ public class BuildYaml {
    */
   private String projectName;
 
-  // TODO Add a link to module dirs here, which should be in the same doc
   /*~~
    * @document yamlfile
    * @section el_i4
    * @after el_i3
-   * dirs: A list of test groups to run.
+   * - dirs: A list of test groups to run.  Each element of this list is a `ModuleDirectory`.
    */
   private ModuleDirectory[] dirs;
 
@@ -102,7 +104,7 @@ public class BuildYaml {
    * @document yamlfile
    * @section el_i5
    * @after el_i4
-   * - comment: Freeform, all for you to comment as you please.
+   * - comment: Free form, all for you to comment as you please.
    */
   private String comment;
 
@@ -111,8 +113,8 @@ public class BuildYaml {
    * @section el_i6
    * @after el_i5
    * - javaPackages: A list of top level Java packages that the tests are in.  These are not the individual
-   * modules but top level ones, such as org.apache.hadoop or org.dtest.  Done as an array because some projects
-   * have tests in multiple top level packages, e.g. Apache Hive has org.apache.hadoop.hive and org.apache.hive.
+   * modules but top level ones, such as org.apache.hadoop or org.dtest.  Done as a list because some projects
+   * have tests in multiple top level packages, e.g. Apache Hive has tests in org.apache.hadoop.hive and org.apache.hive.
    */
   private String[] javaPackages;
 
@@ -121,7 +123,10 @@ public class BuildYaml {
    * @section el_i7
    * @after el_i6
    * - additionalLogs: A list of any additional log files that should be picked up as part of the collection of
-   * log files to ship back to the user.
+   * log files to ship back to the user.  By default the system picks up output from the `surefire-reports`
+   * directory.  If your system uses log4j or a similar package and you want to fetch the resulting logs you should
+   * place that log in this list as dtest cannot determine how the logging is configured and where the logfile is.
+   *
    */
   private String[] additionalLogs;
 
