@@ -36,6 +36,13 @@ public abstract class ResultAnalyzer extends Configurable {
     buildState = new BuildState();
   }
 
+  /*~~
+   * @document propsfile
+   * @section resultanalyzer_impl
+   * @after ccf_impl
+   * - dtest.core.resultanalyzer.impl: Subclass of `ResultAnalyzer` to use to analyze the output of the
+   * container commands and interpret test success, error, failure, or timeout.  Defaults to `MavenResultAnalyzer`.
+   */
   /**
    * Class to analyze results of the tests.  Defaults to MavenResultAnalyzer.
    */

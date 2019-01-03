@@ -28,16 +28,32 @@ import java.util.List;
  */
 public abstract class ContainerCommandFactory extends Configurable {
 
+  /*~~
+   * @document propsfile
+   * @section ccf_testspercontainer
+   * @after containercommand_singleruntime
+   * - dtest.core.containercommandfactory.testspercontainer: When tests are split into groups, tests to run per container.
+   * By default all tests in a directory are run in one container.  If `dtest.yaml` says that a directory should have
+   * its tests split across containers but does not specify how many tests to put in each container, this provides
+   * the default number.  The default is 10.
+   */
   /**
    * Number of tests to run per container.  Defaults to 10.
    */
   public static final String CFG_CONTAINERCOMMANDFACTORY_TESTSPERCONTAINER = "dtest.core.containercommandfactory.testspercontainer";
-  public static final int CFG_CONTAINERCOMMANDFACTORY_TESTSPERCONTAINER_DEFAULT = 10;
+  protected static final int CFG_CONTAINERCOMMANDFACTORY_TESTSPERCONTAINER_DEFAULT = 10;
 
+  /*~~
+   * @document propsfile
+   * @section ccf_impl
+   * @after ccf_testspercontainer
+   * - dtest.core.containercommandfactory.impl: Subclass of `ContainerCommandFactory` to use to build container
+   * commands.  Defaults to `MavenContainerCommandFactory`.
+   */
   /**
    * Implementation that builds commands to run in the container.  Defaults to simple maven builder.
    */
-  public static final String CFG_CONTAINERCOMMANDLIST_IMPL = "dtest.core.containercommandlist.impl";
+  public static final String CFG_CONTAINERCOMMANDLIST_IMPL = "dtest.core.containercommandfactory.impl";
 
   protected List<ContainerCommand> cmds = new ArrayList<>();
 

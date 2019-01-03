@@ -25,19 +25,43 @@ import java.io.IOException;
  */
 public abstract class ContainerClient extends Configurable {
 
-  // Implementation of ContainerClient
+  /*~~
+   * @document propsfile
+   * @section containerclient_impl
+   * @after codesource_branch
+   * - dtest.core.containerclient.impl: Class that handles container operations for dtest.  Defaults to
+   * `DockerContainerClient.`
+   */
   /**
    * Class used to implement the container.  Defaults to DockerContainerClient.
    */
   public static final String CFG_CONTAINERCLIENT_IMPL = "dtest.core.containerclient.impl";
   private static final Class<? extends ContainerClient> CFG_CONTAINERCLIENT_IMPL_DEFAULT = DockerContainerClient.class;
 
+  /*~~
+   * @document propsfile
+   * @section containerclient_runtime
+   * @after containerclient_impl
+   * - dtest.core.containerclient.containerruntime: Maximum runtime for any single container.  Defaults to 30
+   * minutes.  If any container exceeds this value the build will be marked as timed out.  You should set this
+   * higher than the value of `dtest.core.containercommand.singletestruntime` so that you can distinguish between
+   * a container timing out and a test timing out.
+   */
   /**
    * Maximum amount of time to wait for a container to run.  Defaults to 30 minutes.
    */
   public static final String CFG_CONTAINERCLIENT_CONTAINERRUNTIME = "dtest.core.containerclient.containerruntime";
   protected static final long CFG_CONTAINERCLIENT_CONTAINERRUNTIME_DEFAULT = 30 * 60;
 
+  /*~~
+   * @document propsfile
+   * @section containerclient_imagebuildtime
+   * @after containerclient_runtime
+   * - dtest.core.containerclient.imagebuildtime: Maximum runtime for the initial compilation and image building.
+   * Defaults to 3 hours.  This should be set to a long enough time to download the base image, install any
+   * additional packages, and run a compile with no tests.  If the image fails to build in this amount of time
+   * the build will be marked as timed out.
+   */
   /**
    * Maximum amount of time to wait for an image to build.  Defaults to 3 hours.
    */

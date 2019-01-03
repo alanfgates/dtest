@@ -37,6 +37,13 @@ import java.util.regex.Pattern;
  * Default implementation of ContainerClient.  Implements container client for Docker.
  */
 public class DockerContainerClient extends ContainerClient {
+  /*~~
+   * @document propsfile
+   * @section dcc_dockerpath
+   * @after resultanalyzer_impl
+   * - dtest.docker.dockercontainerclient.dockerpath: Path to the docker executable.  Defaults to
+   * `/usr/local/bin/docker`.
+   */
   /**
    * Path to the docker executable.  Defaults to /usr/local/bin/docker
    */

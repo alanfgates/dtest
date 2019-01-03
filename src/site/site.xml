@@ -19,6 +19,8 @@ limitations under the License.
     <menu name="Documentation">
       <item name="Javadoc" href="apidocs/index.html"/>
       <item name="Yaml file reference" href="dtest-core/yamlfile.html"/>
+      <item name="Properties file reference" href="dtest-core/propsfile.html"/>
+      <item name="Plugin reference" href="dtest-maven-plugin/plugin.html"/>
     </menu>
     <menu name="Plugin">
       <!-- <item name="Introduction" href="index.html"/> -->

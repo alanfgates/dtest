@@ -27,16 +27,38 @@ import java.util.List;
  */
 public abstract class CodeSource extends Configurable {
 
+  /*~~
+   * @document propsfile
+   * @section codesource_impl
+   * @after buildyaml_impl
+   * - dtest.core.codesource.impl: Subclass of `CodeSource` to use.  `CodeSource` controls how dtest interacts
+   * with the source control system.  Defaults to `GitSource`.
+   */
   /**
    * Class that will be used to communicate with the code repository.  Defaults to git.
    */
   public static final String CFG_CODESOURCE_IMPL = "dtest.core.codesource.impl";
 
+  /*~~
+   * @document propsfile
+   * @section codesource_repo
+   * @after codesource_impl
+   * - dtest.core.codesource.repo: Repository that code is stored in.  This will be interpreted by the class
+   * indicated in `dtest.core.codesource.impl`.  A value for this must be provided.
+   */
   /**
    * Repository the code is stored in.  You must provide a value for this.
    */
   public static final String CFG_CODESOURCE_REPO = "dtest.core.codesource.repo";
 
+  /*~~
+   * @document propsfile
+   * @section codesource_branch
+   * @after codesource_repo
+   * - dtest.core.codesource.branch: Branch of the source tree to build.  This will be interpreted by the class
+   * indicated in `dtest.core.codesource.impl`.  That class will also determine the default value.  In the case
+   * of git, this defaults to `master`.
+   */
   /**
    * Branch in the source tree to build.  Defaults to what makes sense for the chosen VCS, e.g.
    * for git it defaults to 'master'.  This need not be a branch, it can be a tag, a git hash,

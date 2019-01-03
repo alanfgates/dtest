@@ -26,6 +26,38 @@ import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/*~~
+ * @document propsfile
+ * @section header
+ * # Configuration Properties
+ *
+ * Dtest reads its configuration from `dtest.properties`.  When using the command line tool properties can
+ * also be passed as command line arguments using standard Java -D syntax.  When using the maven plugin they
+ * can be passed in the plugin configuration, see the [Maven Plugin documentation](../dtest-maven-plugin/plugin.html) for details.
+ * Any properties passed on the command line or via maven configuration will override values in `dtest.properties`.
+ * When called from the command line the System properties are used (this is how the properties passed on the command
+ * line are picked up), when called from the maven plugin they are not.
+ *
+ * The following values are configuration keys known to the core system:
+ *
+ */
+/*~~
+ * @document propsfile
+ * @section footer
+ * @after dcc_dockerpath
+ * ## Adding Implementation Specific Properties
+ * If you are extending existing classes in Dtest and need to add your own configuration you can do so easily.
+ * Dtest stores its configuration as Java properties.  The `Config` object contains a reference to the
+ * properties and provides helper methods to fetch these properties as the desired type (String, int, time, class).
+ * Classes define their own configuration
+ * keys.  The convention is to name the key `dtest.`*package.classname.configval* and define a
+ * `public static final String` variable in your class `CFG_`*CLASSNAME_CONFIGVAL*.  For example, the class
+ * `ResultAnalyzer` defines the configuration key `dtest.core.resultanalyzer.impl` that is uses to determine
+ * the subclass of `ResultAnalyzer` to instantiate.  It defines the public final String `CFG_RESULTANALYZER_IMPL`.
+ * The intent is that only classes that define configuration keys use those keys.
+ *
+ * When requesting the value of a key the caller will usually pass a default value.
+ */
 /**
  * This class forms a wrapper around properties, giving callers a way to get the values as appropriate types.
  * No support for default values is provided other than allowing users to pass in a default value that will

@@ -58,8 +58,15 @@ import java.io.IOException;
  */
 public class BuildYaml {
 
+  /*~~
+   * @document propsfile
+   * @section buildyaml_impl
+   * @after buildinfo_label
+   * - dtest.core.buildyaml.impl: Subclass of BuildYaml to use to interpret the `dtest.yaml` file.  Defaults
+   * to `BuildYaml`.
+   */
   /**
-   * Implementation of BuildYaml to use to interpret dtest.yaml.  Defaults to BuildYaml.
+   * Implementation of `BuildYaml` to use to interpret dtest.yaml.  Defaults to BuildYaml.
    */
   public static final String CFG_BUILDYAML_IMPL = "dtest.core.buildyaml.impl";
   private static final Class<? extends BuildYaml> CFG_BUILDYAML_IMPL_DEFAULT = BuildYaml.class;

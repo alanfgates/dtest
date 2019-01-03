@@ -20,6 +20,16 @@ package org.dtest.core;
  */
 public abstract class ContainerCommand extends Configurable {
 
+  /*~~
+   * @document propsfile
+   * @section containercommand_singleruntime
+   * @after containerclient_imagebuildtime
+   * - dtest.core.containercommand.singtestruntime: Maximum amount of runtime for a single test executed inside a
+   * container.  If a test exceeds this amount of time
+   * the test will be marked as timed out and the build as having timeouts (note that this is different than
+   * the build itself timing out).  Default is 5 minutes.
+   *
+   */
   /**
    * Maximum amount of time for a single command in the container to run.  Defaults to 5 minutes.
    */

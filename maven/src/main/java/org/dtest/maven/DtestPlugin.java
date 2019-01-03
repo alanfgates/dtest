@@ -39,60 +39,133 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Properties;
 
+/*~~
+ * @document plugin
+ * @section intro
+ * # Dtest Maven Plugin
+ *
+ * A plugin to support running dtest as part of your build and test process. It is not suggested that this be set up
+ * to run by default, as test is probably only being used for a project with a long and complex build process.
+ * This plugin can be invoked by doing `mvn dtest:dtest`.
+ *
+ * It is built as an aggregator plugin so it will only run at the top level of a build, not in each module.
+ *
+ * The following values can be set in your pom to configure dtest:
+ */
+/*~~
+ * @document plugin
+ * @section examples
+ * @after cleanupafter
+ *
+ * ## Examples
+ * To use the plugin with no additional configuration:
+ * ```
+ * <build>
+ *   <plugins>
+ *     <plugin>
+ *       <groupId>org.dtest</groupId>
+ *       <artifactId>dtest-maven-plugin</artifactId>
+ *       <version>0.2-SNAPSHOT</version>
+ *     </plugin>
+ *   </plugins>
+ * </build>
+ * ```
+ *
+ * This will not automatically run the plugin in any phase.  That is not recommended behavior.  The plugin can be
+ * manually invoked using `mvn dtest:dtest`.
+ *
+ * To set the repository for your code in the pom:
+ * ```
+ * <build>
+ *   <plugins>
+ *     <plugin>
+ *       <groupId>org.dtest</groupId>
+ *       <artifactId>dtest-maven-plugin</artifactId>
+ *       <version>0.2-SNAPSHOT</version>
+ *       <configuration>
+ *         <repo>https://github.com/mygithub/myproject.git</repo>
+ *       </configuration>
+ *     </plugin>
+ *   </plugins>
+ * </build>
+ * ```
+ */
 /**
- * A maven plugin for dtest.  It is not suggested that you set this up to run by default, as you are probably only
- * using dtest if you have a complex and long build process.  This plugin can be invoked by doing 'mvn dtest:dtest'.
- * It is built as an aggregator plugin so it will only run at the top level of your build, not in each module.
+ * A maven plugin for dtest.
  */
 @Mojo(name = "dtest",
       aggregator = true,
       defaultPhase = LifecyclePhase.VERIFY)
 public class DtestPlugin extends AbstractMojo {
 
-  /**
-   * Default source control repository to use in the build.  Normally you would set this in your dtest.properties
-   * file, but you can override it here if needed.
+  /*~~
+   * @document plugin
+   * @section repo
+   * @after intro
+   * - repo:  Default source control repository to use in the build.  This can be set in the `dtest.properties`
+   * file or in the pom.  It can also be set via the property `dtest.repo` when invoking maven.
    */
   @Parameter(property = "dtest.repo")
   private String repo;
 
-  /**
-   * Branch to be used in the source control.  Defaults to something reasonable for the configured source
-   * control system.
+  /*~~
+   * @document plugin
+   * @section branch
+   * @after repo
+   * - branch:  Branch to be used in source control.  Defaults to something reasonable for the configured source
+   * control system, e.g. master for git. It can also be set via the property `dtest.branch` when invoking maven.
    */
   @Parameter(property = "dtest.branch")
   private String branch;
 
-  /**
-   * Label to use with the build.  Usually you don't want to set this as the system will generate a unique
-   * label for this build to make sure it is built from scratch.  Only set this if you explicitly want to rerun
-   * an existing build.
+  /*~~
+   * @document plugin
+   * @section label
+   * @after branch
+   * - label: Label to use with the build.  Usually this should not be set as the system will generate a unique
+   * label for this build to assure it is built from scratch.  If an existing build image should be reused this
+   * value can be set to the associated label.  It can also be set via the property `dtest.label` when invoking maven.
    */
   @Parameter(property = "dtest.label")
   private String label;
 
-  /**
-   * Base directory to run the build in.  Defaults to target/dtest-plugin-build
+  /*~~
+   * @document plugin
+   * @section basedir
+   * @after label
+   * - baseDir: Working directory for the build on the build machine.  Defaults to
+   * `${project.build.directory}/dtest-plugin-build` (`target/dtest-plugin-build` by default).  It can also be set via
+   * the property `dtest.basedir` when invoking maven.
    */
   @Parameter(property = "dtest.basedir", defaultValue = "${project.build.directory}/dtest-plugin-build")
   private File baseDir;
 
-  /**
-   * Where the plugin will look for the dtest.properties and dtest.yaml files.  Defaults to src/test/resources.
+  /*~~
+   * @document plugin
+   * @section testresources
+   * @after basedir
+   * - testResources: Directory that the plugin will look for the `dtest.properties` and `dtest.yaml` files.
+   * Defaults to `${project.build.testResources}` which usually points to `src/test/resources`.
    */
   @Parameter(defaultValue = "${project.build.testResources}")
   private List<Resource> testResources;
 
-  /**
-   * Additional properties to set for the build.  These will be used in constructing the configuration object
-   * for the build.  They will override any values in the build's config file.
+  /*~~
+   * @document plugin
+   * @section properties
+   * @after testresources
+   * - dtestProperties: Additional properties to set for the build.  These will be used in constructing the configuration object
+   * for the build.  They will override any values in the `dtest.properties` config file.
    */
-  @Parameter(property = "dtest.properties")
+  @Parameter
   private Properties dtestProperties;
 
-  /**
-   * Whether to cleanup after the build.  Defaults to true.  If set to false the docker image and containers
-   * used in the build will be left around.  Useful for debugging.
+  /*~~
+   * @document plugin
+   * @section cleanupafter
+   * @after properties
+   * - cleanupAfter: Whether to remove the docker containers and image after the build.  Defaults to true.  Useful for debugging.
+   * If this is set to false always a large number of images and containers will pollute the build machine.
    */
   @Parameter(property = "dtest.cleanupafter", defaultValue = "true")
   private boolean cleanupAfter;

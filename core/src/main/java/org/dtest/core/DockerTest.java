@@ -41,12 +41,27 @@ import java.util.concurrent.Future;
  * using {@link #setLogger(DTestLogger)}, then run the build using {@link #runBuild()}.
  */
 public class DockerTest {
+  /*~~
+   * @document propsfile
+   * @section dt_numcontainers
+   * @after header
+   * - dtest.core.dockertest.numcontainers: Number of containers to run.  This defaults to 2 so that is runs well
+   * out of the box on a laptop.  For serious applications you likely want to set this higher.  How high to set it
+   * requires experimentation.
+   */
   /**
    * Number of containers to run.  Defaults to 2.
    */
   public static final String CFG_DOCKERTEST_NUMCONTAINERS = "dtest.core.dockertest.numcontainers";
   private static final int CFG_DOCKERTEST_NUMCONTAINERS_DEFAULT = 2;
 
+  /*~~
+   * @document propsfile
+   * @section dt_resultlocation
+   * @after dt_numcontainers
+   * - dtest.core.dockertest.resultlocation:  Directory on the build machine where results of the run will
+   * be written.  Defaults to `java.io.tmpdir`.
+   */
   /**
    * Where to drop the tar file produced by the build.  Defaults to java.io.tmpdir.
    */
