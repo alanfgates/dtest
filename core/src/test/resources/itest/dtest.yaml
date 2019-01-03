@@ -1,0 +1,9 @@
+baseImage: centos
+requiredPackages:
+  - java-1.8.0-openjdk-devel
+projectName: dtest
+javaPackages:
+  - org.dtest
+dirs:
+  - dir: core
+  - dir: maven

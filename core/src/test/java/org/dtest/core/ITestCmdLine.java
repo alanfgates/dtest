@@ -38,37 +38,14 @@ public class ITestCmdLine {
   @Test
   public void dogfood() throws IOException, InterruptedException {
 
-    String confDir = System.getProperty("conf.dir") + File.separator + "dogfood";
-    new File(confDir).mkdir();
-
-    // Write out our properties file
-    File confFile = new File(confDir + File.separator + Config.PROPERTIES_FILE);
-    FileWriter writer = new FileWriter(confFile);
-    writer.write(BuildInfo.CFG_BUILDINFO_BASEDIR + " = " + confDir + "\n");
-    writer.write(GitSource.CFG_CODESOURCE_REPO + " = https://github.com/alanfgates/dtest.git\n");
-    writer.write(GitSource.CFG_CODESOURCE_BRANCH + " = maven-plugin\n"); // TODO switch this back to master when we merge
-    writer.close();
-
-    // Write out our yaml file
-    File yamlFile = new File(confDir + File.separator + Config.YAML_FILE);
-    writer = new FileWriter(yamlFile);
-    writer.write(
-        "baseImage: centos\n" +
-        "requiredPackages:\n" +
-        "  - java-1.8.0-openjdk-devel\n" +
-        "projectName: dtest\n" +
-        "javaPackages:\n" +
-        "  - org.dtest\n" +
-        "dirs:\n" +
-        "  - dir: core\n" +
-        "  - dir: maven\n");
-    writer.close();
+    String confDir = System.getProperty("conf.dir") + File.separator + "test-classes" + File.separator + "itest";
 
     Map<String, String> env = new HashMap<>();
     env.put("DTEST_HOME", System.getProperty("dtest.home"));
     String[] cmd = {env.get("DTEST_HOME") + File.separator + "bin" + File.separator + "dtest",
                     "-c", confDir,
-                    "-D" + BuildInfo.CFG_BUILDINFO_LABEL + "=" + RandomStringUtils.randomAlphanumeric(21).toLowerCase()};
+                    "-D" + BuildInfo.CFG_BUILDINFO_LABEL + "=" + RandomStringUtils.randomAlphanumeric(21).toLowerCase(),
+                    "-D" + BuildInfo.CFG_BUILDINFO_BASEDIR + "=" + confDir};
     LOG.info("Going to run: " + StringUtils.join(cmd, " ") + " with environment " +
         StringUtils.join(env, " "));
     String[] envArray = new String[env.size()];
