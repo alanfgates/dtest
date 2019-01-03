@@ -87,8 +87,12 @@ public class TestHiveDockerClient {
         "\n" +
         "RUN { \\\n" +
         "    cd /home/dtestuser; \\\n" +
-        "    /usr/bin/git clone repo;     cd hive;     /usr/bin/git checkout branch; \\\n" +
-        "/usr/bin/mvn install -DskipTests; cd itests; /usr/bin/mvn install -DskipSparkTests -DskipTests; \\\n" +
+        "    /usr/bin/git clone repo; \\\n" +
+        "    cd hive; \\\n" +
+        "    /usr/bin/git checkout branch; \\\n" +
+        "    /usr/bin/mvn install -DskipTests; \\\n" +
+        "    cd itests; \\\n" +
+        "    /usr/bin/mvn install -DskipSparkTests -DskipTests; \\\n" +
         "    echo This build is labeled needsomething; \\\n" +
         "}\n", buf.toString());
   }

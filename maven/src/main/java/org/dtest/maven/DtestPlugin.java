@@ -198,7 +198,7 @@ public class DtestPlugin extends AbstractMojo {
     dtestProperties.setProperty(BuildInfo.CFG_BUILDINFO_BASEDIR, baseDir.getAbsolutePath());
 
     for (Resource r : testResources) {
-      log.warn("targetPath: " + r.getTargetPath() + " dir: " + r.getDirectory() + " includes: " +
+      log.info("targetPath: " + r.getTargetPath() + " dir: " + r.getDirectory() + " includes: " +
           StringUtils.join(r.getIncludes(), " "));
     }
 

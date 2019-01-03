@@ -37,9 +37,9 @@ public class GitSource extends CodeSource  {
       throw new IOException("You must provide configuration value " + CFG_CODESOURCE_REPO + " to use git");
     }
     return Arrays.asList(
-        "    /usr/bin/git clone " + repo,
-        "    cd " + projectDir,
-        "    /usr/bin/git checkout " + branch);
+        "/usr/bin/git clone " + repo,
+        "cd " + projectDir,
+        "/usr/bin/git checkout " + branch);
   }
 
   @Override

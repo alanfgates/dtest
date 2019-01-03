@@ -92,7 +92,7 @@ public class BuildYaml {
 
   /*~~
    * @document yamlfile
-   * @section el_i3
+   * @section projectname
    * @after el_i2
    * - projectName: Name of the project.  When using git, this needs to match the directory name of your project
    * when the project is cloned.
@@ -101,8 +101,18 @@ public class BuildYaml {
 
   /*~~
    * @document yamlfile
+   * @section projectdir
+   * @after projectname
+   * - projectDir: Directory in the project to run `mvn install` in when building the image.  Usually this will be
+   * the same as `projectName`.  In that case this value does not need to be set, and the value of `projectName`
+   * will be used.
+   */
+  private String projectDir;
+
+  /*~~
+   * @document yamlfile
    * @section el_i4
-   * @after el_i3
+   * @after projectdir
    * - dirs: A list of test groups to run.  Each element of this list is a `ModuleDirectory`.
    */
   private ModuleDirectory[] dirs;
@@ -163,6 +173,14 @@ public class BuildYaml {
 
   public void setProjectName(String projectName) {
     this.projectName = projectName;
+  }
+
+  public String getProjectDir() {
+    return projectDir == null ? projectName : projectDir;
+  }
+
+  public void setProjectDir(String projectDir) {
+    this.projectDir = projectDir;
   }
 
   public ModuleDirectory[] getDirs() {

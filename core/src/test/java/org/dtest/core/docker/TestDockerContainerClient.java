@@ -85,8 +85,10 @@ public class TestDockerContainerClient {
         "\n" +
         "RUN { \\\n" +
         "    cd /home/dtestuser; \\\n" +
-        "    /usr/bin/git clone repo;     cd faky;     /usr/bin/git checkout branch; \\\n" +
-        "/usr/bin/mvn install -DskipTests; \\\n" +
+        "    /usr/bin/git clone repo; \\\n" +
+        "    cd faky; \\\n" +
+        "    /usr/bin/git checkout branch; \\\n" +
+        "    /usr/bin/mvn install -DskipTests; \\\n" +
         "    echo This build is labeled needsomething; \\\n" +
         "}\n", buf.toString());
 
