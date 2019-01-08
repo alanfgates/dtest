@@ -156,6 +156,7 @@ public class DockerTest {
    */
   public BuildState runBuild() {
     BuildState state = null;
+    boolean mightHaveBuiltImage = false;
     try {
       CodeSource codeSource = CodeSource.getInstance(cfg, log);
       buildInfo = new BuildInfo(cfgDir, codeSource, cleanupAfter);
@@ -163,9 +164,10 @@ public class DockerTest {
       docker = ContainerClient.getInstance(cfg, log);
       docker.setBuildInfo(buildInfo);
       ContainerCommandFactory cmdFactory = ContainerCommandFactory.getInstance(cfg, log);
+      mightHaveBuiltImage = true;
       docker.buildImage(cmdFactory);
       state = runContainers(cmdFactory);
-      packageLogsAndCleanup();
+      packageLogs();
       return state;
     } catch (IOException e) {
       log.error("Failed to run the build", e);
@@ -173,6 +175,17 @@ public class DockerTest {
       if (state == null) state = new BuildState();
       state.fail();
       return state;
+    } finally {
+      if (mightHaveBuiltImage && buildInfo.shouldCleanupAfter()) {
+        try {
+          docker.removeImage();
+        } catch (IOException e) {
+          // Not much that can be done here
+          log.warn("Failed to remove docker image, which can pollute your docker registry and cause future builds to" +
+              "fail if docker thinks it has already built the requested image.");
+        }
+      }
+
     }
   }
 
@@ -224,7 +237,7 @@ public class DockerTest {
           logDir.mkdir();
           docker.copyLogFiles(result, logDir.getAbsolutePath());
         }
-        docker.removeContainer(result);
+        if (buildInfo.shouldCleanupAfter()) docker.removeContainer(result);
         return 1;
       }));
     }
@@ -264,14 +277,12 @@ public class DockerTest {
     return buildState;
   }
 
-  private void packageLogsAndCleanup() throws IOException {
+  private void packageLogs() throws IOException {
     ProcessResults res = Utils.runProcess("tar", 60, log, "tar", "zcf",
         getResultsDir() + buildInfo.getLabel() + ".tgz", "-C", buildInfo.getBaseDir(), buildInfo.getLabel());
     if (res.rc != 0) {
       throw new IOException("Failed to tar up logs, error " + res.rc + " msg: " + res.stderr);
     }
-    docker.removeImage();
-
   }
 
   private String getResultsDir() {

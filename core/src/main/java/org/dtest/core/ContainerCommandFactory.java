@@ -93,6 +93,7 @@ public abstract class ContainerCommandFactory extends Configurable {
   static ContainerCommandFactory getInstance(Config cfg, DTestLogger log) throws IOException {
     ContainerCommandFactory ccl = Utils.getInstance(cfg.getAsClass(ContainerCommandFactory.CFG_CONTAINERCOMMANDLIST_IMPL,
         ContainerCommandFactory.class, MavenContainerCommandFactory.class));
+    log.debug("Instantiating ContainerCommandFactory implementation " + ccl.getClass().getName());
     ccl.setConfig(cfg).setLog(log);
     return ccl;
   }

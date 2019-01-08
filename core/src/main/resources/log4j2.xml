@@ -18,8 +18,8 @@
 
     <Loggers>
         <Root level="debug">
-            <AppenderRef ref="STDERR" level="info"/>
-            <AppenderRef ref="File" level="info"/>
+            <AppenderRef ref="STDERR" level="warn"/>
+            <AppenderRef ref="File" level="debug"/>
         </Root>
     </Loggers>
 

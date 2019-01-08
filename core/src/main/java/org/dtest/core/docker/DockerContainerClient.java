@@ -125,14 +125,9 @@ public class DockerContainerClient extends ContainerClient {
 
   @Override
   public void removeImage() throws IOException {
-    if (buildInfo.shouldCleanupAfter()) {
-      ProcessResults res =
-          Utils.runProcess("cleanup", 300, log, getDockerExec(), "image", "rm", imageName);
-      if (res.rc != 0) {
-        log.warn("Failed to cleanup containers: " + res.stderr);
-      }
-    } else {
-      log.info("Skipping cleanup of image " + imageName + " since no-cleanup is set");
+    ProcessResults res = Utils.runProcess("cleanup", 300, log, getDockerExec(), "image", "rm", imageName);
+    if (res.rc != 0) {
+      log.error("Failed to cleanup image: " + res.stderr);
     }
   }
 
