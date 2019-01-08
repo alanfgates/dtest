@@ -173,7 +173,7 @@ public class TestHiveDockerTest {
         CodeSource.CFG_CODESOURCE_BRANCH, "successful",
         CodeSource.CFG_CODESOURCE_REPO, "repo",
         BuildInfo.CFG_BUILDINFO_BASEDIR, System.getProperty("java.io.tmpdir"),
-        BuildInfo.CFG_BUILDINFO_LABEL, "secondTry",
+        BuildInfo.CFG_BUILDINFO_LABEL, "secondtry",
         BuildYaml.CFG_BUILDYAML_IMPL, HiveBuildYaml.class.getName());
     DockerTest test = new DockerTest();
     test.buildConfig(TestUtils.getConfDir(), props);

@@ -18,7 +18,7 @@ public class TestBuildInfoForHive {
         BuildInfo.CFG_BUILDINFO_BASEDIR, System.getProperty("java.io.tmpdir"),
         BuildYaml.CFG_BUILDYAML_IMPL, HiveBuildYaml.class.getName());
     BuildInfo info = new BuildInfo(TestUtils.getConfDir(), new GitSource(), true);
-    info.setConfig(cfg);
+    info.setConfig(cfg).setLog(new TestUtils.TestLogger());
     info.getBuildDir();
     BuildYaml yaml = info.getYaml();
     assert yaml instanceof HiveBuildYaml;
@@ -85,7 +85,7 @@ public class TestBuildInfoForHive {
         BuildYaml.CFG_BUILDYAML_IMPL, HiveBuildYaml.class.getName());
     String cfgDir = System.getProperty("java.io.tmpdir") + File.separator + "classes" + File.separator + "master";
     BuildInfo info = new BuildInfo(cfgDir, new GitSource(), true);
-    info.setConfig(cfg);
+    info.setConfig(cfg).setLog(new TestUtils.TestLogger());
     info.getBuildDir();
     BuildYaml yaml = info.getYaml();
     assert yaml instanceof HiveBuildYaml;
@@ -101,7 +101,7 @@ public class TestBuildInfoForHive {
         BuildYaml.CFG_BUILDYAML_IMPL, HiveBuildYaml.class.getName());
     String cfgDir = System.getProperty("java.io.tmpdir") + File.separator + "classes" + File.separator + "branch3";
     BuildInfo info = new BuildInfo(cfgDir, new GitSource(), true);
-    info.setConfig(cfg);
+    info.setConfig(cfg).setLog(new TestUtils.TestLogger());
     info.getBuildDir();
     BuildYaml yaml = info.getYaml();
     assert yaml instanceof HiveBuildYaml;

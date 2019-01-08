@@ -20,6 +20,7 @@ import org.dtest.core.DTestLogger;
 import org.dtest.core.DockerTest;
 
 import java.io.IOException;
+import java.util.Random;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
@@ -124,6 +125,28 @@ public class Utils {
    */
   public static String buildContainerName(String label, String name) {
     return CONTAINER_BASE + label + "_" + name;
+  }
+
+  private static WordGenerator wordGenerator = null;
+  private static Random rand = null;
+
+  /**
+   * Generate a random label
+   * @param numWords number of words in the label.  Each word will be separated by a '-'.
+   * @return a random generated label, made of pronounceable (if not semantically valid) English words.
+   */
+  public static String generateRandomLabel(int numWords) {
+    if (wordGenerator == null) {
+      wordGenerator = new WordGenerator();
+      rand = new Random();
+    }
+
+    StringBuilder buf = new StringBuilder();
+    for (int i = 0; i < numWords; i++) {
+      if (i > 0) buf.append('-');
+      buf.append(wordGenerator.newWord(rand.nextInt(5) + 5).toLowerCase());
+    }
+    return buf.toString();
   }
 
 }

@@ -237,7 +237,7 @@ public class TestDockerTest {
         ResultAnalyzer.CFG_RESULTANALYZER_IMPL, SpyingResultAnalyzer.class.getName(),
         CodeSource.CFG_CODESOURCE_BRANCH, "successful",
         BuildInfo.CFG_BUILDINFO_BASEDIR, TestUtils.getConfDir(),
-        BuildInfo.CFG_BUILDINFO_LABEL, "firstTry");
+        BuildInfo.CFG_BUILDINFO_LABEL, "firsttry");
     logToReturn = TestMavenResultAnalyzer.LOG_SUCCESSFUL_RUN_ALL_SUCCEEDED;
     DockerTest test = new DockerTest();
     test.buildConfig(TestUtils.getConfDir(), props);
@@ -261,7 +261,7 @@ public class TestDockerTest {
         ResultAnalyzer.CFG_RESULTANALYZER_IMPL, SpyingResultAnalyzer.class.getName(),
         CodeSource.CFG_CODESOURCE_BRANCH, "successful",
         BuildInfo.CFG_BUILDINFO_BASEDIR, System.getProperty("java.io.tmpdir"),
-        BuildInfo.CFG_BUILDINFO_LABEL, "firstTry");
+        BuildInfo.CFG_BUILDINFO_LABEL, "firsttry");
     logToReturn = TestMavenResultAnalyzer.LOG_SUCCESSFUL_RUN_FAILED_TESTS;
     DockerTest test = new DockerTest();
     test.buildConfig(TestUtils.getConfDir(), props);

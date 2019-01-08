@@ -19,6 +19,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.google.common.annotations.VisibleForTesting;
+import org.dtest.core.impl.Utils;
 
 import java.io.File;
 import java.io.IOException;
@@ -60,12 +61,13 @@ public class BuildInfo extends Configurable implements Comparable<BuildInfo> {
    */
   public static final String CFG_BUILDINFO_LABEL = "dtest.core.buildinfo.label";
 
-  private final Pattern dockerable = Pattern.compile("[A-Za-z0-9_\\-]+");
+  private final Pattern dockerable = Pattern.compile("[a-z0-9_\\-]+");
   private final CodeSource src;
   private final String confDir;
   private final boolean cleanupAfter;
   private String label;
-  private String dir;
+  private String buildDir; // Directory the build will be done in
+  private String baseDir; // base directory, CWD basically.  dtest.log will end up in this directory.
   private BuildYaml yaml;
 
   /**
@@ -77,7 +79,7 @@ public class BuildInfo extends Configurable implements Comparable<BuildInfo> {
   public BuildInfo(String confDir, CodeSource repo, boolean cleanupAfter) {
     this.confDir = confDir;
     this.src = repo;
-    dir = null;
+    buildDir = baseDir = null;
     this.cleanupAfter = cleanupAfter;
   }
 
@@ -90,14 +92,14 @@ public class BuildInfo extends Configurable implements Comparable<BuildInfo> {
    * @throws IOException if the directory can't be built.
    */
   public String getBuildDir() throws IOException {
-    if (dir != null) return dir;
+    if (buildDir != null) return buildDir;
 
     // This cannot be done in the constructor because it requires the configuration.
     checkLabelIsDockerable();
     File d = new File(getBaseDir(), label);
     d.mkdir();
-    dir = d.getAbsolutePath();
-    return dir;
+    buildDir = d.getAbsolutePath();
+    return buildDir;
   }
 
   /**
@@ -107,8 +109,13 @@ public class BuildInfo extends Configurable implements Comparable<BuildInfo> {
    * @throws IOException if basedir isn't provided in the configuration.
    */
   public String getBaseDir() throws IOException {
-    String baseDir = cfg.getAsString(CFG_BUILDINFO_BASEDIR);
-    if (baseDir == null) throw new IOException(CFG_BUILDINFO_BASEDIR + " not set, required");
+    if (baseDir == null) {
+      baseDir = cfg.getAsString(CFG_BUILDINFO_BASEDIR);
+      if (baseDir == null) {
+        baseDir = System.getProperty("java.io.tmpdir");
+      }
+      log.info("Building in " + baseDir);
+    }
     return baseDir;
   }
 
@@ -126,9 +133,13 @@ public class BuildInfo extends Configurable implements Comparable<BuildInfo> {
    * @return build label.
    */
   public String getLabel() {
-    // Don't check validity of label here, we'll do that when we construct the build dir.
+    // Don't check validity of label here, we'll do that when we construct the build buildDir.
     if (label == null) {
       label = cfg.getAsString(CFG_BUILDINFO_LABEL);
+      if (label == null) {
+        label = Utils.generateRandomLabel(2);
+      }
+      log.info("Using label " + label);
     }
     return label;
   }
@@ -173,7 +184,6 @@ public class BuildInfo extends Configurable implements Comparable<BuildInfo> {
   void checkLabelIsDockerable() throws IOException {
     if (label == null) {
       label = getLabel();
-      if (label == null) throw new IOException("You must specify a build label using " + CFG_BUILDINFO_LABEL);
       Matcher m = dockerable.matcher(label);
       if (!m.matches()) {
         throw new IOException("Label must be usable in docker container name, should only contain " +
@@ -184,6 +194,8 @@ public class BuildInfo extends Configurable implements Comparable<BuildInfo> {
 
   private void readYaml() throws IOException {
     String filename = confDir + File.separator + Config.YAML_FILE;
+    Class<? extends BuildYaml> yamlClass = BuildYaml.getBuildYamlClass(cfg);
+    log.debug("Reading YAML file " + filename + " and interpreting using " + yamlClass.getName());
     File yamlFile = new File(filename);
     ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
     ObjectReader reader = mapper.readerFor(BuildYaml.getBuildYamlClass(cfg));

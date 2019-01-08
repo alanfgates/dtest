@@ -101,6 +101,7 @@ public class HiveContainerCommandFactory extends MavenContainerCommandFactory {
 
   @Override
   protected ModuleDirectory[] getModuleDirs(BuildYaml yaml) {
+    log.debug("HiveContainerCommandFactory fetching module directories");
     assert yaml instanceof HiveBuildYaml;
     return ((HiveBuildYaml)yaml).getHiveDirs();
   }

@@ -159,7 +159,7 @@ public class DockerTest {
     try {
       CodeSource codeSource = CodeSource.getInstance(cfg, log);
       buildInfo = new BuildInfo(cfgDir, codeSource, cleanupAfter);
-      buildInfo.setConfig(cfg);
+      buildInfo.setConfig(cfg).setLog(log);
       docker = ContainerClient.getInstance(cfg, log);
       docker.setBuildInfo(buildInfo);
       ContainerCommandFactory cmdFactory = ContainerCommandFactory.getInstance(cfg, log);

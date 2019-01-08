@@ -170,6 +170,7 @@ public class MavenContainerCommandFactory extends ContainerCommandFactory {
    * @return array of module directories, probably really of some subclass of ModuleDirectory.
    */
   protected ModuleDirectory[] getModuleDirs(BuildYaml yaml) {
+    log.debug("MavenContainerCommandFactory fetching module directories");
     return yaml.getDirs();
   }
 

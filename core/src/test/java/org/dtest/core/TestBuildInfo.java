@@ -29,7 +29,7 @@ public class TestBuildInfo {
   public void simple() throws IOException {
     Config cfg = TestUtils.buildCfg(BuildInfo.CFG_BUILDINFO_LABEL, "patch1");
     BuildInfo info = new BuildInfo(System.getProperty("java.io.tmpdir"), new GitSource(), true);
-    info.setConfig(cfg);
+    info.setConfig(cfg).setLog(new TestUtils.TestLogger());
     info.checkLabelIsDockerable();
   }
 
@@ -37,7 +37,7 @@ public class TestBuildInfo {
   public void withDash() throws IOException {
     Config cfg = TestUtils.buildCfg(BuildInfo.CFG_BUILDINFO_LABEL, "patch1-run2");
     BuildInfo info = new BuildInfo(System.getProperty("java.io.tmpdir"), new GitSource(), true);
-    info.setConfig(cfg);
+    info.setConfig(cfg).setLog(new TestUtils.TestLogger());
     info.checkLabelIsDockerable();
   }
 
@@ -45,7 +45,7 @@ public class TestBuildInfo {
   public void withSlash() throws IOException {
     Config cfg = TestUtils.buildCfg(BuildInfo.CFG_BUILDINFO_LABEL, "patch1/run2");
     BuildInfo info = new BuildInfo(System.getProperty("java.io.tmpdir"), new GitSource(), true);
-    info.setConfig(cfg);
+    info.setConfig(cfg).setLog(new TestUtils.TestLogger());
     info.checkLabelIsDockerable();
   }
 
@@ -54,7 +54,7 @@ public class TestBuildInfo {
     Config cfg = TestUtils.buildCfg(BuildInfo.CFG_BUILDINFO_LABEL, "parse-yaml",
                                     BuildInfo.CFG_BUILDINFO_BASEDIR, System.getProperty("java.io.tmpdir"));
     BuildInfo info = new BuildInfo(TestUtils.getConfDir(), new GitSource(), true);
-    info.setConfig(cfg);
+    info.setConfig(cfg).setLog(new TestUtils.TestLogger());
     info.getBuildDir();
     BuildYaml yaml = info.getYaml();
     Assert.assertEquals("centos", yaml.getBaseImage());
