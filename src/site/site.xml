@@ -17,6 +17,7 @@ limitations under the License.
 <project>
   <body>
     <menu name="Documentation">
+      <item name="Introduction" href="dtest-core/dockertest.html"/>
       <item name="Javadoc" href="apidocs/index.html"/>
       <item name="Yaml file reference" href="dtest-core/yamlfile.html"/>
       <item name="Properties file reference" href="dtest-core/propsfile.html"/>
