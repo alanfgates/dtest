@@ -87,7 +87,7 @@ public class TestDoc {
       doc.addSection(section);
       Assert.fail("should have failed to build the doc");
     } catch (IOException e) {
-      Assert.assertEquals("Found two sections both listed as after section first. third and second", e.getMessage());
+      Assert.assertEquals("In document fred found two sections both listed as after section first. third and second", e.getMessage());
     }
   }
 
@@ -107,7 +107,7 @@ public class TestDoc {
       doc.buildDoc();
       Assert.fail("should have failed to build the doc");
     } catch (IOException e) {
-      Assert.assertEquals("Found a gap in the document.  No section was found immediately after first but sections" +
+      Assert.assertEquals("Found a gap in the document fred.  No section was found immediately after first but sections" +
           " third have not been placed in the document.", e.getMessage());
     }
   }

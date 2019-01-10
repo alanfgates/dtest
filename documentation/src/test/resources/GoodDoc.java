@@ -60,13 +60,20 @@ public class GoodDoc {
 
   /*~~
    * @document evenbetter
-   * @section only
+   * @section first
+   * @begin
    * This is a second document, inserted to make sure the parser can handle multiple documents.
    *
    */
 
   /*~~
    * Empty comment with no tags.  This should not be included.
+   */
+
+  /*~~
+   * @document evenbetter
+   * @section second
+   * This is a comment with no after, to make sure things are ordered properly.
    */
 
   /*~~

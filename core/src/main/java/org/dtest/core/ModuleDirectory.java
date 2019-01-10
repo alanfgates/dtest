@@ -21,7 +21,7 @@ import java.util.Map;
 /*~~
  * @document yamlfile
  * @section module_directory
- * @after el_i7
+ * @after additionallogs
  * *Module Directory*
  *
  * Module directory describes how to run a group of tests.  The `dir` name is required, all other values

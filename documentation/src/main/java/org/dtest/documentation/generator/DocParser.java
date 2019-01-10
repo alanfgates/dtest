@@ -29,6 +29,7 @@ class DocParser {
   private static final String DOC_TAG = "@document";
   private static final String SECTION_TAG = "@section";
   private static final String AFTER_TAG = "@after";
+  private static final String BEGIN_TAG = "@begin";
 
   private enum ParserState { NOT_IN_COMMENT, IN_COMMENT}
 
@@ -58,8 +59,9 @@ class DocParser {
         } else if (state == ParserState.IN_COMMENT) {
           if (line.startsWith(COMMENT_END)) {
             if (currentDoc != null && currentSection != null) {
-              // Check to see if this section has an after, if not set it to first
-              if (currentAfter == null) currentSection.setAfter(Section.BEGIN);
+              // Check to see if this section has an after, set to the last seen section for the document (which
+              // could be the beginning if we haven't seen the document before).
+              if (currentAfter == null) currentSection.setAfter(currentDoc.getLastSection());
               else currentSection.setAfter(currentAfter);
               currentSection.setText(currentText.toString());
               currentDoc.addSection(currentSection);
@@ -73,15 +75,26 @@ class DocParser {
             if (line.startsWith(" ")) line = line.substring(1);
             if (line.trim().startsWith(DOC_TAG)) {
               String docName = line.trim().substring(DOC_TAG.length()).trim();
-              if (currentDoc != null) throw new RuntimeException("Parser state error, currentDoc should be null");
+              if (currentDoc != null) {
+                throw new IOException("Each section must have only one @document tag.");
+              }
               currentDoc = docs.computeIfAbsent(docName, Doc::new);
             } else if (line.trim().startsWith(SECTION_TAG)) {
               String sectionName = line.trim().substring(SECTION_TAG.length()).trim();
-              if (currentSection != null) throw new RuntimeException("Parser state error, currentSection should be null");
+              if (currentSection != null) {
+                throw new IOException("Each section must have only one @section tag.");
+              }
               currentSection = new Section(sectionName);
             } else if (line.trim().startsWith(AFTER_TAG)) {
-              if (currentAfter != null) throw new RuntimeException("Parser state error, currentAfter should be null");
+              if (currentAfter != null) {
+                throw new IOException("Multiple @after or both @after and @begin tags not allowed in a single section");
+              }
               currentAfter = line.trim().substring(AFTER_TAG.length()).trim();
+            } else if (line.trim().startsWith(BEGIN_TAG)) {
+              if (currentAfter != null) {
+                throw new IOException("Both @begin and @after tags or multiple @begin tags not allowed in a single section");
+              }
+              currentAfter = Section.BEGIN;
             } else {
               currentText.append(line).append("\n");
             }

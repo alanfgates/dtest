@@ -15,7 +15,6 @@
  */
 package org.dtest.core;
 
-import com.google.common.annotations.VisibleForTesting;
 import org.dtest.core.impl.Utils;
 
 import java.io.File;
@@ -29,6 +28,7 @@ import java.util.regex.Pattern;
 /*~~
  * @document propsfile
  * @section header
+ * @begin
  * # Configuration Properties
  *
  * Dtest reads its configuration from `dtest.properties`.  When using the command line tool properties can

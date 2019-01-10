@@ -80,7 +80,7 @@ public class BuildYaml {
 
   /*~~
    * @document yamlfile
-   * @section el_i1
+   * @section baseimage
    * @after header
    * - baseImage: Base docker image to use.  Currently supported values are `centos`, `ubuntu`, or `debian`.  These
    * can also include a version number if desired.
@@ -89,8 +89,7 @@ public class BuildYaml {
 
   /*~~
    * @document yamlfile
-   * @section el_i2
-   * @after el_i1
+   * @section requiredpackages
    * - requiredPackages: A list of required packages that should be installed for your build to work.
    */
   private String[] requiredPackages;
@@ -98,7 +97,6 @@ public class BuildYaml {
   /*~~
    * @document yamlfile
    * @section projectname
-   * @after el_i2
    * - projectName: Name of the project.  When using git, this needs to match the directory name of your project
    * when the project is cloned.
    */
@@ -107,7 +105,6 @@ public class BuildYaml {
   /*~~
    * @document yamlfile
    * @section projectdir
-   * @after projectname
    * - projectDir: Directory in the project to run `mvn install` in when building the image.  Usually this will be
    * the same as `projectName`.  In that case this value does not need to be set, and the value of `projectName`
    * will be used.
@@ -117,7 +114,6 @@ public class BuildYaml {
   /*~~
    * @document yamlfile
    * @section repo
-   * @after projectdir
    * - repo: Default repository to use for source control.  This can be overridden by values passed on
    * the command line or to the plugin.
    */
@@ -126,7 +122,6 @@ public class BuildYaml {
   /*~~
    * @document yamlfile
    * @section branch
-   * @after repo
    * - branch: Default branch to use with source control.  This can be overridden by values passed on the
    * command line or to the plugin.  The default for this value is source control specific.  For git it is 'master'.
    */
@@ -134,24 +129,21 @@ public class BuildYaml {
 
   /*~~
    * @document yamlfile
-   * @section el_i4
-   * @after branch
+   * @section dirs
    * - dirs: A list of test groups to run.  Each element of this list is a `ModuleDirectory`.
    */
   private ModuleDirectory[] dirs;
 
   /*~~
    * @document yamlfile
-   * @section el_i5
-   * @after el_i4
+   * @section comment
    * - comment: Free form, all for you to comment as you please.
    */
   private String comment;
 
   /*~~
    * @document yamlfile
-   * @section el_i6
-   * @after el_i5
+   * @section javapackages
    * - javaPackages: A list of top level Java packages that the tests are in.  These are not the individual
    * modules but top level ones, such as org.apache.hadoop or org.dtest.  Done as a list because some projects
    * have tests in multiple top level packages, e.g. Apache Hive has tests in org.apache.hadoop.hive and org.apache.hive.
@@ -160,8 +152,7 @@ public class BuildYaml {
 
   /*~~
    * @document yamlfile
-   * @section el_i7
-   * @after el_i6
+   * @section additionallogs
    * - additionalLogs: A list of any additional log files that should be picked up as part of the collection of
    * log files to ship back to the user.  By default the system picks up output from the `surefire-reports`
    * directory.  If your system uses log4j or a similar package and you want to fetch the resulting logs you should

@@ -22,10 +22,12 @@ import java.util.Map;
 class Doc {
   private final String name;
   private Map<String, Section> sections;
+  private String lastSection; // the last added section
 
   Doc(String name) {
     this.name = name;
     sections = new HashMap<>();
+    lastSection = Section.BEGIN;
   }
 
   String getName() {
@@ -35,9 +37,14 @@ class Doc {
   void addSection(Section section) throws IOException {
     Section prev = sections.put(section.getAfter(), section);
     if (prev != null) {
-      throw new IOException("Found two sections both listed as after section " + section.getAfter() +
-          ". " + section.getName() + " and " + prev.getName());
+      throw new IOException("In document " + name + " found two sections both listed as after section " +
+          section.getAfter() + ". " + section.getName() + " and " + prev.getName());
     }
+    lastSection = section.getName();
+  }
+
+  String getLastSection() {
+    return lastSection;
   }
 
   String buildDoc() throws IOException  {
@@ -52,7 +59,9 @@ class Doc {
     }
     // Make sure we put every section in
     if (sections.size() > 0) {
-      StringBuilder buf = new StringBuilder("Found a gap in the document.  No section was found immediately after ")
+      StringBuilder buf = new StringBuilder("Found a gap in the document ")
+          .append(name)
+          .append(".  No section was found immediately after ")
           .append(prev.getName())
           .append(" but sections ");
       sections.values().forEach(section -> buf.append(section.getName()).append(", "));
