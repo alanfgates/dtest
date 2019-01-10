@@ -16,6 +16,7 @@
 package org.dtest.core.docker;
 
 import org.dtest.core.BuildInfo;
+import org.dtest.core.BuildYaml;
 import org.dtest.core.CodeSource;
 import org.dtest.core.Config;
 import org.dtest.core.ContainerCommandFactory;
@@ -58,7 +59,7 @@ public class TestDockerContainerClient {
     client.setConfig(cfg).setLog(log);
     CodeSource src = new GitSource();
     src.setConfig(cfg).setLog(log);
-    BuildInfo info = new BuildInfo(TestUtils.getConfDir(), src, true);
+    BuildInfo info = new BuildInfo(TestUtils.getConfDir(), TestUtils.buildYaml(cfg, log), src, true);
     info.setConfig(cfg).setLog(log);
     client.setBuildInfo(info);
     ContainerCommandFactory cmdFactory = new MavenContainerCommandFactory();
@@ -87,7 +88,7 @@ public class TestDockerContainerClient {
         "    cd /home/dtestuser; \\\n" +
         "    /usr/bin/git clone repo; \\\n" +
         "    cd faky; \\\n" +
-        "    /usr/bin/git checkout branch; \\\n" +
+        "    /usr/bin/git checkout master; \\\n" +
         "    /usr/bin/mvn install -DskipTests; \\\n" +
         "    echo This build is labeled needsomething; \\\n" +
         "}\n", buf.toString());

@@ -8,6 +8,8 @@ javaPackages:
 - org.apache.hive
 additionalLogs:
 - target/tmp/log/hive.log
+repo: https://git-wip-us.apache.org/repos/asf/hive.git
+branch: branch-3.1
 hiveDirs:
   - dir: accumulo-handler
   - dir: beeline

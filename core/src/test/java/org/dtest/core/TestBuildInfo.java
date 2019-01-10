@@ -19,16 +19,14 @@ import org.dtest.core.git.GitSource;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.io.File;
 import java.io.IOException;
-import java.util.Collections;
 
 public class TestBuildInfo {
 
   @Test
   public void simple() throws IOException {
     Config cfg = TestUtils.buildCfg(BuildInfo.CFG_BUILDINFO_LABEL, "patch1");
-    BuildInfo info = new BuildInfo(System.getProperty("java.io.tmpdir"), new GitSource(), true);
+    BuildInfo info = new BuildInfo(System.getProperty("java.io.tmpdir"), new BuildYaml(), new GitSource(), true);
     info.setConfig(cfg).setLog(new TestUtils.TestLogger());
     info.checkLabelIsDockerable();
   }
@@ -36,7 +34,7 @@ public class TestBuildInfo {
   @Test
   public void withDash() throws IOException {
     Config cfg = TestUtils.buildCfg(BuildInfo.CFG_BUILDINFO_LABEL, "patch1-run2");
-    BuildInfo info = new BuildInfo(System.getProperty("java.io.tmpdir"), new GitSource(), true);
+    BuildInfo info = new BuildInfo(System.getProperty("java.io.tmpdir"), new BuildYaml(), new GitSource(), true);
     info.setConfig(cfg).setLog(new TestUtils.TestLogger());
     info.checkLabelIsDockerable();
   }
@@ -44,7 +42,7 @@ public class TestBuildInfo {
   @Test(expected = IOException.class)
   public void withSlash() throws IOException {
     Config cfg = TestUtils.buildCfg(BuildInfo.CFG_BUILDINFO_LABEL, "patch1/run2");
-    BuildInfo info = new BuildInfo(System.getProperty("java.io.tmpdir"), new GitSource(), true);
+    BuildInfo info = new BuildInfo(System.getProperty("java.io.tmpdir"), new BuildYaml(), new GitSource(), true);
     info.setConfig(cfg).setLog(new TestUtils.TestLogger());
     info.checkLabelIsDockerable();
   }
@@ -53,8 +51,9 @@ public class TestBuildInfo {
   public void parseYaml() throws IOException {
     Config cfg = TestUtils.buildCfg(BuildInfo.CFG_BUILDINFO_LABEL, "parse-yaml",
                                     BuildInfo.CFG_BUILDINFO_BASEDIR, System.getProperty("java.io.tmpdir"));
-    BuildInfo info = new BuildInfo(TestUtils.getConfDir(), new GitSource(), true);
-    info.setConfig(cfg).setLog(new TestUtils.TestLogger());
+    DTestLogger log = new TestUtils.TestLogger();
+    BuildInfo info = new BuildInfo(TestUtils.getConfDir(), TestUtils.buildYaml(cfg, log), new GitSource(), true);
+    info.setConfig(cfg).setLog(log);
     info.getBuildDir();
     BuildYaml yaml = info.getYaml();
     Assert.assertEquals("centos", yaml.getBaseImage());

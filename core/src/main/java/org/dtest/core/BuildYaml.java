@@ -15,6 +15,11 @@
  */
 package org.dtest.core;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectReader;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+
+import java.io.File;
 import java.io.IOException;
 
 /*~~
@@ -111,8 +116,26 @@ public class BuildYaml {
 
   /*~~
    * @document yamlfile
-   * @section el_i4
+   * @section repo
    * @after projectdir
+   * - repo: Default repository to use for source control.  This can be overridden by values passed on
+   * the command line or to the plugin.
+   */
+  private String repo;
+
+  /*~~
+   * @document yamlfile
+   * @section branch
+   * @after repo
+   * - branch: Default branch to use with source control.  This can be overridden by values passed on the
+   * command line or to the plugin.  The default for this value is source control specific.  For git it is 'master'.
+   */
+  private String branch;
+
+  /*~~
+   * @document yamlfile
+   * @section el_i4
+   * @after branch
    * - dirs: A list of test groups to run.  Each element of this list is a `ModuleDirectory`.
    */
   private ModuleDirectory[] dirs;
@@ -147,8 +170,28 @@ public class BuildYaml {
    */
   private String[] additionalLogs;
 
-  static Class<? extends BuildYaml> getBuildYamlClass(Config cfg) throws IOException {
-    return cfg.getAsClass(CFG_BUILDYAML_IMPL, BuildYaml.class, CFG_BUILDYAML_IMPL_DEFAULT);
+  /**
+   * Read the YAML file.  If you have configured another class to override BuildYaml it will be used here,
+   * otherwise an instance of BuildYaml will be returned.
+   * @param confDir Configuration directory, dtest expects dtest.yaml to be in this directory.
+   * @param cfg Configuration object.
+   * @param log logger
+   * @param repo repository value that should override repo in the yaml file.  This can be left null.
+   * @param branch branch value that should override branch in the yaml file.  This can be left null.
+   * @return yaml as an object.
+   * @throws IOException if the file cannot be read.
+   */
+  public static BuildYaml readYaml(String confDir, Config cfg, DTestLogger log, String repo, String branch) throws IOException {
+    String filename = confDir + File.separator + Config.YAML_FILE;
+    Class<? extends BuildYaml> yamlClass = cfg.getAsClass(CFG_BUILDYAML_IMPL, BuildYaml.class, CFG_BUILDYAML_IMPL_DEFAULT);
+    log.debug("Reading YAML file " + filename + " and interpreting using " + yamlClass.getName());
+    File yamlFile = new File(filename);
+    ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
+    ObjectReader reader = mapper.readerFor(yamlClass);
+    BuildYaml yaml = reader.readValue(yamlFile);
+    if (repo != null) yaml.setRepo(repo);
+    if (branch != null) yaml.setBranch(branch);
+    return yaml;
   }
 
   public String getBaseImage() {
@@ -181,6 +224,22 @@ public class BuildYaml {
 
   public void setProjectDir(String projectDir) {
     this.projectDir = projectDir;
+  }
+
+  public String getRepo() {
+    return repo;
+  }
+
+  public void setRepo(String repo) {
+    this.repo = repo;
+  }
+
+  public String getBranch() {
+    return branch;
+  }
+
+  public void setBranch(String branch) {
+    this.branch = branch;
   }
 
   public ModuleDirectory[] getDirs() {

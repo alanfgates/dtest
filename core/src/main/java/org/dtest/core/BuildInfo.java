@@ -15,9 +15,6 @@
  */
 package org.dtest.core;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectReader;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.google.common.annotations.VisibleForTesting;
 import org.dtest.core.impl.Utils;
 
@@ -65,20 +62,22 @@ public class BuildInfo extends Configurable implements Comparable<BuildInfo> {
   private final CodeSource src;
   private final String confDir;
   private final boolean cleanupAfter;
+  private final BuildYaml yaml;
   private String label;
   private String buildDir; // Directory the build will be done in
   private String baseDir; // base directory, CWD basically.  dtest.log will end up in this directory.
-  private BuildYaml yaml;
 
   /**
    *
    * @param confDir directory where we expect to find dtest.properties and dtest.yaml files
+   * @param yaml Yaml file object
    * @param repo code source object that will be used to fetch code.
    * @param cleanupAfter whether we should cleanup after this build
    */
-  public BuildInfo(String confDir, CodeSource repo, boolean cleanupAfter) {
+  public BuildInfo(String confDir, BuildYaml yaml, CodeSource repo, boolean cleanupAfter) {
     this.confDir = confDir;
     this.src = repo;
+    this.yaml = yaml;
     buildDir = baseDir = null;
     this.cleanupAfter = cleanupAfter;
   }
@@ -175,8 +174,7 @@ public class BuildInfo extends Configurable implements Comparable<BuildInfo> {
     return label.compareTo(o.label);
   }
 
-  public BuildYaml getYaml() throws IOException {
-    if (yaml == null) readYaml();
+  public BuildYaml getYaml() {
     return yaml;
   }
 
@@ -190,16 +188,6 @@ public class BuildInfo extends Configurable implements Comparable<BuildInfo> {
             "[A-Za-z0-9_\\-]");
       }
     }
-  }
-
-  private void readYaml() throws IOException {
-    String filename = confDir + File.separator + Config.YAML_FILE;
-    Class<? extends BuildYaml> yamlClass = BuildYaml.getBuildYamlClass(cfg);
-    log.debug("Reading YAML file " + filename + " and interpreting using " + yamlClass.getName());
-    File yamlFile = new File(filename);
-    ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
-    ObjectReader reader = mapper.readerFor(BuildYaml.getBuildYamlClass(cfg));
-    yaml = reader.readValue(yamlFile);
   }
 
 }

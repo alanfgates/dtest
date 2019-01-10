@@ -60,7 +60,7 @@ public class TestHiveDockerClient {
     client.setConfig(cfg).setLog(log);
     CodeSource src = new GitSource();
     src.setConfig(cfg).setLog(log);
-    BuildInfo info = new BuildInfo(TestUtils.getConfDir(), src, true);
+    BuildInfo info = new BuildInfo(TestUtils.getConfDir(), TestUtils.buildYaml(cfg, log), src, true);
     info.setConfig(cfg).setLog(log);
     client.setBuildInfo(info);
     ContainerCommandFactory cmdFactory = new HiveContainerCommandFactory();
@@ -89,7 +89,7 @@ public class TestHiveDockerClient {
         "    cd /home/dtestuser; \\\n" +
         "    /usr/bin/git clone repo; \\\n" +
         "    cd hive; \\\n" +
-        "    /usr/bin/git checkout branch; \\\n" +
+        "    /usr/bin/git checkout master; \\\n" +
         "    /usr/bin/mvn install -DskipTests; \\\n" +
         "    cd itests; \\\n" +
         "    /usr/bin/mvn install -DskipSparkTests -DskipTests; \\\n" +

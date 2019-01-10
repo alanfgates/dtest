@@ -17,12 +17,12 @@ package org.dtest.core.mvn;
 
 import org.apache.commons.lang3.StringUtils;
 import org.dtest.core.BuildInfo;
+import org.dtest.core.BuildYaml;
 import org.dtest.core.Config;
 import org.dtest.core.ContainerClient;
 import org.dtest.core.ContainerCommand;
 import org.dtest.core.ContainerCommandFactory;
 import org.dtest.core.ContainerResult;
-import org.dtest.core.ModuleDirectory;
 import org.dtest.core.TestUtils;
 import org.dtest.core.git.GitSource;
 import org.junit.Assert;
@@ -41,7 +41,7 @@ public class TestMavenContainerCommandFactory {
     MavenContainerCommandFactory cmds = new MavenContainerCommandFactory();
     cmds.setConfig(cfg);
     cmds.setLog(log);
-    BuildInfo buildInfo = new BuildInfo(TestUtils.getConfDir(), new GitSource(), true);
+    BuildInfo buildInfo = new BuildInfo(TestUtils.getConfDir(), TestUtils.buildYaml(cfg, log), new GitSource(), true);
     buildInfo.setConfig(cfg).setLog(log);
     buildInfo.getBuildDir();
     cmds.buildContainerCommands(new TestContainerClient(), buildInfo);

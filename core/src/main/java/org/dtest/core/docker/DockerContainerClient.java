@@ -66,14 +66,7 @@ public class DockerContainerClient extends ContainerClient {
 
   @Override
   public String getContainerBaseDir() {
-    try {
-      return getHomeDir() + File.separator + buildInfo.getYaml().getProjectDir();
-    } catch (IOException e) {
-      // this should never happen, as buildInfo.getYaml has been called already in setBuildInfo and would have
-      // throw there if it was going to throw.
-      log.error("Unexpected IOException", e);
-      throw new RuntimeException(e);
-    }
+    return getHomeDir() + File.separator + buildInfo.getYaml().getProjectDir();
   }
 
   @Override
@@ -163,7 +156,7 @@ public class DockerContainerClient extends ContainerClient {
     writer.write("\n");
     writer.write("RUN { \\\n");
     writer.write("    cd " + getHomeDir() + "; \\\n");
-    for (String line : buildInfo.getSrc().srcCommands(buildInfo.getYaml().getProjectDir())) {
+    for (String line : buildInfo.getSrc().srcCommands(buildInfo.getYaml())) {
       writer.write("    " + line + "; \\\n");
     }
     for (String line : cmdFactory.getInitialBuildCommand()) writer.write("    " + line + "; \\\n");

@@ -19,6 +19,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
@@ -58,6 +59,18 @@ public class TestUtils {
    */
   public static String getConfDir() {
     return System.getProperty("java.io.tmpdir") + File.separator + "test-classes";
+  }
+
+  /**
+   * Convience method to read the Yaml file for tests.  This will read the Yaml file from test/resources, and thus
+   * will return different results than {@link #getYaml()} below.
+   * @param cfg config object
+   * @param log log object.
+   * @return the yaml file
+   * @throws IOException if readYaml underneath does.
+   */
+  public static BuildYaml buildYaml(Config cfg, DTestLogger log) throws IOException {
+    return BuildYaml.readYaml(getConfDir(), cfg, log, "repo", null);
   }
 
   /**

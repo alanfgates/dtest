@@ -181,16 +181,6 @@ public class DtestPlugin extends AbstractMojo {
 
     if (dtestProperties == null) dtestProperties = new Properties();
 
-    if (repo != null) {
-      dtestProperties.setProperty(GitSource.CFG_CODESOURCE_REPO, repo);
-      log.debug("Building with repo set to " + repo);
-    }
-
-    if (branch != null) {
-      dtestProperties.setProperty(GitSource.CFG_CODESOURCE_BRANCH, branch);
-      log.debug("Building with branch set to " + branch);
-    }
-
     if (label == null) {
       label = RandomStringUtils.randomAlphanumeric(10).toLowerCase();
     }
@@ -225,7 +215,16 @@ public class DtestPlugin extends AbstractMojo {
 
     DockerTest dtest = new DockerTest();
     try {
-      dtest.buildConfig(baseDir.getAbsolutePath(), dtestProperties, cleanupAfter);
+      dtest.buildConfig(baseDir.getAbsolutePath(), dtestProperties);
+      dtest.setCleanupAfter(cleanupAfter);
+      if (repo != null) {
+        dtest.setRepo(repo);
+        log.info("Building with repo set to " + repo);
+      }
+      if (branch != null) {
+        dtest.setBranch(branch);
+        log.info("Building with branch set to " + branch);
+      }
     } catch (IOException e) {
       throw new MojoFailureException("Failed to build the configuration for the build", e);
     }

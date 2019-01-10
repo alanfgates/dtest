@@ -32,7 +32,7 @@ public class TestConfig {
 
   private static class MySource extends CodeSource {
     @Override
-    public List<String> srcCommands(String projectName) throws IOException {
+    public List<String> srcCommands(BuildYaml yaml) throws IOException {
       return null;
     }
 

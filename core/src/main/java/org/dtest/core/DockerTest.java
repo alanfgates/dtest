@@ -19,10 +19,8 @@ import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
-import org.apache.commons.cli.GnuParser;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
-import org.apache.commons.cli.OptionBuilder;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.dtest.core.impl.ProcessResults;
@@ -81,6 +79,8 @@ public class DockerTest {
   private boolean cleanupAfter = true;
   private DTestLogger log;
   private Properties cmdLineProps;
+  private String repo;
+  private String branch;
 
   @VisibleForTesting String getCfgDir() {
     return cfgDir;
@@ -98,30 +98,32 @@ public class DockerTest {
   }
 
   /**
-   * Setup the configuration.  Call this or {@link #buildConfig(String, Properties, boolean)} first.  This sets
-   * cleanupAfter to true.
-   * @param confDir directory with dtest.properties and dtest.yaml configurations file in it.
-   * @param override properties that take precedence over values in dtest.properties file.
+   * Setup the configuration.  This should be called before other methods in this class.
+   * @param confDir directory with dtest.properties and dtest.yaml configuration files in it.
+   * @param override properties that take precedence over values in dtest.properties.
    * @throws IOException if the config file cannot be read.
    */
   public void buildConfig(String confDir, Properties override) throws IOException {
-    buildConfig(confDir, override, true);
+    cfgDir = confDir; // If you came from the outside and not main this won't be set yet.
+    cfg = new Config(confDir, override);
   }
 
   /**
-   * Setup the configuration.  This or {@link #buildConfig(String, Properties)} should be called before other
-   * methods in this class.
-   * @param confDir directory with dtest.properties and dtest.yaml configuration files in it.
-   * @param override properties that take precedence over values in dtest.properties.
-   * @param cleanupAfter whether to cleanup after the build.  Usually you want this to be true to avoid leaving
+   *
+   * @param cleanupAfter whether to cleanup after the build.  Usually you want this to be true (the default) to avoid leaving
    *                     docker images and containers lying around.  But setting it to false can be useful if you
    *                     are seeing unexpected errors in your run and want to debug them.
-   * @throws IOException if the config file cannot be read.
    */
-  public void buildConfig(String confDir, Properties override, boolean cleanupAfter) throws IOException {
+  public void setCleanupAfter(boolean cleanupAfter) {
     this.cleanupAfter = cleanupAfter;
-    cfgDir = confDir; // If you came from the outside and not main this won't be set yet.
-    cfg = new Config(confDir, override);
+  }
+
+  public void setRepo(String repo) {
+    this.repo = repo;
+  }
+
+  public void setBranch(String branch) {
+    this.branch = branch;
   }
 
   /**
@@ -138,6 +140,12 @@ public class DockerTest {
     CommandLineParser parser = new DefaultParser();
 
     Options opts = new Options();
+
+    opts.addOption(Option.builder("b")
+        .longOpt("branch")
+        .desc("Source control branch to build from")
+        .hasArg()
+        .build());
 
     opts.addOption(Option.builder("c")
         .longOpt("conf-dir")
@@ -157,12 +165,20 @@ public class DockerTest {
         .desc("do not cleanup docker containers and image after build")
         .build());
 
+    opts.addOption(Option.builder("r")
+        .longOpt("repo")
+        .desc("Source control repository to checkout code from")
+        .hasArg()
+        .build());
+
     CommandLine cmd;
     try {
       cmd = parser.parse(opts, args);
       cleanupAfter = !cmd.hasOption("m");
       cfgDir = cmd.getOptionValue("c");
       cmdLineProps = cmd.hasOption("D") ? cmd.getOptionProperties("D") : new Properties();
+      if (cmd.hasOption("b")) branch = cmd.getOptionValue("b");
+      if (cmd.hasOption("r")) repo = cmd.getOptionValue("r");
       return true;
     } catch (ParseException e) {
       System.err.println("Failed to parse command line: " + e.getMessage());
@@ -180,8 +196,9 @@ public class DockerTest {
     BuildState state = null;
     boolean mightHaveBuiltImage = false;
     try {
+      BuildYaml yaml = BuildYaml.readYaml(cfgDir, cfg, log, repo, branch);
       CodeSource codeSource = CodeSource.getInstance(cfg, log);
-      buildInfo = new BuildInfo(cfgDir, codeSource, cleanupAfter);
+      buildInfo = new BuildInfo(cfgDir, yaml, codeSource, cleanupAfter);
       buildInfo.setConfig(cfg).setLog(log);
       docker = ContainerClient.getInstance(cfg, log);
       docker.setBuildInfo(buildInfo);

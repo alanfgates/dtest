@@ -15,6 +15,7 @@
  */
 package org.dtest.core.git;
 
+import org.dtest.core.BuildYaml;
 import org.dtest.core.CodeSource;
 
 import java.io.IOException;
@@ -30,15 +31,14 @@ public class GitSource extends CodeSource  {
   private static final String CFG_CODESOURCE_BRANCH_DEFAULT = "master";
 
   @Override
-  public List<String> srcCommands(String projectDir) throws IOException {
-    String repo = cfg.getAsString(CFG_CODESOURCE_REPO);
-    String branch = cfg.getAsString(CFG_CODESOURCE_BRANCH, CFG_CODESOURCE_BRANCH_DEFAULT);
-    if (repo == null) {
-      throw new IOException("You must provide configuration value " + CFG_CODESOURCE_REPO + " to use git");
-    }
+  public List<String> srcCommands(BuildYaml yaml) throws IOException {
+    String repo = yaml.getRepo();
+    String branch = yaml.getBranch();
+    if (branch == null) branch = CFG_CODESOURCE_BRANCH_DEFAULT;
+
     return Arrays.asList(
         "/usr/bin/git clone " + repo,
-        "cd " + projectDir,
+        "cd " + yaml.getProjectDir(),
         "/usr/bin/git checkout " + branch);
   }
 

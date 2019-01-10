@@ -3,6 +3,7 @@ package org.dtest.hive;
 import org.dtest.core.BuildInfo;
 import org.dtest.core.BuildYaml;
 import org.dtest.core.Config;
+import org.dtest.core.DTestLogger;
 import org.dtest.core.TestUtils;
 import org.dtest.core.git.GitSource;
 import org.junit.Assert;
@@ -17,8 +18,9 @@ public class TestBuildInfoForHive {
     Config cfg = TestUtils.buildCfg(BuildInfo.CFG_BUILDINFO_LABEL, "parse-yaml",
         BuildInfo.CFG_BUILDINFO_BASEDIR, System.getProperty("java.io.tmpdir"),
         BuildYaml.CFG_BUILDYAML_IMPL, HiveBuildYaml.class.getName());
-    BuildInfo info = new BuildInfo(TestUtils.getConfDir(), new GitSource(), true);
-    info.setConfig(cfg).setLog(new TestUtils.TestLogger());
+    DTestLogger log = new TestUtils.TestLogger();
+    BuildInfo info = new BuildInfo(TestUtils.getConfDir(), TestUtils.buildYaml(cfg, log), new GitSource(), true);
+    info.setConfig(cfg).setLog(log);
     info.getBuildDir();
     BuildYaml yaml = info.getYaml();
     assert yaml instanceof HiveBuildYaml;
@@ -84,8 +86,9 @@ public class TestBuildInfoForHive {
         BuildInfo.CFG_BUILDINFO_BASEDIR, System.getProperty("java.io.tmpdir"),
         BuildYaml.CFG_BUILDYAML_IMPL, HiveBuildYaml.class.getName());
     String cfgDir = System.getProperty("java.io.tmpdir") + File.separator + "classes" + File.separator + "master";
-    BuildInfo info = new BuildInfo(cfgDir, new GitSource(), true);
-    info.setConfig(cfg).setLog(new TestUtils.TestLogger());
+    DTestLogger log = new TestUtils.TestLogger();
+    BuildInfo info = new BuildInfo(cfgDir, BuildYaml.readYaml(cfgDir, cfg, log, null, null), new GitSource(), true);
+    info.setConfig(cfg).setLog(log);
     info.getBuildDir();
     BuildYaml yaml = info.getYaml();
     assert yaml instanceof HiveBuildYaml;
@@ -100,8 +103,9 @@ public class TestBuildInfoForHive {
         BuildInfo.CFG_BUILDINFO_BASEDIR, System.getProperty("java.io.tmpdir"),
         BuildYaml.CFG_BUILDYAML_IMPL, HiveBuildYaml.class.getName());
     String cfgDir = System.getProperty("java.io.tmpdir") + File.separator + "classes" + File.separator + "branch3";
-    BuildInfo info = new BuildInfo(cfgDir, new GitSource(), true);
-    info.setConfig(cfg).setLog(new TestUtils.TestLogger());
+    DTestLogger log = new TestUtils.TestLogger();
+    BuildInfo info = new BuildInfo(cfgDir, BuildYaml.readYaml(cfgDir, cfg, log, null, null), new GitSource(), true);
+    info.setConfig(cfg).setLog(log);
     info.getBuildDir();
     BuildYaml yaml = info.getYaml();
     assert yaml instanceof HiveBuildYaml;
