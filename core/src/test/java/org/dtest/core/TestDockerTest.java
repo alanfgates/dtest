@@ -235,7 +235,6 @@ public class TestDockerTest {
         ContainerClient.CFG_CONTAINERCLIENT_IMPL, SuccessfulClient.class.getName(),
         ContainerCommandFactory.CFG_CONTAINERCOMMANDLIST_IMPL, HelloWorldCommandList.class.getName(),
         ResultAnalyzer.CFG_RESULTANALYZER_IMPL, SpyingResultAnalyzer.class.getName(),
-        CodeSource.CFG_CODESOURCE_BRANCH, "successful",
         BuildInfo.CFG_BUILDINFO_BASEDIR, TestUtils.getConfDir(),
         BuildInfo.CFG_BUILDINFO_LABEL, "firsttry");
     logToReturn = TestMavenResultAnalyzer.LOG_SUCCESSFUL_RUN_ALL_SUCCEEDED;
@@ -259,7 +258,6 @@ public class TestDockerTest {
         ContainerClient.CFG_CONTAINERCLIENT_IMPL, SuccessfulClient.class.getName(),
         ContainerCommandFactory.CFG_CONTAINERCOMMANDLIST_IMPL, HelloWorldCommandList.class.getName(),
         ResultAnalyzer.CFG_RESULTANALYZER_IMPL, SpyingResultAnalyzer.class.getName(),
-        CodeSource.CFG_CODESOURCE_BRANCH, "successful",
         BuildInfo.CFG_BUILDINFO_BASEDIR, System.getProperty("java.io.tmpdir"),
         BuildInfo.CFG_BUILDINFO_LABEL, "firsttry");
     logToReturn = TestMavenResultAnalyzer.LOG_SUCCESSFUL_RUN_FAILED_TESTS;
@@ -285,8 +283,6 @@ public class TestDockerTest {
         ContainerClient.CFG_CONTAINERCLIENT_IMPL, TimingOutClient.class.getName(),
         ContainerCommandFactory.CFG_CONTAINERCOMMANDLIST_IMPL, HelloWorldCommandList.class.getName(),
         ResultAnalyzer.CFG_RESULTANALYZER_IMPL, SpyingResultAnalyzer.class.getName(),
-        CodeSource.CFG_CODESOURCE_BRANCH, "failure",
-        CodeSource.CFG_CODESOURCE_REPO, "repo",
         BuildInfo.CFG_BUILDINFO_BASEDIR, System.getProperty("java.io.tmpdir"),
         BuildInfo.CFG_BUILDINFO_LABEL, "will-time-out");
     DockerTest test = new DockerTest();
@@ -306,8 +302,6 @@ public class TestDockerTest {
         ContainerClient.CFG_CONTAINERCLIENT_IMPL, FailingClient.class.getName(),
         ContainerCommandFactory.CFG_CONTAINERCOMMANDLIST_IMPL, HelloWorldCommandList.class.getName(),
         ResultAnalyzer.CFG_RESULTANALYZER_IMPL, SpyingResultAnalyzer.class.getName(),
-        CodeSource.CFG_CODESOURCE_BRANCH, "failure",
-        CodeSource.CFG_CODESOURCE_REPO, "repo",
         BuildInfo.CFG_BUILDINFO_BASEDIR, System.getProperty("java.io.tmpdir"),
         BuildInfo.CFG_BUILDINFO_LABEL, "take2");
     DockerTest test = new DockerTest();

@@ -28,7 +28,7 @@ public abstract class ContainerClient extends Configurable {
   /*~~
    * @document propsfile
    * @section containerclient_impl
-   * @after codesource_branch
+   * @after codesource_impl
    * - dtest.core.containerclient.impl: Class that handles container operations for dtest.  Defaults to
    * `DockerContainerClient.`
    */

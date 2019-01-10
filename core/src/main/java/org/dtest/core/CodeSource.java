@@ -39,33 +39,6 @@ public abstract class CodeSource extends Configurable {
    */
   public static final String CFG_CODESOURCE_IMPL = "dtest.core.codesource.impl";
 
-  /*~~
-   * @document propsfile
-   * @section codesource_repo
-   * @after codesource_impl
-   * - dtest.core.codesource.repo: Repository that code is stored in.  This will be interpreted by the class
-   * indicated in `dtest.core.codesource.impl`.  A value for this must be provided.
-   */
-  /**
-   * Repository the code is stored in.  You must provide a value for this.
-   */
-  public static final String CFG_CODESOURCE_REPO = "dtest.core.codesource.repo";
-
-  /*~~
-   * @document propsfile
-   * @section codesource_branch
-   * @after codesource_repo
-   * - dtest.core.codesource.branch: Branch of the source tree to build.  This will be interpreted by the class
-   * indicated in `dtest.core.codesource.impl`.  That class will also determine the default value.  In the case
-   * of git, this defaults to `master`.
-   */
-  /**
-   * Branch in the source tree to build.  Defaults to what makes sense for the chosen VCS, e.g.
-   * for git it defaults to 'master'.  This need not be a branch, it can be a tag, a git hash,
-   * whatever makes sense for your VCS.
-   */
-  public static final String CFG_CODESOURCE_BRANCH = "dtest.core.codesource.branch";
-
   /**
    * Get the list of commands that should be executed during image creation to checkout the appropriate source code
    * @param yaml Yaml build information

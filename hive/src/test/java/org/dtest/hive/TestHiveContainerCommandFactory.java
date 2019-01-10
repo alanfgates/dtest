@@ -18,7 +18,6 @@ package org.dtest.hive;
 import org.apache.commons.lang3.StringUtils;
 import org.dtest.core.BuildInfo;
 import org.dtest.core.BuildYaml;
-import org.dtest.core.CodeSource;
 import org.dtest.core.Config;
 import org.dtest.core.ContainerClient;
 import org.dtest.core.ContainerCommand;
@@ -38,8 +37,6 @@ public class TestHiveContainerCommandFactory {
   public void buildCommands() throws IOException {
     TestUtils.TestLogger log = new TestUtils.TestLogger();
     Config cfg = TestUtils.buildCfg(
-        CodeSource.CFG_CODESOURCE_REPO, "http://myrepo.com/repo.git",
-        CodeSource.CFG_CODESOURCE_BRANCH, "mybranch",
         BuildInfo.CFG_BUILDINFO_LABEL, "mylabel",
         BuildInfo.CFG_BUILDINFO_BASEDIR, System.getProperty("java.io.tmpdir"),
         BuildYaml.CFG_BUILDYAML_IMPL, HiveBuildYaml.class.getName());

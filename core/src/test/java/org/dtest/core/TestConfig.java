@@ -52,7 +52,7 @@ public class TestConfig {
     File propertiesFile = new File(System.getProperty("java.io.tmpdir"), Config.PROPERTIES_FILE);
     propertiesFile.deleteOnExit();
     FileWriter writer = new FileWriter(propertiesFile);
-    writer.write(CodeSource.CFG_CODESOURCE_BRANCH + " = branch\n");
+    writer.write(BuildInfo.CFG_BUILDINFO_BASEDIR + " = /base/dir\n");
     writer.write(ContainerClient.CFG_CONTAINERCLIENT_IMAGEBUILDTIME + " = 1min\n");
     writer.write(CodeSource.CFG_CODESOURCE_IMPL + " = " + MySource.class.getName() + "\n");
     writer.close();
@@ -63,7 +63,7 @@ public class TestConfig {
     Config cfg = new Config(System.getProperty("java.io.tmpdir"), props);
 
     // Test ones from the file
-    Assert.assertEquals("branch", cfg.getAsString(CodeSource.CFG_CODESOURCE_BRANCH));
+    Assert.assertEquals("/base/dir", cfg.getAsString(BuildInfo.CFG_BUILDINFO_BASEDIR));
     Assert.assertEquals(3600L, cfg.getAsTime(ContainerClient.CFG_CONTAINERCLIENT_IMAGEBUILDTIME, TimeUnit.SECONDS));
     // Test default values are set
     Assert.assertEquals(10, cfg.getAsInt(ContainerCommandFactory.CFG_CONTAINERCOMMANDFACTORY_TESTSPERCONTAINER,

@@ -28,13 +28,13 @@ import java.util.List;
  */
 public class GitSource extends CodeSource  {
 
-  private static final String CFG_CODESOURCE_BRANCH_DEFAULT = "master";
+  private static final String BRANCH_DEFAULT = "master";
 
   @Override
   public List<String> srcCommands(BuildYaml yaml) throws IOException {
     String repo = yaml.getRepo();
     String branch = yaml.getBranch();
-    if (branch == null) branch = CFG_CODESOURCE_BRANCH_DEFAULT;
+    if (branch == null) branch = BRANCH_DEFAULT;
 
     return Arrays.asList(
         "/usr/bin/git clone " + repo,

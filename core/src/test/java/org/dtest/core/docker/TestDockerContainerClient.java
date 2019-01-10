@@ -42,9 +42,7 @@ public class TestDockerContainerClient {
   public void buildConfigAndLog() {
     cfg = TestUtils.buildCfg(
         BuildInfo.CFG_BUILDINFO_LABEL, "needsomething",
-        BuildInfo.CFG_BUILDINFO_BASEDIR, System.getProperty("java.io.tmpdir"),
-        GitSource.CFG_CODESOURCE_REPO, "repo",
-        GitSource.CFG_CODESOURCE_BRANCH, "branch");
+        BuildInfo.CFG_BUILDINFO_BASEDIR, System.getProperty("java.io.tmpdir"));
     log = new TestUtils.TestLogger();
   }
 

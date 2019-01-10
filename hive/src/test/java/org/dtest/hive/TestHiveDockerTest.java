@@ -19,7 +19,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.dtest.core.BuildInfo;
 import org.dtest.core.BuildState;
 import org.dtest.core.BuildYaml;
-import org.dtest.core.CodeSource;
 import org.dtest.core.Config;
 import org.dtest.core.Configurable;
 import org.dtest.core.ContainerClient;
@@ -33,8 +32,6 @@ import org.dtest.core.TestUtils;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -170,8 +167,6 @@ public class TestHiveDockerTest {
         ContainerClient.CFG_CONTAINERCLIENT_IMPL, SuccessfulWithFailingTestsClient.class.getName(),
         ContainerCommandFactory.CFG_CONTAINERCOMMANDLIST_IMPL, ItestCommandList.class.getName(),
         ResultAnalyzer.CFG_RESULTANALYZER_IMPL, SpyingResultAnalyzer.class.getName(),
-        CodeSource.CFG_CODESOURCE_BRANCH, "successful",
-        CodeSource.CFG_CODESOURCE_REPO, "repo",
         BuildInfo.CFG_BUILDINFO_BASEDIR, System.getProperty("java.io.tmpdir"),
         BuildInfo.CFG_BUILDINFO_LABEL, "secondtry",
         BuildYaml.CFG_BUILDYAML_IMPL, HiveBuildYaml.class.getName());

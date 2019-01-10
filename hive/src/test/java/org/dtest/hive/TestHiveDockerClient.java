@@ -43,8 +43,6 @@ public class TestHiveDockerClient {
     cfg = TestUtils.buildCfg(
         BuildInfo.CFG_BUILDINFO_LABEL, "needsomething",
         BuildInfo.CFG_BUILDINFO_BASEDIR, System.getProperty("java.io.tmpdir"),
-        GitSource.CFG_CODESOURCE_REPO, "repo",
-        GitSource.CFG_CODESOURCE_BRANCH, "branch",
         BuildYaml.CFG_BUILDYAML_IMPL, HiveBuildYaml.class.getName());
     log = new TestUtils.TestLogger();
   }
