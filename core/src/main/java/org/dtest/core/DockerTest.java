@@ -141,12 +141,28 @@ public class DockerTest {
 
     Options opts = new Options();
 
+    /*~~
+     * @document dockertest
+     * @section cmdline_branch
+     * @after body
+     * `-b|--branch` *branch* branch in the source control to use when building.  If set this overrides the value
+     * of `branch` in `dtest.yaml`.  If no value is specified here or there then a default that makes sense for the
+     * source control system in use will be used (e.g., master for git).
+     *
+     */
     opts.addOption(Option.builder("b")
         .longOpt("branch")
         .desc("Source control branch to build from")
         .hasArg()
         .build());
 
+    /*~~
+     * @document dockertest
+     * @section cmdline_confdir
+     * `-c|--conf-dir` *conf_directory* The configuration directory that contains the `dtest.properties` and `dtest.yaml` files
+     * for this build.  This is required.
+     *
+     */
     opts.addOption(Option.builder("c")
         .longOpt("conf-dir")
         .desc("Directory where configuration and build profile files are")
@@ -154,17 +170,37 @@ public class DockerTest {
         .required()
         .build());
 
+    /*~~
+     * @document dockertest
+     * @section cmdline_prop
+     * `-D` *property_name=propertyvalue* Configuration properties for this build.  Any value passed here overrides
+     * values in `dtest.properties`.  This argument is optional.  It can be passed as many times as desired.
+     *
+     */
     opts.addOption(Option.builder("D")
         .desc("Property to set when running DockerTest, will override values in dtest.properties")
         .valueSeparator()
         .hasArgs()
         .build());
 
+    /*~~
+     * @document dockertest
+     * @section cmdline_noclean
+     * `-n|--no-cleanup` Do not cleanup images and containers after the build.  Usually you want to cleanup to avoid
+     * polluting hte build machine.  This is useful for debugging and for keeping the image around for a subsequent build.
+     *
+     */
     opts.addOption(Option.builder("n")
         .longOpt("no-cleanup")
         .desc("do not cleanup docker containers and image after build")
         .build());
 
+    /*~~
+     * @document dockertest
+     * @section cmdline_repo
+     * `-r|--repo` *source_repository* Source repository from which the code will be checked out.  If set this
+     * overrides the value of `repo` in `dtest.yaml`.  This must be set in one of those places.
+     */
     opts.addOption(Option.builder("r")
         .longOpt("repo")
         .desc("Source control repository to checkout code from")
@@ -366,6 +402,7 @@ public class DockerTest {
   /*~~
    * @document dockertest
    * @section body
+   * @begin
    * # DockerTest
    * DockerTest is a tool that allows users to run their tests in containers.  The intended users are large projects
    * with many tests that take more than a few minutes to run.  Using this tool a build machine can compile the project
@@ -425,19 +462,10 @@ public class DockerTest {
    * can change.  For this reason `dtest` does not look in the `conf` directory for its configuration files but rather
    * requires the user to pass the conf directory location as part of the command line.
    *
-   * The command line takes the following arguments:
-   * `-c|--conf-dir` *conf_directory* The configuration directory that contains the `dtest.properties` and `dtest.yaml` files
-   * for this build.  This is required.
-   *
-   * `-n|--no-cleanup` Do not cleanup images and containers after the build.  Usually you want to to cleanup to avoid
-   * polluting hte build machine.  This is useful for debugging and for keeping the image around for a subsequent build.
-   *
-   * `-D` *property_name=propertyvalue* Configuration properties for this build.  Any value passed here overrides
-   * values in `dtest.properties`.  This argument is optional.  It can be passed as many times as desired.
-   *
    * Logging is handled by Log4j.  The logging configuration is in `conf/log4j2.xml`.  Logs are written to
    * `logs/dtest.log`.
    *
-   * command line options (including property overrides)
+   * The command line takes the following arguments:
+   *
    */
 }
