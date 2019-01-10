@@ -320,4 +320,14 @@ public class TestDockerTest {
     Assert.assertTrue(log.toString().contains("FAILED, the build did not run to completion"));
   }
 
+  @Test
+  public void cmdline() {
+    DockerTest test = new DockerTest();
+    Assert.assertTrue(test.parseArgs(new String[]{"-c", "cfgdir", "-n", "-D", "key1=val1", "-D", "key2=val2"}));
+    Assert.assertEquals("cfgdir", test.getCfgDir());
+    Assert.assertTrue(test.isCleanupAfter());
+    Assert.assertEquals("val2", test.getCmdLineProps().getProperty("key2"));
+    Assert.assertEquals("val1", test.getCmdLineProps().getProperty("key1"));
+  }
+
 }

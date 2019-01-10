@@ -15,10 +15,13 @@
  */
 package org.dtest.core;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.GnuParser;
 import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Option;
 import org.apache.commons.cli.OptionBuilder;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
@@ -77,6 +80,19 @@ public class DockerTest {
   private String cfgDir;
   private boolean cleanupAfter = true;
   private DTestLogger log;
+  private Properties cmdLineProps;
+
+  @VisibleForTesting String getCfgDir() {
+    return cfgDir;
+  }
+
+  @VisibleForTesting Properties getCmdLineProps() {
+    return cmdLineProps;
+  }
+
+  @VisibleForTesting boolean isCleanupAfter() {
+    return cleanupAfter;
+  }
 
   public DockerTest() {
   }
@@ -116,31 +132,37 @@ public class DockerTest {
     this.log = log;
   }
 
-  @SuppressWarnings("static-access")
-  private boolean parseArgs(String[] args) {
+  @VisibleForTesting boolean parseArgs(String[] args) {
     // The logs have not been set up yet when this method is called.  Also, this method should only be used
     // from the command line.  So any errors encountered here need to be printed out rather than sent to the logs.
-    CommandLineParser parser = new GnuParser();
+    CommandLineParser parser = new DefaultParser();
 
     Options opts = new Options();
 
-    opts.addOption(OptionBuilder
-        .withLongOpt("conf-dir")
-        .withDescription("Directory where configuration and build profile files are")
+    opts.addOption(Option.builder("c")
+        .longOpt("conf-dir")
+        .desc("Directory where configuration and build profile files are")
         .hasArg()
-        .isRequired()
-        .create("c"));
+        .required()
+        .build());
 
-    opts.addOption(OptionBuilder
-        .withLongOpt("no-cleanup")
-        .withDescription("do not cleanup docker containers and image after build")
-        .create("m"));
+    opts.addOption(Option.builder("D")
+        .desc("Property to set when running DockerTest, will override values in dtest.properties")
+        .valueSeparator()
+        .hasArgs()
+        .build());
+
+    opts.addOption(Option.builder("n")
+        .longOpt("no-cleanup")
+        .desc("do not cleanup docker containers and image after build")
+        .build());
 
     CommandLine cmd;
     try {
       cmd = parser.parse(opts, args);
       cleanupAfter = !cmd.hasOption("m");
       cfgDir = cmd.getOptionValue("c");
+      cmdLineProps = cmd.hasOption("D") ? cmd.getOptionProperties("D") : new Properties();
       return true;
     } catch (ParseException e) {
       System.err.println("Failed to parse command line: " + e.getMessage());
@@ -298,7 +320,7 @@ public class DockerTest {
     int rc;
     if (test.parseArgs(args)) {
       try {
-        test.buildConfig(test.cfgDir, System.getProperties());
+        test.buildConfig(test.cfgDir, test.cmdLineProps);
         test.setLogger(new Slf4jLogger());
         BuildState state = test.runBuild();
         switch (state.getState()) {
@@ -387,9 +409,13 @@ public class DockerTest {
    * requires the user to pass the conf directory location as part of the command line.
    *
    * The command line takes the following arguments:
-   * - `-c` *conf_directory* The configuration directory that contains the `dtest.properties` and `dtest.yaml` files
+   * `-c|--conf-dir` *conf_directory* The configuration directory that contains the `dtest.properties` and `dtest.yaml` files
    * for this build.  This is required.
-   * - `-D` *property_name=propertyvalue* Configuration properties for this build.  Any value passed here overrides
+   *
+   * `-n|--no-cleanup` Do not cleanup images and containers after the build.  Usually you want to to cleanup to avoid
+   * polluting hte build machine.  This is useful for debugging and for keeping the image around for a subsequent build.
+   *
+   * `-D` *property_name=propertyvalue* Configuration properties for this build.  Any value passed here overrides
    * values in `dtest.properties`.  This argument is optional.  It can be passed as many times as desired.
    *
    * Logging is handled by Log4j.  The logging configuration is in `conf/log4j2.xml`.  Logs are written to
