@@ -324,7 +324,7 @@ public class DockerTest {
       } catch (InterruptedException e) {
         log.error("Interrupted while waiting for containers to finish, assuming I was" +
             " told to quit.", e);
-        buildState.timeout();
+        buildState.fail();
       } catch (ExecutionException e) {
         log.error("Got an exception while running container, that's generally bad", e);
         buildState.fail();
@@ -437,9 +437,7 @@ public class DockerTest {
    * - Had timeouts:  Some of the tests timed out.  This state overrides the previous, so some tests may also have
    * failed or returned errors.
    * - Build failed: dtest failed to complete.  This can be caused by the image failing to build or problems running
-   * the containers.
-   * - Build timed out:  Either the image build or one of the containers failed to finish in the allotted time.
-   * This indicates a timeout in the build itself or the containers, not in individual tests.
+   * the containers, or the image build or containers failing to return in the configured amount of time.
    *
    * ## Usage
    * DockerTest can be run as a command line tool, `dtest` or as a maven plugin `dtest-maven-plugin`.  The functionality
@@ -448,7 +446,7 @@ public class DockerTest {
    *
    * Command line users should define an environment variable `DTEST_HOME` that describes where the tool is located.
    * Under this directory there is a `bin` directory that controls the `dtest` executable, a `lib` directory with all
-   * of the required jars, a `conf` directory, and `logs`.
+   * of the required jars, a `conf` directory, and `log`.
    *
    * `dtest` is controlled by two configuration files.  [dtest.properties](./propsfile.html) contains general
    * information for a given instance of dtest, such as which repository to use by default, how many containers to
@@ -463,7 +461,7 @@ public class DockerTest {
    * requires the user to pass the conf directory location as part of the command line.
    *
    * Logging is handled by Log4j.  The logging configuration is in `conf/log4j2.xml`.  Logs are written to
-   * `logs/dtest.log`.
+   * `log/dtest.log`.
    *
    * The command line takes the following arguments:
    *

@@ -50,12 +50,7 @@ public class BuildState {
     /**
      * The build failed to complete.  The results are incomplete.
      */
-    FAILED("the build did not run to completion"),
-
-    /**
-     * The build timed out.  The results are incomplete.
-     */
-    TIMED_OUT("the build timed out");
+    FAILED("the build did not run to completion");
 
     private String explanation;
 
@@ -129,13 +124,6 @@ public class BuildState {
    */
   public void fail() {
     setStateIfNotAlreadyInHigherState(State.FAILED);
-  }
-
-  /**
-   * Set the state to {@link State#TIMED_OUT}.  This overrides all other states.
-   */
-  public void timeout() {
-    setStateIfNotAlreadyInHigherState(State.TIMED_OUT);
   }
 
   // synchronize this as multiple tasks can be reporting in at the same time.

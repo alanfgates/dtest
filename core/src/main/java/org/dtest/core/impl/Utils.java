@@ -88,8 +88,8 @@ public class Utils {
     new Thread(stderr).start();
     try {
       if (!proc.waitFor(secondsToWait, TimeUnit.SECONDS)) {
-        throw new IOException("Process " + cmd[0] + " failed to run in " + secondsToWait +
-            " seconds");
+        throw new IOException("In container " + containerId + " process " + cmd[0] + " failed to run in " +
+            secondsToWait + " seconds");
       }
     } catch (InterruptedException e) {
       throw new IOException(e);

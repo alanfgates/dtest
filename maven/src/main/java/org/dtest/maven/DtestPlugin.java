@@ -234,7 +234,6 @@ public class DtestPlugin extends AbstractMojo {
       case HAD_FAILURES_OR_ERRORS: throw new MojoFailureException("Build had tests that failed or returned an error.");
       case HAD_TIMEOUTS: throw new MojoFailureException("Build had tests that timed out.");
       case FAILED: throw new MojoFailureException("Build failed");
-      case TIMED_OUT: throw new MojoFailureException("Build timed out");
       case SUCCEEDED: break;
       default: throw new MojoExecutionException("Unknown build state.");
     }

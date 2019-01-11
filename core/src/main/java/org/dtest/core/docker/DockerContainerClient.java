@@ -87,7 +87,7 @@ public class DockerContainerClient extends ContainerClient {
     Collections.addAll(runCmd, cmd.shellCommand());
     ProcessResults res = Utils.runProcess(cmd.containerSuffix(),
         cfg.getAsTime(CFG_CONTAINERCLIENT_CONTAINERRUNTIME, TimeUnit.SECONDS,
-            CFG_CONTAINERCLIENT_CONTAINERRUNTIME_DEFAULT), log, runCmd.toArray(new String[runCmd.size()]));
+            CFG_CONTAINERCLIENT_CONTAINERRUNTIME_DEFAULT), log, runCmd.toArray(new String[0]));
     return new ContainerResult(cmd, res.rc, res.stdout);
   }
 
