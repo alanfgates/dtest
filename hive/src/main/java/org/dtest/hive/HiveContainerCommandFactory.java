@@ -15,6 +15,7 @@
  */
 package org.dtest.hive;
 
+import org.apache.commons.lang3.StringUtils;
 import org.dtest.core.BuildInfo;
 import org.dtest.core.BuildYaml;
 import org.dtest.core.ContainerClient;
@@ -130,15 +131,18 @@ public class HiveContainerCommandFactory extends MavenContainerCommandFactory {
     return qfiles;
   }
 
-  private Set<String> findQFiles(ContainerClient containerClient, String label,
-                                 HiveModuleDirectory mDir) throws IOException {
+  private Set<String> findQFiles(ContainerClient containerClient, String label, HiveModuleDirectory mDir) {
     // Find all of the qfile tests.  The logic here is that if a specific set of included files
     // have been listed, then use those.  Otherwise read all the files from the indicated
     // directory.  In either case apply any excludes from properties or specifically excluded files.
     Set<String> qfiles;
 
     if (mDir.isSetIncludedQFilesProperties()) {
+      String[] includedProps = mDir.getIncludedQFilesProperties();
+      log.debug("For test " + mDir.getSingleTest() + " found included properties " + StringUtils.join(includedProps, " "));
       qfiles = findQFilesFromProperties(mDir.getIncludedQFilesProperties());
+      log.debug("For test " + mDir.getSingleTest() + " resolved included properties to following qfiles " +
+          StringUtils.join(qfiles, " "));
     } else {
       qfiles = filesFromDirs.computeIfAbsent(mDir.getQFilesDir(), s -> {
         try {
@@ -161,11 +165,20 @@ public class HiveContainerCommandFactory extends MavenContainerCommandFactory {
       });
     }
     if (mDir.isSetExcludedQFilesProperties()) {
-      qfiles.removeAll(findQFilesFromProperties(mDir.getExcludedQFilesProperties()));
+      String[] excludedProps = mDir.getExcludedQFilesProperties();
+      log.debug("For test " + mDir.getSingleTest() + " found excluded properties " + StringUtils.join(excludedProps, " "));
+      Set<String> toRemove = findQFilesFromProperties(mDir.getExcludedQFilesProperties());
+      log.debug("For test " + mDir.getSingleTest() + " found following qfiles to exclude based on properties " +
+          StringUtils.join(toRemove, " "));
+      qfiles.removeAll(toRemove);
     }
     if (mDir.isSetExcludedQFiles()) {
+      log.debug("For test " + mDir.getSingleTest() + " removing following qfiles as they are marked excluded: " +
+          StringUtils.join(mDir.getExcludedQFiles(), " "));
       qfiles.removeAll(Arrays.asList(mDir.getExcludedQFiles()));
     }
+    log.debug("findQFiles returning following qfiles for test " + mDir.getSingleTest() + ": " +
+        StringUtils.join(qfiles, " "));
     return qfiles;
   }
 }

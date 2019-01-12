@@ -53,9 +53,6 @@ hiveDirs:
   - dir: hcatalog/webhcat/svr
   - dir: ql
     needsSplit: true
-    skippedTests:
-      - TestSparkSessionTimeout
-      - TestSmallTableCacheEviction # spark test
   - dir: itests/hcatalog-unit
     properties:
       skipSparkTests: null
@@ -76,6 +73,8 @@ hiveDirs:
       - TestMultiSessionsHS2WithLocalClusterSpark
       - TestSparkStatistics
       - TestJdbcWithMiniHS2ErasureCoding
+      - TestSparkSessionTimeout
+      - TestSmallTableCacheEviction # spark test
   - dir: itests/hive-unit-hadoop2
     properties:
       skipSparkTests: null
