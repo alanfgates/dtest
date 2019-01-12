@@ -30,6 +30,7 @@ import org.dtest.core.Config;
 import org.dtest.core.DTestLogger;
 import org.dtest.core.DockerTest;
 import org.dtest.core.git.GitSource;
+import org.dtest.core.impl.Utils;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -182,7 +183,7 @@ public class DtestPlugin extends AbstractMojo {
     if (dtestProperties == null) dtestProperties = new Properties();
 
     if (label == null) {
-      label = RandomStringUtils.randomAlphanumeric(10).toLowerCase();
+      label = Utils.generateRandomLabel(2);
     }
     dtestProperties.setProperty(BuildInfo.CFG_BUILDINFO_LABEL, label);
     log.info("Building with label " + label);

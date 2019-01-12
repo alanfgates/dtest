@@ -53,6 +53,9 @@ hiveDirs:
   - dir: hcatalog/webhcat/svr
   - dir: ql
     needsSplit: true
+    skippedTests:
+      - TestSparkSessionTimeout
+      - TestSmallTableCacheEviction # spark test
   - dir: itests/hcatalog-unit
     properties:
       skipSparkTests: null
@@ -64,6 +67,7 @@ hiveDirs:
       skipSparkTests: null
   - dir: itests/hive-unit
     needsSplit: true
+    testsPerContainer: 5
     properties:
       skipSparkTests: null
     skippedTests:
@@ -71,8 +75,6 @@ hiveDirs:
       - TestJdbcWithLocalClusterSpark
       - TestMultiSessionsHS2WithLocalClusterSpark
       - TestSparkStatistics
-      - TestReplicationScenariosAcrossInstances
-      - TestReplicationScenariosAcidTables
       - TestJdbcWithMiniHS2ErasureCoding
   - dir: itests/hive-unit-hadoop2
     properties:
@@ -110,6 +112,10 @@ hiveDirs:
       - druid.query.files
     properties:
       skipSparkTests: null
+    excludedQFiles:
+      - druid_timestamptz.q
+      - druidmini_joins.q
+      - druidmini_masking.q
   - dir: itests/qtest
     singleTest: TestMiniDruidKafkaCliDriver
     properties:
@@ -139,6 +145,9 @@ hiveDirs:
       - disabled.query.files
       - localSpark.only.query.files
       - druid.query.files
+      - druid.kafka.query.files
+      - hive.kafka.query.files
+      - erasurecoding.only.query.files
     isolatedQFiles:
       - authorization_show_grant.q
     excludedQFiles:
@@ -164,6 +173,9 @@ hiveDirs:
       - authorization_uri_import.q
       - spark_job_max_tasks.q
       - spark_stage_max_tasks.q
+      - spark_submit_negative_executor_cores.q
+      - spark_submit_negative_executor_memory.q
+      - spark_task_failure.q
     properties:
       skipSparkTests: null
   - dir: itests/qtest
@@ -206,6 +218,7 @@ hiveDirs:
       - union_fast_stats.q                 # Disabled in HIVE-19509
       - schema_evol_orc_acidvec_part.q     # Disabled in HIVE-19509
       - schema_evol_orc_vec_part_llap_io.q # Disabled in HIVE-19509
+      - alter_partition_change_col.q
     env:
       USER: dtestuser
     properties:
