@@ -125,7 +125,9 @@ public class HiveContainerCommandFactory extends MavenContainerCommandFactory {
     Set<String> qfiles = new HashSet<>();
     for (String property : properties) {
       if (testProperties.getProperty(property) != null) {
-        Collections.addAll(qfiles, testProperties.getProperty(property).split(","));
+        String[] files = testProperties.getProperty(property).split(",");
+        for (int i = 0; i < files.length; i++) files[i] = files[i].trim();
+        Collections.addAll(qfiles, files);
       }
     }
     return qfiles;

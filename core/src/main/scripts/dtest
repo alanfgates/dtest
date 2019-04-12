@@ -18,7 +18,7 @@
 
 if [ "x${DTEST_HOME}" = "x" ]
   then
-  DTEST_HOME="."
+  export DTEST_HOME="."
 fi
 
 if [ "x${JAVA_HOME}" = "x" ]
