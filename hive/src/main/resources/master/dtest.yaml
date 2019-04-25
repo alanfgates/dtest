@@ -46,9 +46,12 @@ hiveDirs:
   - dir: streaming
   - dir: hbase-handler
   - dir: hcatalog/core
+    needsSplit: true
   - dir: hcatalog/hcatalog-pig-adapter
+    needsSplit: true
   - dir: hcatalog/server-extensions
   - dir: hcatalog/streaming
+    needsSplit: true
   - dir: hcatalog/webhcat/java-client
   - dir: hcatalog/webhcat/svr
   - dir: ql

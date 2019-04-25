@@ -78,6 +78,16 @@ limitations under the License.
       </includes>
       <outputDirectory>conf/hive/branch3</outputDirectory>
     </fileSet>
+
+    <fileSet>
+      <directory>${project.basedir}/src/main/resources/branch2.3</directory>
+      <fileMode>644</fileMode>
+      <includes>
+        <include>dtest.yaml</include>
+        <include>dtest.properties</include>
+      </includes>
+      <outputDirectory>conf/hive/branch2.3</outputDirectory>
+    </fileSet>
   </fileSets>
 </assembly>
 
