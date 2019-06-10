@@ -86,7 +86,27 @@ limitations under the License.
         <include>dtest.yaml</include>
         <include>dtest.properties</include>
       </includes>
-      <outputDirectory>conf/hive/branch2.3</outputDirectory>
+      <outputDirectory>conf/hive/branch-2.3</outputDirectory>
+    </fileSet>
+
+    <fileSet>
+      <directory>${project.basedir}/src/main/resources/branch-3</directory>
+      <fileMode>644</fileMode>
+      <includes>
+        <include>dtest.yaml</include>
+        <include>dtest.properties</include>
+      </includes>
+      <outputDirectory>conf/hive/branch-3</outputDirectory>
+    </fileSet>
+
+    <fileSet>
+      <directory>${project.basedir}/src/main/resources/branch-3.1</directory>
+      <fileMode>644</fileMode>
+      <includes>
+        <include>dtest.yaml</include>
+        <include>dtest.properties</include>
+      </includes>
+      <outputDirectory>conf/hive/branch-3.1</outputDirectory>
     </fileSet>
   </fileSets>
 </assembly>
