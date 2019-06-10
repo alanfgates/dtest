@@ -88,14 +88,10 @@ hiveDirs:
     isolatedTests:
       - TestTriggersWorkloadManager
       - TestMetaStoreMetrics
-    skippedTests:
-      - TestJdbcWithLocalClusterSpark
-      - TestMultiSessionsHS2WithLocalClusterSpark
-      - TestSparkStatistics
-      - TestReplicationScenariosAcrossInstances
       - TestReplicationScenariosAcidTables
-      - TestHS2ImpersonationWithRemoteMS
-      - TestWarehouseExternalDir
+    skippedTests:
+      - TestReplicationScenariosAcrossInstances     # verified 6/10/19
+      - TestWarehouseExternalDir                    # verified 6/10/19
   - dir: itests/hive-unit-hadoop2
     properties:
       skipSparkTests: null
@@ -133,16 +129,16 @@ hiveDirs:
     properties:
       skipSparkTests: null
     excludedQFiles:
-      - druidkafkamini_basic.q
-      - druid_basic2.q
-      - druid_timestamptz.q
-      - druidmini_dynamic_partition.q
-      - druidmini_expressions.q
-      - druidmini_extractTime.q
-      - druidmini_floorTime.q
-      - druidmini_joins.q
-      - druidmini_masking.q
-      - druidmini_test1.q
+      - druidkafkamini_basic.q         # verified 6/10/19
+      - druid_basic2.q                 # verified 6/10/19
+      - druid_timestamptz.q            # verified 6/10/19
+      - druidmini_dynamic_partition.q  # verified 6/10/19
+      - druidmini_expressions.q        # verified 6/10/19
+      - druidmini_extractTime.q        # verified 6/10/19
+      - druidmini_floorTime.q          # verified 6/10/19
+      - druidmini_joins.q              # verified 6/10/19
+      - druidmini_masking.q            # verified 6/10/19
+      - druidmini_test1.q              # verified 6/10/19
   - dir: itests/qtest
     singleTest: TestTezPerfCliDriver
     properties:
@@ -177,20 +173,9 @@ hiveDirs:
     isolatedQFiles:
       - authorization_show_grant.q
     excludedQFiles:
-      - masking_5.q
-      - orc_merge10.q
-      - fouter_join_ppr.q # Disabled in HIVE-19509
-      - mm_all.q
-      - load_static_ptn_into_bucketed_table.q
-      - orc_schema_evolution_float.q
-      - parquet_ppd_multifiles.q
-      - selectindate.q
-      - union38.q
-      - vector_bround.q
-      - vector_coalesce_2.q
-      - vector_coalesce_3.q
-      - vector_interval_1.q
-      - vectorized_parquet_types.q
+      - orc_merge10.q                          # verified 6/10/19
+      - mm_all.q                               # verified 6/10/19
+      - load_static_ptn_into_bucketed_table.q  # verified 6/10/19
     properties:
       skipSparkTests: null
   - dir: itests/qtest
@@ -207,9 +192,6 @@ hiveDirs:
     excludedQFilesProperties:
       - minimr.query.negative.files
     excludedQFiles:
-      - authorization_uri_import.q
-      - spark_job_max_tasks.q
-      - spark_stage_max_tasks.q
       - subquery_subquery_chain # verified 6/10/19
     properties:
       skipSparkTests: null
@@ -250,26 +232,17 @@ hiveDirs:
     isolatedQFiles:
       - hybridgrace_hashjoin_2.q
     excludedQFiles:
-      - vector_udf_inline.q
-      - bucket_map_join_tez1.q             # Disabled in HIVE-19509
-      - special_character_in_tabnames_1.q  # Disabled in HIVE-19509
-      - sysdb.q                            # Disabled in HIVE-19509
-      - tez_smb_1.q                        # Disabled in HIVE-19509
-      - union_fast_stats.q                 # Disabled in HIVE-19509
-      - schema_evol_orc_acidvec_part.q     # Disabled in HIVE-19509
-      - schema_evol_orc_vec_part_llap_io.q # Disabled in HIVE-19509
-      - results_cache_with_masking.q
-      - acid_export.q
-      - alter_table_invalidate_column_stats.q
-      - load_data_acid_rename.q
-      - load_data_using_job.q
-      - results_cache_2.q
-      - sharedwork.q
-      - subquery_views.q
-      - vector_row__id.q
-      - current_date_timestamp.q            # verified 6/10/19
-      - external_jdbc_auth.q                # verified 6/10/19
-      - multi_in_clause.q                   # verified 6/10/19
+      - sysdb.q                                # verified 6/10/19
+      - acid_export.q                          # verified 6/10/19
+      - alter_table_invalidate_column_stats.q  # verified 6/10/19
+      - load_data_acid_rename.q                # verified 6/10/19
+      - load_data_using_job.q                  # verified 6/10/19
+      - results_cache_2.q                      # verified 6/10/19
+      - sharedwork.q                           # verified 6/10/19
+      - subquery_views.q                       # verified 6/10/19
+      - current_date_timestamp.q               # verified 6/10/19
+      - external_jdbc_auth.q                   # verified 6/10/19
+      - multi_in_clause.q                      # verified 6/10/19
     env:
       USER: dtestuser
     properties:
