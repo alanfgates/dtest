@@ -98,11 +98,11 @@ public class TestBuildInfoForHive {
   @Test
   public void branch3Yaml() throws IOException {
     // Don't confirm all the contents, as I assume these will change, but make sure we can at least parse the
-    // branch3 yaml file
-    Config cfg = TestUtils.buildCfg(BuildInfo.CFG_BUILDINFO_LABEL, "parse-branch3-yaml",
+    // branch-3 yaml file
+    Config cfg = TestUtils.buildCfg(BuildInfo.CFG_BUILDINFO_LABEL, "parse-branch-3-yaml",
         BuildInfo.CFG_BUILDINFO_BASEDIR, System.getProperty("java.io.tmpdir"),
         BuildYaml.CFG_BUILDYAML_IMPL, HiveBuildYaml.class.getName());
-    String cfgDir = System.getProperty("java.io.tmpdir") + File.separator + "classes" + File.separator + "branch3";
+    String cfgDir = System.getProperty("java.io.tmpdir") + File.separator + "classes" + File.separator + "branch-3";
     DTestLogger log = new TestUtils.TestLogger();
     BuildInfo info = new BuildInfo(cfgDir, BuildYaml.readYaml(cfgDir, cfg, log, null, null), new GitSource(), true);
     info.setConfig(cfg).setLog(log);

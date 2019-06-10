@@ -2,14 +2,14 @@ baseImage: centos
 requiredPackages:
   - java-1.8.0-openjdk-devel
 projectName: hive
-comment: hive branch-2 yaml file
+comment: hive branch-3 yaml file
 javaPackages:
 - org.apache.hadoop.hive
 - org.apache.hive
 additionalLogs:
 - target/tmp/log/hive.log
 repo: https://git-wip-us.apache.org/repos/asf/hive.git
-branch: branch-2.3
+branch: branch-3.1
 hiveDirs:
   - dir: accumulo-handler
   - dir: beeline
@@ -20,6 +20,7 @@ hiveDirs:
   - dir: jdbc
   - dir: jdbc-handler
   - dir: serde
+  - dir: shims/0.23
   - dir: shims/common
   - dir: storage-api
   - dir: llap-client
@@ -34,11 +35,19 @@ hiveDirs:
   - dir: llap-tez
     env:
       USER: dtestuser
-  - dir: metastore
+  - dir: standalone-metastore
     needsSplit: true
+    properties:
+      test.groups: '""'
+    skippedTests:
+      - TestHiveMetastore
+      - TestRuntimeStats                # verified 6/10/19
   - dir: druid-handler
   - dir: service
   - dir: spark-client
+    skippedTests:
+      - TestRpc                # verified 6/10/19
+  - dir: streaming
   - dir: hbase-handler
   - dir: hcatalog/core
     needsSplit: true
@@ -51,22 +60,24 @@ hiveDirs:
   - dir: hcatalog/webhcat/svr
   - dir: ql
     needsSplit: true
+    skippedTests:
+      - TestSQL11ReservedKeyWordsNegative    # verified 6/10/19
   - dir: itests/hcatalog-unit
     properties:
       skipSparkTests: null
   - dir: itests/hive-blobstore
     singleTest: TestBlobstoreCliDriver
-    properties:
-      skipSparkTests: null
     excludedQFiles:
-      - insert_into_table.q
+      - insert_into_dynamic_partitions.q
       - insert_overwrite_directory.q
       - insert_overwrite_dynamic_partitions.q
-      - insert_into_dynamic_partitions.q
+    properties:
+      skipSparkTests: null
   - dir: itests/hive-blobstore
     singleTest: TestBlobstoreNegativeCliDriver
     properties:
       skipSparkTests: null
+  - dir: itests/hive-minikdc
   - dir: itests/hive-minikdc
     properties:
       skipSparkTests: null
@@ -78,7 +89,13 @@ hiveDirs:
       - TestTriggersWorkloadManager
       - TestMetaStoreMetrics
     skippedTests:
-      - TestReplicationScenarios                            # verified 6/10/19
+      - TestJdbcWithLocalClusterSpark
+      - TestMultiSessionsHS2WithLocalClusterSpark
+      - TestSparkStatistics
+      - TestReplicationScenariosAcrossInstances
+      - TestReplicationScenariosAcidTables
+      - TestHS2ImpersonationWithRemoteMS
+      - TestWarehouseExternalDir
   - dir: itests/hive-unit-hadoop2
     properties:
       skipSparkTests: null
@@ -87,6 +104,9 @@ hiveDirs:
       skipSparkTests: null
     skippedTests:
       - TestSerDe
+  - dir: itests/util
+    properties:
+      skipSparkTests: null
   - dir: itests/qtest
     singleTest: TestBeeLineDriver
     includedQFilesProperties:
@@ -105,6 +125,34 @@ hiveDirs:
     singleTest: TestHBaseNegativeCliDriver
     properties:
       skipSparkTests: null
+  - dir: itests/qtest
+    singleTest: TestMiniDruidCliDriver
+    testsPerContainer: 5
+    includedQFilesProperties:
+      - druid.query.files
+    properties:
+      skipSparkTests: null
+    excludedQFiles:
+      - druidkafkamini_basic.q
+      - druid_basic2.q
+      - druid_timestamptz.q
+      - druidmini_dynamic_partition.q
+      - druidmini_expressions.q
+      - druidmini_extractTime.q
+      - druidmini_floorTime.q
+      - druidmini_joins.q
+      - druidmini_masking.q
+      - druidmini_test1.q
+  - dir: itests/qtest
+    singleTest: TestTezPerfCliDriver
+    properties:
+      skipSparkTests: null
+    excludedQFiles:
+      - query39.q          # verified 6/10/19
+      - query47.q          # verified 6/10/19
+      - query49.q          # verified 6/10/19
+      - query57.q          # verified 6/10/19
+
   - dir: itests/qtest
     singleTest: TestParseNegativeDriver
     properties:
@@ -129,22 +177,28 @@ hiveDirs:
     isolatedQFiles:
       - authorization_show_grant.q
     excludedQFiles:
-      - cte_4.q                             # verified 6/10/19
-      - authorization_view_disable_cbo_1.q  # verified 6/10/19
-      - orc_schema_evolution_float.q        # verified 6/10/19
-      - selectindate.q                      # verified 6/10/19
-      - cp_sel.q                            # verified 6/10/19
-      - union37.q                           # verified 6/10/19
-      - authorization_view_1.q              # verified 6/10/19
-      - smb_mapjoin_46.q                    # verified 6/10/19
-      - parquet_ppd_multifiles.q            # verified 6/10/19
-      - orc_merge10.q                       # verified 6/10/19
+      - masking_5.q
+      - orc_merge10.q
+      - fouter_join_ppr.q # Disabled in HIVE-19509
+      - mm_all.q
+      - load_static_ptn_into_bucketed_table.q
+      - orc_schema_evolution_float.q
+      - parquet_ppd_multifiles.q
+      - selectindate.q
+      - union38.q
+      - vector_bround.q
+      - vector_coalesce_2.q
+      - vector_coalesce_3.q
+      - vector_interval_1.q
+      - vectorized_parquet_types.q
     properties:
       skipSparkTests: null
   - dir: itests/qtest
     singleTest: TestEncryptedHDFSCliDriver
     includedQFilesProperties:
       - encrypted.query.files
+    excludedQFiles:
+      - encryption_with_trash.q
     properties:
       skipSparkTests: null
   - dir: itests/qtest
@@ -152,6 +206,11 @@ hiveDirs:
     qfilesDir: ql/src/test/queries/clientnegative
     excludedQFilesProperties:
       - minimr.query.negative.files
+    excludedQFiles:
+      - authorization_uri_import.q
+      - spark_job_max_tasks.q
+      - spark_stage_max_tasks.q
+      - subquery_subquery_chain # verified 6/10/19
     properties:
       skipSparkTests: null
   - dir: itests/qtest
@@ -175,9 +234,10 @@ hiveDirs:
       - minillap.query.files
       - minillap.shared.query.files
     excludedQFiles:
-      - tez_aggr_part_stats.q  # verified 6/10/19
-      - tez_union_view.q       # verified 6/10/19
-      - union_type_chk.q       # verified 6/10/19
+      - mm_all.q
+      - tez_aggr_part_stats.q
+      - tez_union_view.q
+      - union_type_chk.q
     env:
       USER: dtestuser
     properties:
@@ -190,11 +250,28 @@ hiveDirs:
     isolatedQFiles:
       - hybridgrace_hashjoin_2.q
     excludedQFiles:
-      - mergejoin.q                               # verified 6/10/19
-      - vectorized_dynamic_semijoin_reduction2.q  # verified 6/10/19
-      - dynamic_semijoin_reduction.q              # verified 6/10/19
-      - vectorized_dynamic_semijoin_reduction.q   # verified 6/10/19
+      - vector_udf_inline.q
+      - bucket_map_join_tez1.q             # Disabled in HIVE-19509
+      - special_character_in_tabnames_1.q  # Disabled in HIVE-19509
+      - sysdb.q                            # Disabled in HIVE-19509
+      - tez_smb_1.q                        # Disabled in HIVE-19509
+      - union_fast_stats.q                 # Disabled in HIVE-19509
+      - schema_evol_orc_acidvec_part.q     # Disabled in HIVE-19509
+      - schema_evol_orc_vec_part_llap_io.q # Disabled in HIVE-19509
+      - results_cache_with_masking.q
+      - acid_export.q
+      - alter_table_invalidate_column_stats.q
+      - load_data_acid_rename.q
+      - load_data_using_job.q
+      - results_cache_2.q
+      - sharedwork.q
+      - subquery_views.q
+      - vector_row__id.q
+      - current_date_timestamp.q            # verified 6/10/19
+      - external_jdbc_auth.q                # verified 6/10/19
+      - multi_in_clause.q                   # verified 6/10/19
     env:
       USER: dtestuser
     properties:
       skipSparkTests: null
+
