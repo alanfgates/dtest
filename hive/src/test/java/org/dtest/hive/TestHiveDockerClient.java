@@ -74,12 +74,12 @@ public class TestHiveDockerClient {
     } while (line != null);
     reader.close();
 
-    Assert.assertEquals("FROM centos\n" +
+    Assert.assertEquals("FROM ubuntu\n" +
         "\n" +
-        "RUN yum upgrade -y && yum update -y\n" +
-        "RUN yum install -y java-1.8.0-openjdk-devel git unzip maven \n" +
+        "RUN apt-get update\n" +
+        "RUN apt-get install -y java-1.8.0-openjdk-devel git unzip maven \n" +
         "\n" +
-        "RUN useradd -m dtestuser\n" +
+        "RUN useradd --disabled-password --gecos \"\" dtestuser\n" +
         "\n" +
         "USER dtestuser\n" +
         "\n" +

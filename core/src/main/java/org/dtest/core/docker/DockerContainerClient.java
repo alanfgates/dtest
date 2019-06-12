@@ -149,8 +149,15 @@ public class DockerContainerClient extends ContainerClient {
     for (String pkg : buildInfo.getYaml().getRequiredPackages()) writer.write(pkg + " ");
     for (String pkg : buildInfo.getSrc().getRequiredPackages()) writer.write(pkg + " ");
     for (String pkg : cmdFactory.getRequiredPackages()) writer.write(pkg + " ");
+
     writer.write("\n\n");
-    writer.write("RUN useradd -m " + getUser() + "\n");
+    if (image.startsWith("centos")) {
+      writer.write("RUN useradd -m " + getUser() + "\n");
+    } else if (image.startsWith("ubuntu")) {
+      writer.write("RUN useradd --disabled-password --gecos \"\" " + getUser() + "\n");
+    } else {
+      throw new RuntimeException("Programming error");
+    }
     writer.write("\n");
     writer.write("USER " + getUser() + "\n");
     writer.write("\n");

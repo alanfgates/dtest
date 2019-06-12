@@ -25,7 +25,7 @@ public class TestBuildInfoForHive {
     BuildYaml yaml = info.getYaml();
     assert yaml instanceof HiveBuildYaml;
     HiveBuildYaml hiveYaml = (HiveBuildYaml)yaml;
-    Assert.assertEquals("centos", yaml.getBaseImage());
+    Assert.assertEquals("ubuntu", yaml.getBaseImage());
     Assert.assertArrayEquals(new String[] {"java-1.8.0-openjdk-devel"}, yaml.getRequiredPackages());
     Assert.assertEquals("hive", yaml.getProjectName());
     Assert.assertEquals(7, hiveYaml.getHiveDirs().length);
