@@ -88,11 +88,11 @@ hiveDirs:
       - TestTriggersWorkloadManager
       - TestMetaStoreMetrics
       - TestReplicationScenariosAcidTables
-      - TestSparkStatistics
+    skippedTests:
+      - TestHS2ImpersonationWithRemoteMS            # verified 6/10/19
+      - TestSparkStatistics                         # verified 6/10/19
       - TestJdbcWithLocalClusterSpark               # verified 6/10/19
       - TestMultiSessionsHS2WithLocalClusterSpark   # verified 6/10/19
-      - TestHS2ImpersonationWithRemoteMS            # verified 6/10/19
-    skippedTests:
       - TestReplicationScenariosAcrossInstances     # verified 6/10/19
       - TestWarehouseExternalDir                    # verified 6/10/19
   - dir: itests/hive-unit-hadoop2

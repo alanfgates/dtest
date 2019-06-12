@@ -106,14 +106,17 @@ hiveDirs:
       skipSparkTests: null
   - dir: itests/qtest
     singleTest: TestContribCliDriver
+    qfilesDir: contrib/src/test/queries/clientpositive
     properties:
       skipSparkTests: null
   - dir: itests/qtest
     singleTest: TestContribNegativeCliDriver
+    qfilesDir: contrib/src/test/queries/clientnegative
     properties:
       skipSparkTests: null
   - dir: itests/qtest
     singleTest: TestHBaseNegativeCliDriver
+    qfilesDir: hbase-handler/src/test/queries/negative
     properties:
       skipSparkTests: null
   - dir: itests/qtest
@@ -135,11 +138,22 @@ hiveDirs:
       - druidmini_masking.q              # verified 6/10/19
       - druidmini_test1.q                # verified 6/10/19
   - dir: itests/qtest
-    singleTest: TestTezPerfCliDriver
+    singleTest: TestMiniDruidKafkaCliDriver
+    includedQFilesProperties:
+      - druid.kafka.query.files
     properties:
       skipSparkTests: null
   - dir: itests/qtest
+    singleTest: TestTezPerfCliDriver
+    properties:
+      skipSparkTests: null
+    excludedQFilesProperties:
+      - minimr.query.files
+      - minitez.query.files
+      - encrypted.query.files
+  - dir: itests/qtest
     singleTest: TestParseNegativeDriver
+    qfilesDir: ql/src/test/queries/negative
     properties:
       skipSparkTests: null
   - dir: itests/qtest-accumulo
@@ -180,7 +194,7 @@ hiveDirs:
     includedQFilesProperties:
       - encrypted.query.files
     excludedQFiles:
-      - encryption_with_trash.q
+      - encryption_with_trash.q  # verified 6/12/19
     properties:
       skipSparkTests: null
   - dir: itests/qtest
@@ -188,6 +202,10 @@ hiveDirs:
     qfilesDir: ql/src/test/queries/clientnegative
     excludedQFilesProperties:
       - minimr.query.negative.files
+    excludedQFiles:
+      - authorization_uri_import.q   # verified 6/12/19
+      - spark_job_max_tasks.q        # verified 6/12/19
+      - spark_stage_max_tasks.q      # verified 6/12/19
     properties:
       skipSparkTests: null
   - dir: itests/qtest
@@ -222,11 +240,18 @@ hiveDirs:
     isolatedQFiles:
       - hybridgrace_hashjoin_2.q
     excludedQFiles:
-      - results_cache_with_masking.q   # verified 6/10/19
-      - load_data_using_job.q          # verified 6/10/19
-      - results_cache_2.q              # verified 7/10/19
-      - sharedwork.q                   # verified 6/10/19
-      - subquery_views.q               # verified 6/10/19
+      - results_cache_with_masking.q       # verified 6/10/19
+      - load_data_using_job.q              # verified 6/10/19
+      - results_cache_2.q                  # verified 7/10/19
+      - sharedwork.q                       # verified 6/10/19
+      - subquery_views.q                   # verified 6/10/19
+      - bucket_map_join_tez1.q             # verified 6/12/19
+      - special_character_in_tabnames_1.q  # verified 6/12/19
+      - sysdb.q                            # verified 6/12/19
+      - tez_smb_1.q                        # verified 6/12/19
+      - union_fast_stats.q                 # verified 6/12/19
+      - schema_evol_orc_acidvec_part.q     # verified 6/12/19
+      - schema_evol_orc_vec_part_llap_io.q # verified 6/12/19
     env:
       USER: dtestuser
     properties:

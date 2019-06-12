@@ -87,14 +87,17 @@ hiveDirs:
       skipSparkTests: null
   - dir: itests/qtest
     singleTest: TestContribCliDriver
+    qfilesDir: contrib/src/test/queries/clientpositive
     properties:
       skipSparkTests: null
   - dir: itests/qtest
     singleTest: TestContribNegativeCliDriver
+    qfilesDir: contrib/src/test/queries/clientnegative
     properties:
       skipSparkTests: null
   - dir: itests/qtest
     singleTest: TestHBaseNegativeCliDriver
+    qfilesDir: hbase-handler/src/test/queries/negative
     properties:
       skipSparkTests: null
   - dir: itests/qtest
@@ -105,24 +108,54 @@ hiveDirs:
     properties:
       skipSparkTests: null
     excludedQFiles:
-      - druid_timestamptz.q
-      - druidmini_joins.q
-      - druidmini_masking.q
+      - druid_timestamptz.q        # verified 6/12/19
+      - druidmini_joins.q          # verified 6/12/19
+      - druidmini_masking.q        # verified 6/12/19
+  - dir: itests/qtest
+    singleTest: MiniDruidLlapLocalCliDriver
+    includedQFilesProperties:
+      - druid.llap.local.query.files
+    properties:
+      skipSparkTests: null
   - dir: itests/qtest
     singleTest: TestMiniDruidKafkaCliDriver
+    includedQFilesProperties:
+      - hive.kafka.query.files
+    properties:
+      skipSparkTests: null
+  - dir: itests/qtest
+    singleTest: TestMiniHiveKafkaCliDriver
     includedQFilesProperties:
       - druid.kafka.query.files
     properties:
       skipSparkTests: null
   - dir: itests/qtest
     singleTest: TestTezPerfCliDriver
+    qfilesDir: ql/src/test/queries/clientpositive/perf
+    excludedQFilesProperties:
+      - tez.perf.disabled.query.files
+      - minimr.query.files
+      - minitez.query.files
+      - encrypted.query.files
+      - erasurecoding.only.query.files
+    excludedQFiles:
+      - cbo_query44.q        # verified 6/12/19
+      - cbo_query45.q        # verified 6/12/19
+      - cbo_query67.q        # verified 6/12/19
+      - cbo_query70.q        # verified 6/12/19
+      - cbo_query86.q        # verified 6/12/19
     properties:
       skipSparkTests: null
   - dir: itests/qtest
     singleTest: TestParseNegativeDriver
+    qfilesDir: ql/src/test/queries/negative
     properties:
       skipSparkTests: null
   - dir: itests/qtest-accumulo
+    singleTest: TestAccumuloCliDriver
+    qfilesDir: accumulo-hanlder/src/test/queries/positive
+    excludedQFiles:
+      - accumulo_joins.q    # verified 6/12/19
     properties:
       skipSparkTests: null
   - dir: itests/qtest
@@ -144,10 +177,13 @@ hiveDirs:
       - erasurecoding.only.query.files
     isolatedQFiles:
       - authorization_show_grant.q
-    excludedQFiles:                       # Stopped HERE
-      - masking_5.q
-      - orc_merge10.q
-      - fouter_join_ppr.q # Disabled in HIVE-19509
+    excludedQFiles:
+      - fouter_join_ppr.q            # verified 6/12/19
+      - udaf_context_ngrams.q        # verified 6/12/19
+      - udaf_corr.q                  # verified 6/12/19
+      - udaf_histogram_numeric.q     # verified 6/12/19
+      - stat_estimate_related_col.q  # verified 6/12/19
+      - vector_groupby_reduce.q      # verified 6/12/19
     properties:
       skipSparkTests: null
   - dir: itests/qtest
@@ -155,7 +191,7 @@ hiveDirs:
     includedQFilesProperties:
       - encrypted.query.files
     excludedQFiles:
-      - encryption_with_trash.q
+      - encryption_with_trash.q      # verified 6/12/19
     properties:
       skipSparkTests: null
   - dir: itests/qtest
@@ -163,13 +199,9 @@ hiveDirs:
     qfilesDir: ql/src/test/queries/clientnegative
     excludedQFilesProperties:
       - minimr.query.negative.files
+      - spark.only.query.negative.files
     excludedQFiles:
-      - authorization_uri_import.q
-      - spark_job_max_tasks.q
-      - spark_stage_max_tasks.q
-      - spark_submit_negative_executor_cores.q
-      - spark_submit_negative_executor_memory.q
-      - spark_task_failure.q
+      - authorization_uri_import.q    # verified 6/12/19
     properties:
       skipSparkTests: null
   - dir: itests/qtest
@@ -197,6 +229,13 @@ hiveDirs:
     properties:
       skipSparkTests: null
   - dir: itests/qtest
+    singleTest: TestErasureCodingHDFSCliDriver
+    includedQFilesProperties:
+      - erasurecoding.shared.query.files
+      - erasurecoding.only.query.files
+    properties:
+      skipSparkTests: null
+  - dir: itests/qtest
     singleTest: TestMiniLlapLocalCliDriver
     includedQFilesProperties:
       - minillaplocal.query.files
@@ -204,15 +243,17 @@ hiveDirs:
     isolatedQFiles:
       - hybridgrace_hashjoin_2.q
     excludedQFiles:
-      - vector_udf_inline.q
-      - bucket_map_join_tez1.q             # Disabled in HIVE-19509
-      - special_character_in_tabnames_1.q  # Disabled in HIVE-19509
-      - sysdb.q                            # Disabled in HIVE-19509
-      - tez_smb_1.q                        # Disabled in HIVE-19509
-      - union_fast_stats.q                 # Disabled in HIVE-19509
-      - schema_evol_orc_acidvec_part.q     # Disabled in HIVE-19509
-      - schema_evol_orc_vec_part_llap_io.q # Disabled in HIVE-19509
-      - alter_partition_change_col.q
+      - bucket_map_join_tez1.q               # verified 6/12/19
+      - special_character_in_tabnames_1.q    # verified 6/12/19
+      - tez_smb_1.q                          # verified 6/12/19
+      - union_fast_stats.q                   # verified 6/12/19
+      - schema_evol_orc_acidvec_part.q       # verified 6/12/19
+      - schema_evol_orc_vec_part_llap_io.q   # verified 6/12/19
+      - load_dyn_part3.q                     # verified 6/12/19
+      - cbo_limit.q                          # verified 6/12/19
+      - rfc5424_parser_file_pruning.q        # verified 6/12/19
+      - cbo_rp_limit.q                       # verified 6/12/19
+      - alter_partition_change_col.q         # verified 6/12/19
     env:
       USER: dtestuser
     properties:
