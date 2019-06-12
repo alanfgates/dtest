@@ -30,7 +30,7 @@ public abstract class ResultAnalyzer extends Configurable {
   /**
    * State of this build based on analyzing logs from the test containers.
    */
-  protected BuildState buildState;
+  protected final BuildState buildState;
 
   protected ResultAnalyzer() {
     buildState = new BuildState();
@@ -77,11 +77,11 @@ public abstract class ResultAnalyzer extends Configurable {
   public abstract List<String> getErrors();
 
   /**
-   * Get the state of the build based on the results analysis.
-   * @return state of the build.  This will be an incomplete state as it can't tell if the build as a whole failed
-   *         or timed out.
+   * Get the global state of the build based on the results analysis.
+   * @return state of the build.  If accessed before the build is finished, this will be an incomplete state as it
+   * can't tell if the build as a whole failed or timed out.
    */
-  public final BuildState getBuildState() {
+  public BuildState getBuildState() {
     return buildState;
   }
 
@@ -89,6 +89,7 @@ public abstract class ResultAnalyzer extends Configurable {
     ResultAnalyzer ra = Utils.getInstance(cfg.getAsClass(ResultAnalyzer.CFG_RESULTANALYZER_IMPL,
         ResultAnalyzer.class, MavenResultAnalyzer.class));
     ra.setConfig(cfg).setLog(log);
+    log.debug("Instantiated ReturnAnalyze of type " + ra.getClass().getName());
     return ra;
   }
 }

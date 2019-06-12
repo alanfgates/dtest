@@ -128,6 +128,7 @@ public abstract class ContainerClient extends Configurable {
     ContainerClient cc = Utils.getInstance(cfg.getAsClass(ContainerClient.CFG_CONTAINERCLIENT_IMPL,
         ContainerClient.class, CFG_CONTAINERCLIENT_IMPL_DEFAULT));
     cc.setConfig(cfg).setLog(log);
+    log.debug("Constructed ContainerClient of type " + cc.getClass().getName());
     return cc;
   }
 

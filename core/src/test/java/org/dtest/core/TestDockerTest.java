@@ -179,7 +179,12 @@ public class TestDockerTest {
   }
 
   public static class SpyingResultAnalyzer extends ResultAnalyzer {
-    MavenResultAnalyzer contained = new MavenResultAnalyzer();
+    final MavenResultAnalyzer contained;
+
+    public SpyingResultAnalyzer() {
+      contained = new MavenResultAnalyzer();
+    }
+
 
     @Override
     public Configurable setConfig(Config cfg) {
@@ -198,7 +203,6 @@ public class TestDockerTest {
     @Override
     public void analyzeLog(ContainerResult result, BuildYaml yaml) throws IOException {
       contained.analyzeLog(result, yaml);
-      buildState = contained.buildState;
     }
 
     @Override
@@ -218,6 +222,13 @@ public class TestDockerTest {
       errors = contained.getErrors();
       return errors;
     }
+
+    @Override
+    public BuildState getBuildState() {
+      // Return the wrapped build state rather than our own
+      log.debug("Going to return build state of " + contained.getBuildState().getState());
+      return contained.getBuildState();
+    }
   }
 
   @Before
@@ -231,24 +242,27 @@ public class TestDockerTest {
   @Test
   public void successfulRunAllTestsPass() throws IOException {
     TestUtils.TestLogger log = new TestUtils.TestLogger();
-    Properties props = TestUtils.buildProperties(
-        ContainerClient.CFG_CONTAINERCLIENT_IMPL, SuccessfulClient.class.getName(),
-        ContainerCommandFactory.CFG_CONTAINERCOMMANDLIST_IMPL, HelloWorldCommandList.class.getName(),
-        ResultAnalyzer.CFG_RESULTANALYZER_IMPL, SpyingResultAnalyzer.class.getName(),
-        BuildInfo.CFG_BUILDINFO_BASEDIR, TestUtils.getConfDir(),
-        BuildInfo.CFG_BUILDINFO_LABEL, "firsttry");
-    logToReturn = TestMavenResultAnalyzer.LOG_SUCCESSFUL_RUN_ALL_SUCCEEDED;
-    DockerTest test = new DockerTest();
-    test.buildConfig(TestUtils.getConfDir(), props);
-    test.setLogger(log);
-    BuildState state = test.runBuild();
-    log.dumpToLog();
-    Assert.assertEquals(BuildState.State.SUCCEEDED, state.getState());
-    Assert.assertTrue(imageBuilt);
-    Assert.assertEquals(0, errors.size());
-    Assert.assertEquals(0, failures.size());
-    Assert.assertEquals(19, succeeded);
-    Assert.assertTrue(log.toString().contains("SUCCEEDED, the build ran to completion and all tests passed"));
+    try {
+      Properties props = TestUtils.buildProperties(
+          ContainerClient.CFG_CONTAINERCLIENT_IMPL, SuccessfulClient.class.getName(),
+          ContainerCommandFactory.CFG_CONTAINERCOMMANDLIST_IMPL, HelloWorldCommandList.class.getName(),
+          ResultAnalyzer.CFG_RESULTANALYZER_IMPL, SpyingResultAnalyzer.class.getName(),
+          BuildInfo.CFG_BUILDINFO_BASEDIR, TestUtils.getConfDir(),
+          BuildInfo.CFG_BUILDINFO_LABEL, "firsttry");
+      logToReturn = TestMavenResultAnalyzer.LOG_SUCCESSFUL_RUN_ALL_SUCCEEDED;
+      DockerTest test = new DockerTest();
+      test.buildConfig(TestUtils.getConfDir(), props);
+      test.setLogger(log);
+      BuildState state = test.runBuild();
+      Assert.assertEquals(BuildState.State.SUCCEEDED, state.getState());
+      Assert.assertTrue(imageBuilt);
+      Assert.assertEquals(0, errors.size());
+      Assert.assertEquals(0, failures.size());
+      Assert.assertEquals(19, succeeded);
+      Assert.assertTrue(log.toString().contains("SUCCEEDED, the build ran to completion and all tests passed"));
+    } finally {
+      log.dumpToLog();
+    }
   }
 
   @Test

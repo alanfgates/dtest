@@ -38,8 +38,6 @@ hiveDirs:
     needsSplit: true
     properties:
       test.groups: '""'
-    skippedTests:
-      - TestHiveMetastore
   - dir: druid-handler
   - dir: service
   - dir: spark-client
@@ -70,14 +68,6 @@ hiveDirs:
     testsPerContainer: 5
     properties:
       skipSparkTests: null
-    skippedTests:
-      - TestMetaStoreMetrics
-      - TestJdbcWithLocalClusterSpark
-      - TestMultiSessionsHS2WithLocalClusterSpark
-      - TestSparkStatistics
-      - TestJdbcWithMiniHS2ErasureCoding
-      - TestSparkSessionTimeout
-      - TestSmallTableCacheEviction # spark test
   - dir: itests/hive-unit-hadoop2
     properties:
       skipSparkTests: null
@@ -120,6 +110,8 @@ hiveDirs:
       - druidmini_masking.q
   - dir: itests/qtest
     singleTest: TestMiniDruidKafkaCliDriver
+    includedQFilesProperties:
+      - druid.kafka.query.files
     properties:
       skipSparkTests: null
   - dir: itests/qtest
@@ -152,7 +144,7 @@ hiveDirs:
       - erasurecoding.only.query.files
     isolatedQFiles:
       - authorization_show_grant.q
-    excludedQFiles:
+    excludedQFiles:                       # Stopped HERE
       - masking_5.q
       - orc_merge10.q
       - fouter_join_ppr.q # Disabled in HIVE-19509

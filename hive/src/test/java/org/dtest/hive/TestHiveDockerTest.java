@@ -148,7 +148,11 @@ public class TestHiveDockerTest {
     @Override
     public void analyzeLog(ContainerResult result, BuildYaml yaml) throws IOException {
       contained.analyzeLog(result, yaml);
-      buildState = contained.getBuildState();
+    }
+
+    @Override
+    public BuildState getBuildState() {
+      return contained.getBuildState();
     }
   }
 

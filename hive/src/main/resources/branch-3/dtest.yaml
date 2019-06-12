@@ -78,7 +78,6 @@ hiveDirs:
     properties:
       skipSparkTests: null
   - dir: itests/hive-minikdc
-  - dir: itests/hive-minikdc
     properties:
       skipSparkTests: null
   - dir: itests/hive-unit
@@ -89,6 +88,10 @@ hiveDirs:
       - TestTriggersWorkloadManager
       - TestMetaStoreMetrics
       - TestReplicationScenariosAcidTables
+      - TestSparkStatistics
+      - TestJdbcWithLocalClusterSpark               # verified 6/10/19
+      - TestMultiSessionsHS2WithLocalClusterSpark   # verified 6/10/19
+      - TestHS2ImpersonationWithRemoteMS            # verified 6/10/19
     skippedTests:
       - TestReplicationScenariosAcrossInstances     # verified 6/10/19
       - TestWarehouseExternalDir                    # verified 6/10/19
@@ -111,14 +114,17 @@ hiveDirs:
       skipSparkTests: null
   - dir: itests/qtest
     singleTest: TestContribCliDriver
+    qfilesDir: contrib/src/test/queries/clientpositive
     properties:
       skipSparkTests: null
   - dir: itests/qtest
     singleTest: TestContribNegativeCliDriver
+    qfilesDir: contrib/src/test/queries/clientnegative
     properties:
       skipSparkTests: null
   - dir: itests/qtest
     singleTest: TestHBaseNegativeCliDriver
+    qfilesDir: hbase-handler/src/test/queries/negative
     properties:
       skipSparkTests: null
   - dir: itests/qtest
@@ -140,17 +146,28 @@ hiveDirs:
       - druidmini_masking.q            # verified 6/10/19
       - druidmini_test1.q              # verified 6/10/19
   - dir: itests/qtest
-    singleTest: TestTezPerfCliDriver
+    singleTest: TestMiniDruidKafkaCliDriver
+    includedQFilesProperties:
+      - druid.kafka.query.files
     properties:
       skipSparkTests: null
+  - dir: itests/qtest
+    singleTest: TestTezPerfCliDriver
+    qfilesDir: ql/src/test/queries/clientpositive/perf
+    properties:
+      skipSparkTests: null
+    excludedQFilesProperties:
+      - minimr.query.files
+      - minitez.query.files
+      - encrypted.query.files
     excludedQFiles:
       - query39.q          # verified 6/10/19
       - query47.q          # verified 6/10/19
       - query49.q          # verified 6/10/19
       - query57.q          # verified 6/10/19
-
   - dir: itests/qtest
     singleTest: TestParseNegativeDriver
+    qfilesDir: ql/src/test/queries/negative
     properties:
       skipSparkTests: null
   - dir: itests/qtest-accumulo
@@ -176,6 +193,7 @@ hiveDirs:
       - orc_merge10.q                          # verified 6/10/19
       - mm_all.q                               # verified 6/10/19
       - load_static_ptn_into_bucketed_table.q  # verified 6/10/19
+      - fouter_join_ppr.q                      # verified 6/10/19
     properties:
       skipSparkTests: null
   - dir: itests/qtest
@@ -192,7 +210,10 @@ hiveDirs:
     excludedQFilesProperties:
       - minimr.query.negative.files
     excludedQFiles:
-      - subquery_subquery_chain # verified 6/10/19
+      - subquery_subquery_chain.q   # verified 6/10/19
+      - authorization_uri_import.q  # verified 6/10/19
+      - spark_job_max_tasks.q       # verified 6/10/19
+      - spark_stage_max_tasks.q     # verified 6/10/19
     properties:
       skipSparkTests: null
   - dir: itests/qtest
@@ -243,6 +264,12 @@ hiveDirs:
       - current_date_timestamp.q               # verified 6/10/19
       - external_jdbc_auth.q                   # verified 6/10/19
       - multi_in_clause.q                      # verified 6/10/19
+      - bucket_map_join_tez1.q                 # verified 6/10/19
+      - special_character_in_tabnames_1.q      # verified 6/10/19
+      - tez_smb_1.q                            # verified 6/10/19
+      - union_fast_stats.q                     # verified 6/10/19
+      - schema_evol_orc_acidvec_part.q         # verified 6/10/19
+      - schema_evol_orc_vec_part_llap_io.q     # verified 6/10/19
     env:
       USER: dtestuser
     properties:

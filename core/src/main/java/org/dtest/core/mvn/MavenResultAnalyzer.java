@@ -53,6 +53,7 @@ public class MavenResultAnalyzer extends ResultAnalyzer {
   private final Pattern successLine;
   private final Pattern errorLine;
   private final Pattern timeout;
+  private BuildState lastContainerState;
 
   public MavenResultAnalyzer() {
     // Access to these needs to be synchronized.
@@ -89,27 +90,32 @@ public class MavenResultAnalyzer extends ResultAnalyzer {
 
   @Override
   public void analyzeLog(ContainerResult result, BuildYaml yaml) throws IOException {
+    lastContainerState = new BuildState();
     String[] lines = result.getStdout().split("\n");
     for (String line : lines) {
       count(line, successLine);
       count(line, errorLine);
       analyzeLogLine(result, line, yaml);
     }
-    if (buildState.getState() == BuildState.State.HAD_TIMEOUTS) {
-      result.setAnalysisResult(ContainerResult.ContainerStatus.TIMED_OUT);
-    } else if (buildState.getState() == BuildState.State.HAD_FAILURES_OR_ERRORS) {
-      result.setAnalysisResult(ContainerResult.ContainerStatus.FAILED);
-    } else {
-      // This can get overwritten by later analysis.  It won't overwrite early analysis if there was a failure
-      buildState.success();
-      result.setAnalysisResult(ContainerResult.ContainerStatus.SUCCEEDED);
+    try {
+      if (lastContainerState.getState() == BuildState.State.HAD_TIMEOUTS) {
+        result.setAnalysisResult(ContainerResult.ContainerStatus.TIMED_OUT);
+      } else if (lastContainerState.getState() == BuildState.State.HAD_FAILURES_OR_ERRORS) {
+        result.setAnalysisResult(ContainerResult.ContainerStatus.FAILED);
+      } else {
+        // This can get overwritten by later analysis.  It won't overwrite early analysis if there was a failure
+        lastContainerState.success();
+        result.setAnalysisResult(ContainerResult.ContainerStatus.SUCCEEDED);
+      }
+    } finally {
+      buildState.update(lastContainerState);
     }
   }
 
   private void analyzeLogLine(ContainerResult result, String line, BuildYaml yaml) throws IOException {
     // Look for timeouts
     Matcher m = timeout.matcher(line);
-    if (m.matches()) buildState.sawTimeouts();
+    if (m.matches()) lastContainerState.sawTimeouts();
     else findErrorsAndFailures(result, line, yaml);
   }
 
@@ -127,20 +133,22 @@ public class MavenResultAnalyzer extends ResultAnalyzer {
     for (Pattern error : unitTestErrorPatterns) {
       Matcher errorLine = error.matcher(line);
       if (errorLine.matches()) {
+        log.debug("Saw an error at line " + line);
         String testName = errorLine.group(2) + "." + errorLine.group(1);
         errors.add(testName);
         findLogFiles(result, line, errorLine.group(2), yaml);
-        buildState.sawTestFailureOrError();
+        lastContainerState.sawTestFailureOrError();
         break; // If we found an error, don't keep looking or we may double count
       }
     }
     for (Pattern failure : unitTestFailurePatterns) {
       Matcher failureLine = failure.matcher(line);
       if (failureLine.matches()) {
+        log.debug("Saw a failure at line " + line);
         String testName = failureLine.group(2) + "." + failureLine.group(1);
         failed.add(testName);
         findLogFiles(result, line, failureLine.group(2), yaml);
-        buildState.sawTestFailureOrError();
+        lastContainerState.sawTestFailureOrError();
         break; // If we found a failure, don't keep looking or we may double count
       }
     }

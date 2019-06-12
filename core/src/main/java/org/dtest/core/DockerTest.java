@@ -271,6 +271,7 @@ public class DockerTest {
 
   private BuildState runContainers(ContainerCommandFactory cmdFactory)
       throws IOException {
+    log.debug("Beginning our attack run");
     cmdFactory.buildContainerCommands(docker, buildInfo);
 
     final ResultAnalyzer analyzer = ResultAnalyzer.getInstance(cfg, log);
@@ -280,12 +281,14 @@ public class DockerTest {
     ExecutorService executor =
         Executors.newFixedThreadPool(cfg.getAsInt(CFG_DOCKERTEST_NUMCONTAINERS, CFG_DOCKERTEST_NUMCONTAINERS_DEFAULT));
     for (ContainerCommand taskCmd : cmdFactory.getCmds()) {
+      log.debug("Going to run task " + taskCmd.containerSuffix());
       tasks.add(executor.submit(() -> {
         ContainerResult result = docker.runContainer(taskCmd);
         analyzer.analyzeLog(result, buildInfo.getYaml());
         StringBuilder statusMsg = new StringBuilder("Task ")
             .append(result.getCmd().containerSuffix())
             .append(' ');
+        log.debug("Result from running " + taskCmd.containerSuffix() + " his " + result.getAnalysisResult());
         switch (result.getAnalysisResult()) {
         case TIMED_OUT:
           statusMsg.append(" had TIMEOUTS");
@@ -317,7 +320,7 @@ public class DockerTest {
       }));
     }
 
-    BuildState buildState = new BuildState();
+    BuildState buildState = analyzer.getBuildState();
     for (Future<Integer> task : tasks) {
       try {
         task.get();
@@ -330,9 +333,9 @@ public class DockerTest {
         buildState.fail();
       }
     }
+    assert buildState.getState() != BuildState.State.NOT_INITIALIZED;
 
     executor.shutdown();
-    buildState.update(analyzer.getBuildState());
     if (analyzer.getErrors().size() > 0) {
       log.info(SUMMARY_LOG, "All Errors:");
       for (String error : analyzer.getErrors()) {
