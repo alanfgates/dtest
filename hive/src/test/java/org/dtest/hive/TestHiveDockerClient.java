@@ -77,9 +77,9 @@ public class TestHiveDockerClient {
     Assert.assertEquals("FROM ubuntu\n" +
         "\n" +
         "RUN apt-get update\n" +
-        "RUN apt-get install -y java-1.8.0-openjdk-devel git unzip maven \n" +
+        "RUN apt-get install -y openjdk-8-jdk git unzip maven \n" +
         "\n" +
-        "RUN useradd --disabled-password --gecos \"\" dtestuser\n" +
+        "RUN adduser --disabled-password --gecos \"\" dtestuser\n" +
         "\n" +
         "USER dtestuser\n" +
         "\n" +

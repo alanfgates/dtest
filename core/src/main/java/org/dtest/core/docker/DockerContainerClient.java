@@ -154,7 +154,7 @@ public class DockerContainerClient extends ContainerClient {
     if (image.startsWith("centos")) {
       writer.write("RUN useradd -m " + getUser() + "\n");
     } else if (image.startsWith("ubuntu")) {
-      writer.write("RUN useradd --disabled-password --gecos \"\" " + getUser() + "\n");
+      writer.write("RUN adduser --disabled-password --gecos \"\" " + getUser() + "\n");
     } else {
       throw new RuntimeException("Programming error");
     }

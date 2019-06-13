@@ -1,6 +1,6 @@
 baseImage: ubuntu
 requiredPackages:
-  - java-1.8.0-openjdk-devel
+  - openjdk-8-jdk
 projectName: hive
 comment: hive branch-2 yaml file
 javaPackages:
