@@ -57,9 +57,9 @@ public class HiveContainerCommandFactory extends MavenContainerCommandFactory {
   @Override
   public List<String> getInitialBuildCommand() {
     return Arrays.asList(
-      "/usr/bin/mvn install -DskipTests",
+      "/usr/bin/mvn -T 1C install -DskipTests",
       "cd itests",
-      "/usr/bin/mvn install -DskipSparkTests -DskipTests");
+      "/usr/bin/mvn -T 1C install -DskipSparkTests -DskipTests");
   }
 
   @Override
