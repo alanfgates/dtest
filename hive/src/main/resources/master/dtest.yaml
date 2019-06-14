@@ -31,6 +31,8 @@ hiveDirs:
   - dir: llap-server
     env:
       USER: dtestuser
+    skippedTests:
+      - TestBuddyAllocator
   - dir: llap-tez
     env:
       USER: dtestuser
@@ -66,6 +68,18 @@ hiveDirs:
   - dir: itests/hive-unit
     needsSplit: true
     testsPerContainer: 5
+    isolatedTests:
+      - TestStatsReplicationScenariosMMNoAutogather
+      - TestStatsReplicationScenariosMM
+      - TestReplTableMigrationWithJsonFormat
+      - TestStatsReplicationScenariosACIDNoAutogather
+      - TestStatsReplicationScenariosMMNoAutogather
+    skippedTests:
+      - TestReplicationScenarios          # verified 6/13/19
+      - TestSparkSessionTimeout           # verified 6/13/19
+      - TestSparkStatistics               # verified 6/13/19
+      - TestSmallTableCacheEviction       # verified 6/13/19
+      - TestJdbcWithMiniHS2ErasureCoding  # verified 6/13/19
     properties:
       skipSparkTests: null
   - dir: itests/hive-unit-hadoop2
@@ -120,13 +134,13 @@ hiveDirs:
   - dir: itests/qtest
     singleTest: TestMiniDruidKafkaCliDriver
     includedQFilesProperties:
-      - hive.kafka.query.files
+      - druid.kafka.query.files
     properties:
       skipSparkTests: null
   - dir: itests/qtest
     singleTest: TestMiniHiveKafkaCliDriver
     includedQFilesProperties:
-      - druid.kafka.query.files
+      - hive.kafka.query.files
     properties:
       skipSparkTests: null
   - dir: itests/qtest
@@ -253,7 +267,9 @@ hiveDirs:
       - cbo_limit.q                          # verified 6/12/19
       - rfc5424_parser_file_pruning.q        # verified 6/12/19
       - cbo_rp_limit.q                       # verified 6/12/19
-      - alter_partition_change_col.q         # verified 6/12/19
+      - alter_partition_change_col           # verified 6/12/19 no .q is intentional, as it's a mistake in testconfiguration.properties
+      - semijoin_reddedup                    # verified 6/12/19 no .q is intentional, as it's a mistake in testconfiguration.properties
+    testsPerContainer: 5
     env:
       USER: dtestuser
     properties:
