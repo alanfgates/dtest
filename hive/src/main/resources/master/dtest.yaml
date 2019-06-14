@@ -121,6 +121,12 @@ hiveDirs:
       - druid.query.files
     properties:
       skipSparkTests: null
+    isolatedQFiles:          # I think only one of these is really an
+      - druidmini_test_ts.q  # issue.  After the next run look at which
+      - druidmini_mv.q       # on is taking the time and isolate only it
+      - druidmini_floorTime.q
+      - druidmini_test1.q
+      - druidmini_expressions.q
     excludedQFiles:
       - druid_timestamptz.q        # verified 6/12/19
       - druidmini_joins.q          # verified 6/12/19
@@ -172,6 +178,11 @@ hiveDirs:
       - accumulo_joins.q    # verified 6/12/19
     properties:
       skipSparkTests: null
+  - dir: itests/hive-blobstore
+    singleTest: TestBlobstoreCliDriver
+    qfilesDir: itests/hive-blobstore/src/test/queries/clientpositive
+    properties:
+      skipSparkTests: null
   - dir: itests/qtest
     singleTest: TestCliDriver
     qfilesDir: ql/src/test/queries/clientpositive
@@ -198,6 +209,31 @@ hiveDirs:
       - udaf_histogram_numeric.q     # verified 6/12/19
       - stat_estimate_related_col.q  # verified 6/12/19
       - vector_groupby_reduce.q      # verified 6/12/19
+    properties:
+      skipSparkTests: null
+  - dir: itests/qtest  # Moved this up in the list because some of the tests take a long time and I didn't want them started last
+    singleTest: TestMiniLlapLocalCliDriver
+    includedQFilesProperties:
+      - minillaplocal.query.files
+      - minillaplocal.shared.query.files
+    isolatedQFiles:
+      - hybridgrace_hashjoin_2.q
+    excludedQFiles:
+      - bucket_map_join_tez1.q               # verified 6/12/19
+      - special_character_in_tabnames_1.q    # verified 6/12/19
+      - tez_smb_1.q                          # verified 6/12/19
+      - union_fast_stats.q                   # verified 6/12/19
+      - schema_evol_orc_acidvec_part.q       # verified 6/12/19
+      - schema_evol_orc_vec_part_llap_io.q   # verified 6/12/19
+      - load_dyn_part3.q                     # verified 6/12/19
+      - cbo_limit.q                          # verified 6/12/19
+      - rfc5424_parser_file_pruning.q        # verified 6/12/19
+      - cbo_rp_limit.q                       # verified 6/12/19
+      - vector_udf_inline.q                  # verified 6/13/19
+      - alter_partition_change_col           # verified 6/12/19 no .q is intentional, as it's a mistake in testconfiguration.properties
+      - semijoin_reddedup                    # verified 6/12/19 no .q is intentional, as it's a mistake in testconfiguration.properties
+    env:
+      USER: dtestuser
     properties:
       skipSparkTests: null
   - dir: itests/qtest
@@ -247,30 +283,5 @@ hiveDirs:
     includedQFilesProperties:
       - erasurecoding.shared.query.files
       - erasurecoding.only.query.files
-    properties:
-      skipSparkTests: null
-  - dir: itests/qtest
-    singleTest: TestMiniLlapLocalCliDriver
-    includedQFilesProperties:
-      - minillaplocal.query.files
-      - minillaplocal.shared.query.files
-    isolatedQFiles:
-      - hybridgrace_hashjoin_2.q
-    excludedQFiles:
-      - bucket_map_join_tez1.q               # verified 6/12/19
-      - special_character_in_tabnames_1.q    # verified 6/12/19
-      - tez_smb_1.q                          # verified 6/12/19
-      - union_fast_stats.q                   # verified 6/12/19
-      - schema_evol_orc_acidvec_part.q       # verified 6/12/19
-      - schema_evol_orc_vec_part_llap_io.q   # verified 6/12/19
-      - load_dyn_part3.q                     # verified 6/12/19
-      - cbo_limit.q                          # verified 6/12/19
-      - rfc5424_parser_file_pruning.q        # verified 6/12/19
-      - cbo_rp_limit.q                       # verified 6/12/19
-      - alter_partition_change_col           # verified 6/12/19 no .q is intentional, as it's a mistake in testconfiguration.properties
-      - semijoin_reddedup                    # verified 6/12/19 no .q is intentional, as it's a mistake in testconfiguration.properties
-    testsPerContainer: 5
-    env:
-      USER: dtestuser
     properties:
       skipSparkTests: null
