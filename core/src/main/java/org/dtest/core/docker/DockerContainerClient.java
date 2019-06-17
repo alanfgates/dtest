@@ -52,7 +52,7 @@ public class DockerContainerClient extends ContainerClient {
 
   protected static final Pattern IMAGE_SUCCESS = Pattern.compile("BUILD SUCCESS");
   protected static final Pattern USING_CACHE = Pattern.compile("Using cache");
-  private static final String IMAGE_BASE = "dtest-image-";
+  private static final String IMAGE_BASE = "dtest-";
   private static final String BUILD_CONTAINER_NAME = "image_build";
 
   private String imageName;

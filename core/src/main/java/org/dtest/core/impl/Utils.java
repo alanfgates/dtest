@@ -30,6 +30,7 @@ import java.util.function.Supplier;
  */
 public class Utils {
   private static final String CONTAINER_BASE = "dtest-";
+  private static final int MAX_DOCKER_LABEL_LEN = 128;
 
   /**
    * Get a Class object using the name of the class.
@@ -127,26 +128,22 @@ public class Utils {
     return CONTAINER_BASE + label + "_" + name;
   }
 
-  private static WordGenerator wordGenerator = null;
-  private static Random rand = null;
-
   /**
-   * Generate a random label
-   * @param numWords number of words in the label.  Each word will be separated by a '-'.
-   * @return a random generated label, made of pronounceable (if not semantically valid) English words.
+   * Generate an image label.  This will be a docker safe version of the branch.
+   * @param branch name of the branch used for this test
+   * @return An image label
    */
-  public static String generateRandomLabel(int numWords) {
-    if (wordGenerator == null) {
-      wordGenerator = new WordGenerator();
-      rand = new Random();
-    }
+  public static String generateLabel(String branch) {
+    StringBuilder label = new StringBuilder();
+    for (int i = 0; i < branch.length() && i < MAX_DOCKER_LABEL_LEN; i++) {
+      if (Character.isLetterOrDigit(branch.charAt(i)) || branch.charAt(i) == '-' || branch.charAt(i) == '.') {
+        label.append(branch.charAt(i));
+      } else {
+        label.append('X');
+      }
 
-    StringBuilder buf = new StringBuilder();
-    for (int i = 0; i < numWords; i++) {
-      if (i > 0) buf.append('-');
-      buf.append(wordGenerator.newWord(rand.nextInt(5) + 5).toLowerCase());
     }
-    return buf.toString();
+    return label.toString();
   }
 
 }

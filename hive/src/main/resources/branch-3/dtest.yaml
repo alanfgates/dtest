@@ -95,6 +95,7 @@ hiveDirs:
       - TestMultiSessionsHS2WithLocalClusterSpark   # verified 6/10/19
       - TestReplicationScenariosAcrossInstances     # verified 6/10/19
       - TestWarehouseExternalDir                    # verified 6/10/19
+      - TestJdbcGenericUDTFGetSplits                # verified 6/13/19
   - dir: itests/hive-unit-hadoop2
     properties:
       skipSparkTests: null

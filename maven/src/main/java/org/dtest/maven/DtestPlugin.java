@@ -15,7 +15,6 @@
  */
 package org.dtest.maven;
 
-import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.model.Resource;
 import org.apache.maven.plugin.AbstractMojo;
@@ -29,7 +28,6 @@ import org.dtest.core.BuildState;
 import org.dtest.core.Config;
 import org.dtest.core.DTestLogger;
 import org.dtest.core.DockerTest;
-import org.dtest.core.git.GitSource;
 import org.dtest.core.impl.Utils;
 
 import java.io.BufferedReader;
@@ -183,7 +181,7 @@ public class DtestPlugin extends AbstractMojo {
     if (dtestProperties == null) dtestProperties = new Properties();
 
     if (label == null) {
-      label = Utils.generateRandomLabel(2);
+      label = Utils.generateLabel(branch);
     }
     dtestProperties.setProperty(BuildInfo.CFG_BUILDINFO_LABEL, label);
     log.info("Building with label " + label);

@@ -105,9 +105,8 @@ public class BuildInfo extends Configurable implements Comparable<BuildInfo> {
    * Get the base directory for this build.  The build directory will be in a subdirectory of this directory, named with
    * the label of this build.  This allows all dtest builds to use the same base directory.
    * @return base directory
-   * @throws IOException if basedir isn't provided in the configuration.
    */
-  public String getBaseDir() throws IOException {
+  public String getBaseDir() {
     if (baseDir == null) {
       baseDir = cfg.getAsString(CFG_BUILDINFO_BASEDIR);
       if (baseDir == null) {
@@ -136,7 +135,7 @@ public class BuildInfo extends Configurable implements Comparable<BuildInfo> {
     if (label == null) {
       label = cfg.getAsString(CFG_BUILDINFO_LABEL);
       if (label == null) {
-        label = Utils.generateRandomLabel(2);
+        label = Utils.generateLabel(getYaml().getBranch());
       }
       log.info("Using label " + label);
     }

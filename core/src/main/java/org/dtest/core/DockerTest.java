@@ -232,6 +232,7 @@ public class DockerTest {
     BuildState state = null;
     boolean mightHaveBuiltImage = false;
     try {
+      log.info("Going to build branch " + branch + " from repo " + repo + " using config in " + cfgDir);
       BuildYaml yaml = BuildYaml.readYaml(cfgDir, cfg, log, repo, branch);
       CodeSource codeSource = CodeSource.getInstance(cfg, log);
       buildInfo = new BuildInfo(cfgDir, yaml, codeSource, cleanupAfter);
