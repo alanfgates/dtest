@@ -15,6 +15,7 @@
  */
 package org.dtest.hive;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.lang3.StringUtils;
 import org.dtest.core.BuildInfo;
 import org.dtest.core.BuildYaml;
@@ -125,9 +126,8 @@ public class HiveContainerCommandFactory extends MavenContainerCommandFactory {
     Set<String> qfiles = new HashSet<>();
     for (String property : properties) {
       if (testProperties.getProperty(property) != null) {
-        String[] files = testProperties.getProperty(property).split(",");
-        for (int i = 0; i < files.length; i++) files[i] = files[i].trim();
-        Collections.addAll(qfiles, files);
+        String[] files = testProperties.getProperty(property).split("[,\\s]");
+        for (String file : files) if (!file.isEmpty()) qfiles.add(file.trim());
       }
     }
     return qfiles;
@@ -182,5 +182,15 @@ public class HiveContainerCommandFactory extends MavenContainerCommandFactory {
     log.debug("findQFiles returning following qfiles for test " + mDir.getSingleTest() + ": " +
         StringUtils.join(qfiles, " "));
     return qfiles;
+  }
+
+  /**
+   * Only for use in testing, do not use fo real.
+   * @param testProperties test properties
+   */
+  @VisibleForTesting
+  Set<String> testTestProperties(Properties testProperties, String... properties) {
+    this.testProperties = testProperties;
+    return findQFilesFromProperties(properties);
   }
 }

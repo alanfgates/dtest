@@ -56,6 +56,7 @@ hiveDirs:
       skipSparkTests: null
   - dir: itests/hive-blobstore
     singleTest: TestBlobstoreCliDriver
+    qfilesDir: itests/hive-blobstore/src/test/queries/clientpositive
     properties:
       skipSparkTests: null
     excludedQFiles:

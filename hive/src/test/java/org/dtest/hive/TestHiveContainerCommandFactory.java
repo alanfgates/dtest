@@ -29,6 +29,8 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.util.Properties;
+import java.util.Set;
 
 public class TestHiveContainerCommandFactory {
 
@@ -59,6 +61,31 @@ public class TestHiveContainerCommandFactory {
     Assert.assertEquals("/bin/bash -c ( cd /tmp/itests/qtest; /usr/bin/mvn test -Dsurefire.timeout=300 -Dtest=TestCliDriver -Dqfile=authorization_show_grant.q -DskipSparkTests)", StringUtils.join(cmds.getCmds().get(8).shellCommand(), " "));
     Assert.assertEquals("/bin/bash -c ( cd /tmp/itests/qtest; /usr/bin/mvn test -Dsurefire.timeout=300 -Dtest=TestCliDriver -Dqfile=masking_acid_no_masking.q,masking_8.q,masking_9.q,masking_6.q -DskipSparkTests)", StringUtils.join(cmds.getCmds().get(9).shellCommand(), " "));
     Assert.assertEquals("/bin/bash -c ( cd /tmp/itests/qtest; /usr/bin/mvn test -Dsurefire.timeout=300 -Dtest=TestCliDriver -Dqfile=masking_7.q -DskipSparkTests)", StringUtils.join(cmds.getCmds().get(10).shellCommand(), " "));
+  }
+
+  @Test
+  public void qFilesFromProperties() {
+    HiveContainerCommandFactory cmds = new HiveContainerCommandFactory();
+    Properties testProperties = new Properties();
+    testProperties.setProperty("encrypted.query.files", "encryption_join_unencrypted_tbl.q,encryption_insert_partition_static.q, encryption_insert_values.q encryption_drop_view.q ");
+    testProperties.setProperty("beeline.positive.include", "drop_with_concurrency.q,escape_comments.q");
+    testProperties.setProperty("minimr.query.negative.files", "cluster_tasklog_retrieval.q,file_with_header_footer_negative.q,local_mapred_error_cache.q,mapreduce_stack_trace.q");
+
+    Set<String> qfiles = cmds.testTestProperties(testProperties, "encrypted.query.files");
+    Assert.assertEquals(4, qfiles.size());
+    Assert.assertTrue(qfiles.contains("encryption_join_unencrypted_tbl.q"));
+    Assert.assertTrue(qfiles.contains("encryption_insert_partition_static.q"));
+    Assert.assertTrue(qfiles.contains("encryption_insert_values.q"));
+    Assert.assertTrue(qfiles.contains("encryption_drop_view.q"));
+
+    qfiles = cmds.testTestProperties(testProperties, "beeline.positive.include", "minimr.query.negative.files");
+    Assert.assertEquals(6, qfiles.size());
+    Assert.assertTrue(qfiles.contains("drop_with_concurrency.q"));
+    Assert.assertTrue(qfiles.contains("escape_comments.q"));
+    Assert.assertTrue(qfiles.contains("cluster_tasklog_retrieval.q"));
+    Assert.assertTrue(qfiles.contains("file_with_header_footer_negative.q"));
+    Assert.assertTrue(qfiles.contains("local_mapred_error_cache.q"));
+    Assert.assertTrue(qfiles.contains("mapreduce_stack_trace.q"));
   }
 
   private static class TestContainerClient extends ContainerClient {
