@@ -51,6 +51,10 @@ hiveDirs:
   - dir: hcatalog/webhcat/svr
   - dir: ql
     needsSplit: true
+    skippedTests:
+      - TestTxnCommands2WithSplitUpdateAndVectorization       # verified 6/17/19
+      - TestTxnCommands2WithSplitUpdate                       # verified 6/17/19
+      - TestTxnCommands2                                      # verified 6/17/19
   - dir: itests/hcatalog-unit
     properties:
       skipSparkTests: null
@@ -80,6 +84,9 @@ hiveDirs:
       - TestMetaStoreMetrics
     skippedTests:
       - TestReplicationScenarios                            # verified 6/10/19
+      - TestJdbcWithLocalClusterSpark                       # verified 6/17/19
+      - TestJdbcDriver2                                     # verified 6/17/19
+      - TestMultiSessionsHS2WithLocalClusterSpark           # verified 6/17/19
   - dir: itests/hive-unit-hadoop2
     properties:
       skipSparkTests: null
@@ -146,6 +153,8 @@ hiveDirs:
     singleTest: TestEncryptedHDFSCliDriver
     includedQFilesProperties:
       - encrypted.query.files
+    excludedQFiles:
+      - encryption_with_trash.q      # verified 6/17/19
     properties:
       skipSparkTests: null
   - dir: itests/qtest
@@ -176,9 +185,10 @@ hiveDirs:
       - minillap.query.files
       - minillap.shared.query.files
     excludedQFiles:
-      - tez_aggr_part_stats.q  # verified 6/10/19
-      - tez_union_view.q       # verified 6/10/19
-      - union_type_chk.q       # verified 6/10/19
+      - tez_aggr_part_stats.q          # verified 6/10/19
+      - tez_union_view.q               # verified 6/10/19
+      - union_type_chk.q               # verified 6/10/19
+      - insert_values_orig_table.      # verified 6/10/19
     env:
       USER: dtestuser
     properties:
