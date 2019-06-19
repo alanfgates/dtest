@@ -18,7 +18,10 @@ package org.dtest.core;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -189,6 +192,20 @@ public class TestUtils {
     dirs[1].setDir("maven");
     yaml.setDirs(dirs);
     return yaml;
+  }
+
+  /**
+   * Read a log file and return the contents as a single string.
+   * @param filename Path to the file
+   * @return Contents of the file as a single string.
+   * @throws IOException if the file cannot be opened or read
+   */
+  public static String readLogFile(String filename) throws IOException {
+    BufferedReader reader = new BufferedReader(new FileReader(filename));
+    StringBuilder log = new StringBuilder();
+    String line;
+    while ((line = reader.readLine()) != null) log.append(line).append("\n");
+    return log.toString();
   }
 
 }

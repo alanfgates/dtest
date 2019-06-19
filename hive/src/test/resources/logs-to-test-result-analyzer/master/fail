@@ -1,0 +1,61 @@
+[INFO] 
+[INFO] -------------------------------------------------------
+[INFO]  T E S T S
+[INFO] -------------------------------------------------------
+[INFO] Running org.apache.hadoop.hive.metastore.TestSetUGIOnBothClientServer
+[INFO] Tests run: 42, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 74.743 s - in org.apache.hadoop.hive.metastore.TestSetUGIOnBothClientServer
+[INFO] Running org.apache.hadoop.hive.metastore.TestHiveMetaStoreGetMetaConf
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 8.223 s - in org.apache.hadoop.hive.metastore.TestHiveMetaStoreGetMetaConf
+[INFO] Running org.apache.hadoop.hive.metastore.TestMetaStoreSchemaInfo
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.086 s - in org.apache.hadoop.hive.metastore.TestMetaStoreSchemaInfo
+[INFO] Running org.apache.hadoop.hive.metastore.TestMarkPartition
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 12.725 s - in org.apache.hadoop.hive.metastore.TestMarkPartition
+[INFO] Running org.apache.hadoop.hive.metastore.TestMetaStoreEndFunctionListener
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 8.983 s - in org.apache.hadoop.hive.metastore.TestMetaStoreEndFunctionListener
+[INFO] Running org.apache.hadoop.hive.metastore.TestHiveMetastoreCli
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.924 s - in org.apache.hadoop.hive.metastore.TestHiveMetastoreCli
+[INFO] Running org.apache.hadoop.hive.metastore.TestHiveMetaStoreTimeout
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 13.078 s - in org.apache.hadoop.hive.metastore.TestHiveMetaStoreTimeout
+[INFO] Running org.apache.hadoop.hive.metastore.tools.TestSchemaToolForMetastore
+[ERROR] Tests run: 11, Failures: 0, Errors: 3, Skipped: 0, Time elapsed: 78.23 s <<< FAILURE! - in org.apache.hadoop.hive.metastore.tools.TestSchemaToolForMetastore
+[ERROR] testValidateNullValues(org.apache.hadoop.hive.metastore.tools.TestSchemaToolForMetastore)  Time elapsed: 10.138 s  <<< ERROR!
+java.io.IOException: Schema script failed, errorcode OTHER
+	at org.apache.hadoop.hive.metastore.tools.TestSchemaToolForMetastore.createTestHiveTableSchemas(TestSchemaToolForMetastore.java:506)
+	at org.apache.hadoop.hive.metastore.tools.TestSchemaToolForMetastore.testValidateNullValues(TestSchemaToolForMetastore.java:204)
+    
+[ERROR] testValidateLocations(org.apache.hadoop.hive.metastore.tools.TestSchemaToolForMetastore)  Time elapsed: 6.759 s  <<< ERROR!
+java.io.IOException: Schema script failed, errorcode OTHER
+	at org.apache.hadoop.hive.metastore.tools.TestSchemaToolForMetastore.testValidateLocations(TestSchemaToolForMetastore.java:383)
+    
+[ERROR] testValidateSequences(org.apache.hadoop.hive.metastore.tools.TestSchemaToolForMetastore)  Time elapsed: 6.95 s  <<< ERROR!
+java.io.IOException: Schema script failed, errorcode OTHER
+	at org.apache.hadoop.hive.metastore.tools.TestSchemaToolForMetastore.testValidateSequences(TestSchemaToolForMetastore.java:121)
+    
+[INFO] 
+[INFO] Results:
+[INFO] 
+[ERROR] Errors: 
+[ERROR]   TestSchemaToolForMetastore.testValidateLocations:383 ? IO Schema script failed...
+[ERROR]   TestSchemaToolForMetastore.testValidateNullValues:204->createTestHiveTableSchemas:506 ? IO
+[ERROR]   TestSchemaToolForMetastore.testValidateSequences:121 ? IO Schema script failed...
+[INFO] 
+[ERROR] Tests run: 67, Failures: 0, Errors: 3, Skipped: 0
+[INFO] 
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD FAILURE
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time: 3:41.392s
+[INFO] Finished at: Tue Jun 04 20:57:36 UTC 2019
+[INFO] Final Memory: 69M/2640M
+[INFO] ------------------------------------------------------------------------
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-surefire-plugin:2.20.1:test (default-test) on project hive-standalone-metastore: There are test failures.
+[ERROR] 
+[ERROR] Please refer to /home/dtestuser/hive/standalone-metastore/target/surefire-reports for the individual test results.
+[ERROR] Please refer to dump files (if any exist) [date]-jvmRun[N].dump, [date].dumpstream and [date]-jvmRun[N].dumpstream.
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException

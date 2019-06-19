@@ -1,0 +1,31 @@
+
+-------------------------------------------------------
+ T E S T S
+-------------------------------------------------------
+OpenJDK 64-Bit Server VM warning: ignoring option MaxPermSize=256M; support was removed in 8.0
+Running org.apache.hadoop.hive.druid.TestDruidSerDe
+Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 3.898 sec - in org.apache.hadoop.hive.druid.TestDruidSerDe
+OpenJDK 64-Bit Server VM warning: ignoring option MaxPermSize=256M; support was removed in 8.0
+Running org.apache.hadoop.hive.druid.io.TestHiveDruidSplit
+Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 2.29 sec - in org.apache.hadoop.hive.druid.io.TestHiveDruidSplit
+OpenJDK 64-Bit Server VM warning: ignoring option MaxPermSize=256M; support was removed in 8.0
+Running org.apache.hadoop.hive.druid.TestDruidStorageHandler
+Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 41.189 sec - in org.apache.hadoop.hive.druid.TestDruidStorageHandler
+OpenJDK 64-Bit Server VM warning: ignoring option MaxPermSize=256M; support was removed in 8.0
+Running org.apache.hadoop.hive.druid.TestHiveDruidQueryBasedInputFormat
+Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 4.334 sec - in org.apache.hadoop.hive.druid.TestHiveDruidQueryBasedInputFormat
+OpenJDK 64-Bit Server VM warning: ignoring option MaxPermSize=256M; support was removed in 8.0
+Running org.apache.hadoop.hive.ql.io.TestDruidRecordWriter
+Tests run: 2, Failures: 0, Errors: 0, Skipped: 1, Time elapsed: 2.952 sec - in org.apache.hadoop.hive.ql.io.TestDruidRecordWriter
+
+Results :
+
+Tests run: 12, Failures: 0, Errors: 0, Skipped: 1
+
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time: 1:07.959s
+[INFO] Finished at: Thu May 30 19:11:32 UTC 2019
+[INFO] Final Memory: 54M/2311M
+[INFO] ------------------------------------------------------------------------

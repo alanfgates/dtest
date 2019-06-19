@@ -50,8 +50,7 @@ public class MavenResultAnalyzer extends ResultAnalyzer {
   private AtomicInteger succeeded;
   private List<String> failed;
   private List<String> errors;
-  private final Pattern successLine;
-  private final Pattern errorLine;
+  private final Pattern testCountLine;
   private final Pattern timeout;
   private BuildState lastContainerState;
 
@@ -60,15 +59,13 @@ public class MavenResultAnalyzer extends ResultAnalyzer {
     succeeded = new AtomicInteger(0);
     failed = new Vector<>();
     errors = new Vector<>();
-    successLine =
-        Pattern.compile("\\[(?:INFO|WARNING)\\] Tests run: ([0-9]+), Failures: ([0-9]+), Errors: ([0-9]+).*Time elapsed:.*");
-    errorLine =
-        Pattern.compile("\\[ERROR\\] Tests run: ([0-9]+), Failures: ([0-9]+), Errors: ([0-9]+).*Time elapsed:.*");
-    timeout = Pattern.compile("\\[ERROR\\] Failed to execute goal .* There was a timeout or other error in the fork.*");
+    testCountLine =
+        Pattern.compile(".*Tests run: ([0-9]+), Failures: ([0-9]+), Errors: ([0-9]+).*Time elapsed:.*");
+    timeout = Pattern.compile(".*Failed to execute goal .* There was a timeout or other error in the fork.*");
     unitTestErrorPatterns = new ArrayDeque<>();
-    unitTestErrorPatterns.add(Pattern.compile("\\[ERROR\\] ([A-Za-z0-9_]+).*\\.(Test[A-Za-z0-9_]+).*ERROR!"));
+    unitTestErrorPatterns.add(Pattern.compile("(?:\\[ERROR\\] )?([A-Za-z0-9_]+)\\([a-zA-Z_0-9.]+\\.(Test[A-Za-z0-9_]+)\\)\\s+Time elapsed: [0-9.]+ (?:sec|s)\\s+<<< ERROR!"));
     unitTestFailurePatterns = new ArrayDeque<>();
-    unitTestFailurePatterns.add(Pattern.compile("\\[ERROR\\] ([A-Za-z0-9_]+).*\\.(Test[A-Za-z0-9_]+).*FAILURE!"));
+    unitTestFailurePatterns.add(Pattern.compile("(?:\\[ERROR\\] )?([A-Za-z0-9_]+)\\([a-zA-Z_0-9.]+\\.(Test[A-Za-z0-9_]+)\\)\\s+Time elapsed: [0-9.]+ (?:sec|s)\\s+<<< FAILURE!"));
   }
 
   @Override
@@ -93,8 +90,8 @@ public class MavenResultAnalyzer extends ResultAnalyzer {
     lastContainerState = new BuildState();
     String[] lines = result.getStdout().split("\n");
     for (String line : lines) {
-      count(line, successLine);
-      count(line, errorLine);
+      assert line != null;
+      count(line, testCountLine);
       analyzeLogLine(result, line, yaml);
     }
     try {
@@ -117,16 +114,19 @@ public class MavenResultAnalyzer extends ResultAnalyzer {
     Matcher m = timeout.matcher(line);
     if (m.matches()) lastContainerState.sawTimeouts();
     else findErrorsAndFailures(result, line, yaml);
+    // We need to examine each line for errors because one test with multiple failures will report each one on a separate line
   }
 
-  private void count(String line, Pattern pattern) {
+  private int count(String line, Pattern pattern) {
     Matcher m = pattern.matcher(line);
+    int failures = 0, errors = 0;
     if (m.matches()) {
       int total = Integer.parseInt(m.group(1));
-      int failures = Integer.parseInt(m.group(2));
-      int errors = Integer.parseInt(m.group(3));
+      failures = Integer.parseInt(m.group(2));
+      errors = Integer.parseInt(m.group(3));
       succeeded.addAndGet(total - failures - errors);
     }
+    return failures + errors;
   }
 
   private void findErrorsAndFailures(ContainerResult result, String line, BuildYaml yaml) throws IOException {

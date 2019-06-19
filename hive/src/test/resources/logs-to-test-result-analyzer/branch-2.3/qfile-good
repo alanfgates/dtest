@@ -1,0 +1,19 @@
+
+-------------------------------------------------------
+ T E S T S
+-------------------------------------------------------
+OpenJDK 64-Bit Server VM warning: ignoring option MaxPermSize=256M; support was removed in 8.0
+Running org.apache.hadoop.hive.cli.TestMiniLlapCliDriver
+Tests run: 10, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 316.747 sec - in org.apache.hadoop.hive.cli.TestMiniLlapCliDriver
+
+Results :
+
+Tests run: 10, Failures: 0, Errors: 0, Skipped: 0
+
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time: 5:37.329s
+[INFO] Finished at: Thu May 30 21:25:51 UTC 2019
+[INFO] Final Memory: 72M/2428M
+[INFO] ------------------------------------------------------------------------

@@ -15,22 +15,30 @@
  */
 package org.dtest.hive;
 
-import com.google.common.annotations.VisibleForTesting;
 import org.dtest.core.BuildState;
 import org.dtest.core.BuildYaml;
 import org.dtest.core.Config;
 import org.dtest.core.ContainerCommand;
 import org.dtest.core.ContainerResult;
+import org.dtest.core.DTestLogger;
+import org.dtest.core.Slf4jLogger;
 import org.dtest.core.TestUtils;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
+import java.io.File;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
 public class TestHiveResultAnalyzer {
+
+  private static final String LOG_FILE_DIR = System.getProperty("java.io.tmpdir") + "/test-classes/logs-to-test-result-analyzer/";
+  static final String MASTER_LOG_FILE_DIR = LOG_FILE_DIR + "master/";
+  static final String BRANCH_2_LOG_FILE_DIR = LOG_FILE_DIR + "branch-2.3/";
 
   private static class SimpleContainerCommand extends ContainerCommand {
     private final String name;
@@ -59,26 +67,50 @@ public class TestHiveResultAnalyzer {
 
   @Test
   public void unitTestWithFailures() throws IOException  {
+    DTestLogger log = new Slf4jLogger();
+    HiveResultAnalyzer analyzer = new HiveResultAnalyzer();
+    analyzer.setConfig(new Config()).setLog(log);
+    log.debug("Hi there!");
+
+    ContainerResult cr = new ContainerResult(new SimpleContainerCommand("hive-dtest-1_unittests-hive-unit",
+        "/Users/gates/git/hive/itests/hive-unit") , 0, TestUtils.readLogFile(MASTER_LOG_FILE_DIR + File.separator + "fail"));
+    analyzer.analyzeLog(cr, getYaml());
+    //log.dumpToLog();
+    Assert.assertEquals(3, analyzer.getErrors().size());
+    Collections.sort(analyzer.getErrors());
+    Assert.assertEquals("TestSchemaToolForMetastore.testValidateLocations", analyzer.getErrors().get(0));
+    Assert.assertEquals("TestSchemaToolForMetastore.testValidateNullValues", analyzer.getErrors().get(1));
+    Assert.assertEquals("TestSchemaToolForMetastore.testValidateSequences", analyzer.getErrors().get(2));
+    Assert.assertEquals(0, analyzer.getFailed().size());
+    Assert.assertEquals(64, analyzer.getSucceeded());
+    Assert.assertEquals(BuildState.State.HAD_FAILURES_OR_ERRORS, analyzer.getBuildState().getState());
+    Assert.assertEquals(3, cr.getLogFilesToFetch().size());
+    SortedSet<String> orderedLogFiles = new TreeSet<>(cr.getLogFilesToFetch());
+    Iterator iter = orderedLogFiles.iterator();
+    Assert.assertEquals("/Users/gates/git/hive/itests/hive-unit/target/surefire-reports/org.apache.hadoop.hive.metastore.tools.TestSchemaToolForMetastore-output.txt", iter.next());
+    Assert.assertEquals("/Users/gates/git/hive/itests/hive-unit/target/surefire-reports/org.apache.hadoop.hive.metastore.tools.TestSchemaToolForMetastore.txt", iter.next());
+    Assert.assertEquals("/Users/gates/git/hive/itests/hive-unit/target/tmp/log/hive.log", iter.next());
+  }
+
+  @Test
+  public void unitTestWithFailuresBranch2() throws IOException  {
     TestUtils.TestLogger log = new TestUtils.TestLogger();
     HiveResultAnalyzer analyzer = new HiveResultAnalyzer();
     analyzer.setConfig(new Config()).setLog(log);
     ContainerResult cr = new ContainerResult(new SimpleContainerCommand("hive-dtest-1_unittests-hive-unit",
-        "/Users/gates/git/hive/itests/hive-unit") , 0, LOG_UNIT_TESTS_WITH_FAILURES);
+        "/Users/gates/git/hive/itests/hive-unit") , 0, TestUtils.readLogFile(BRANCH_2_LOG_FILE_DIR + File.separator + "fail"));
     analyzer.analyzeLog(cr, getYaml());
     log.dumpToLog();
     Assert.assertEquals(1, analyzer.getErrors().size());
-    Assert.assertEquals("TestAcidOnTez.testGetSplitsLocks", analyzer.getErrors().get(0));
-    Assert.assertEquals(1, analyzer.getFailed().size());
-    Assert.assertEquals("TestActivePassiveHA.testManualFailover", analyzer.getFailed().get(0));
-    Assert.assertEquals(32, analyzer.getSucceeded());
+    Assert.assertEquals("TestTxnCommands2WithSplitUpdateAndVectorization.testNonAcidToAcidConversion02", analyzer.getErrors().get(0));
+    Assert.assertEquals(0, analyzer.getFailed().size());
+    Assert.assertEquals(104, analyzer.getSucceeded());
     Assert.assertEquals(BuildState.State.HAD_FAILURES_OR_ERRORS, analyzer.getBuildState().getState());
-    Assert.assertEquals(5, cr.getLogFilesToFetch().size());
+    Assert.assertEquals(3, cr.getLogFilesToFetch().size());
     SortedSet<String> orderedLogFiles = new TreeSet<>(cr.getLogFilesToFetch());
     Iterator iter = orderedLogFiles.iterator();
-    Assert.assertEquals("/Users/gates/git/hive/itests/hive-unit/target/surefire-reports/org.apache.hadoop.hive.ql.TestAcidOnTez-output.txt", iter.next());
-    Assert.assertEquals("/Users/gates/git/hive/itests/hive-unit/target/surefire-reports/org.apache.hadoop.hive.ql.TestAcidOnTez.txt", iter.next());
-    Assert.assertEquals("/Users/gates/git/hive/itests/hive-unit/target/surefire-reports/org.apache.hive.jdbc.TestActivePassiveHA-output.txt", iter.next());
-    Assert.assertEquals("/Users/gates/git/hive/itests/hive-unit/target/surefire-reports/org.apache.hive.jdbc.TestActivePassiveHA.txt", iter.next());
+    Assert.assertEquals("/Users/gates/git/hive/itests/hive-unit/target/surefire-reports/org.apache.hadoop.hive.ql.TestTxnCommands2WithSplitUpdateAndVectorization-output.txt", iter.next());
+    Assert.assertEquals("/Users/gates/git/hive/itests/hive-unit/target/surefire-reports/org.apache.hadoop.hive.ql.TestTxnCommands2WithSplitUpdateAndVectorization.txt", iter.next());
     Assert.assertEquals("/Users/gates/git/hive/itests/hive-unit/target/tmp/log/hive.log", iter.next());
   }
 
@@ -88,12 +120,28 @@ public class TestHiveResultAnalyzer {
     HiveResultAnalyzer analyzer = new HiveResultAnalyzer();
     analyzer.setConfig(new Config()).setLog(log);
     ContainerResult cr = new ContainerResult(new SimpleContainerCommand("hive-dtest-1_unittests-hive-unit",
-        "/Users/gates/git/hive/itests/hive-unit") , 0, LOG_UNIT_TESTS_ALL_SUCCEEDED);
+        "/Users/gates/git/hive/itests/hive-unit") , 0, TestUtils.readLogFile(MASTER_LOG_FILE_DIR + File.separator + "good"));
     analyzer.analyzeLog(cr, getYaml());
     log.dumpToLog();
     Assert.assertEquals(0, analyzer.getErrors().size());
     Assert.assertEquals(0, analyzer.getFailed().size());
-    Assert.assertEquals(19, analyzer.getSucceeded());
+    Assert.assertEquals(154, analyzer.getSucceeded());
+    Assert.assertEquals(BuildState.State.SUCCEEDED, analyzer.getBuildState().getState());
+    Assert.assertEquals(0, cr.getLogFilesToFetch().size());
+  }
+
+  @Test
+  public void unitTestAllSucceededBranch2() throws IOException {
+    TestUtils.TestLogger log = new TestUtils.TestLogger();
+    HiveResultAnalyzer analyzer = new HiveResultAnalyzer();
+    analyzer.setConfig(new Config()).setLog(log);
+    ContainerResult cr = new ContainerResult(new SimpleContainerCommand("hive-dtest-1_unittests-hive-unit",
+        "/Users/gates/git/hive/itests/hive-unit") , 0, TestUtils.readLogFile(BRANCH_2_LOG_FILE_DIR + File.separator + "good"));
+    analyzer.analyzeLog(cr, getYaml());
+    log.dumpToLog();
+    Assert.assertEquals(0, analyzer.getErrors().size());
+    Assert.assertEquals(0, analyzer.getFailed().size());
+    Assert.assertEquals(133, analyzer.getSucceeded());
     Assert.assertEquals(BuildState.State.SUCCEEDED, analyzer.getBuildState().getState());
     Assert.assertEquals(0, cr.getLogFilesToFetch().size());
   }
@@ -105,20 +153,42 @@ public class TestHiveResultAnalyzer {
     analyzer.setConfig(new Config()).setLog(log);
     ContainerResult cr = new ContainerResult(new SimpleContainerCommand(
         "hive-dtest-1_itests-qtest_TestNegativeCliDriver_a_LF_a-t_RT_._S_",
-        "/Users/gates/git/hive/itests/qtest"), 0, LOG_QFILE_WITH_FAILURES);
+        "/Users/gates/git/hive/itests/qtest"), 0, TestUtils.readLogFile(MASTER_LOG_FILE_DIR + File.separator + "qfile-fail"));
     analyzer.analyzeLog(cr, getYaml());
     log.dumpToLog();
-    Assert.assertEquals(1, analyzer.getErrors().size());
-    Assert.assertEquals("TestNegativeCliDriver.alter_notnull_constraint_violation", analyzer.getErrors().get(0));
+    Assert.assertEquals(0, analyzer.getErrors().size());
     Assert.assertEquals(1, analyzer.getFailed().size());
-    Assert.assertEquals("TestNegativeCliDriver.alter_table_constraint_duplicate_pk", analyzer.getFailed().get(0));
-    Assert.assertEquals(72, analyzer.getSucceeded());
+    Assert.assertEquals("TestCliDriver.show_functions", analyzer.getFailed().get(0));
+    Assert.assertEquals(9, analyzer.getSucceeded());
     Assert.assertEquals(BuildState.State.HAD_FAILURES_OR_ERRORS, analyzer.getBuildState().getState());
     Assert.assertEquals(3, cr.getLogFilesToFetch().size());
     SortedSet<String> orderedLogFiles = new TreeSet<>(cr.getLogFilesToFetch());
     Iterator iter = orderedLogFiles.iterator();
-    Assert.assertEquals("/Users/gates/git/hive/itests/qtest/target/surefire-reports/org.apache.hadoop.hive.cli.TestNegativeCliDriver-output.txt", iter.next());
-    Assert.assertEquals("/Users/gates/git/hive/itests/qtest/target/surefire-reports/org.apache.hadoop.hive.cli.TestNegativeCliDriver.txt", iter.next());
+    Assert.assertEquals("/Users/gates/git/hive/itests/qtest/target/surefire-reports/org.apache.hadoop.hive.cli.TestCliDriver-output.txt", iter.next());
+    Assert.assertEquals("/Users/gates/git/hive/itests/qtest/target/surefire-reports/org.apache.hadoop.hive.cli.TestCliDriver.txt", iter.next());
+    Assert.assertEquals("/Users/gates/git/hive/itests/qtest/target/tmp/log/hive.log", iter.next());
+  }
+
+  @Test
+  public void qtestLogWithFailuresBranch2() throws IOException {
+    TestUtils.TestLogger log = new TestUtils.TestLogger();
+    HiveResultAnalyzer analyzer = new HiveResultAnalyzer();
+    analyzer.setConfig(new Config()).setLog(log);
+    ContainerResult cr = new ContainerResult(new SimpleContainerCommand(
+        "hive-dtest-1_itests-qtest_TestNegativeCliDriver_a_LF_a-t_RT_._S_",
+        "/Users/gates/git/hive/itests/qtest"), 0, TestUtils.readLogFile(BRANCH_2_LOG_FILE_DIR + File.separator + "qfile-fail"));
+    analyzer.analyzeLog(cr, getYaml());
+    log.dumpToLog();
+    Assert.assertEquals(0, analyzer.getErrors().size());
+    Assert.assertEquals(1, analyzer.getFailed().size());
+    Assert.assertEquals("TestMiniLlapCliDriver.insert_values_orig_table.", analyzer.getFailed().get(0));
+    Assert.assertEquals(9, analyzer.getSucceeded());
+    Assert.assertEquals(BuildState.State.HAD_FAILURES_OR_ERRORS, analyzer.getBuildState().getState());
+    Assert.assertEquals(3, cr.getLogFilesToFetch().size());
+    SortedSet<String> orderedLogFiles = new TreeSet<>(cr.getLogFilesToFetch());
+    Iterator iter = orderedLogFiles.iterator();
+    Assert.assertEquals("/Users/gates/git/hive/itests/qtest/target/surefire-reports/org.apache.hadoop.hive.cli.TestMiniLlapCliDriver-output.txt", iter.next());
+    Assert.assertEquals("/Users/gates/git/hive/itests/qtest/target/surefire-reports/org.apache.hadoop.hive.cli.TestMiniLlapCliDriver.txt", iter.next());
     Assert.assertEquals("/Users/gates/git/hive/itests/qtest/target/tmp/log/hive.log", iter.next());
   }
 
@@ -129,12 +199,29 @@ public class TestHiveResultAnalyzer {
     analyzer.setConfig(new Config()).setLog(log);
     ContainerResult cr = new ContainerResult(new SimpleContainerCommand(
         "hive-dtest-1_itests-qtest_TestNegativeCliDriver_a_LF_a-t_RT_._S_",
-        "/Users/gates/git/hive/itests/qtest"), 0, LOG_QFILE_ALL_SUCCEEDED);
+        "/Users/gates/git/hive/itests/qtest"), 0, TestUtils.readLogFile(MASTER_LOG_FILE_DIR + File.separator + "qfile-good"));
     analyzer.analyzeLog(cr, getYaml());
     log.dumpToLog();
     Assert.assertEquals(0, analyzer.getErrors().size());
     Assert.assertEquals(0, analyzer.getFailed().size());
-    Assert.assertEquals(74, analyzer.getSucceeded());
+    Assert.assertEquals(10, analyzer.getSucceeded());
+    Assert.assertEquals(BuildState.State.SUCCEEDED, analyzer.getBuildState().getState());
+    Assert.assertEquals(0, cr.getLogFilesToFetch().size());
+  }
+
+  @Test
+  public void qtestLogAllSuccessBranch2() throws IOException {
+    TestUtils.TestLogger log = new TestUtils.TestLogger();
+    HiveResultAnalyzer analyzer = new HiveResultAnalyzer();
+    analyzer.setConfig(new Config()).setLog(log);
+    ContainerResult cr = new ContainerResult(new SimpleContainerCommand(
+        "hive-dtest-1_itests-qtest_TestNegativeCliDriver_a_LF_a-t_RT_._S_",
+        "/Users/gates/git/hive/itests/qtest"), 0, TestUtils.readLogFile(BRANCH_2_LOG_FILE_DIR + File.separator + "qfile-good"));
+    analyzer.analyzeLog(cr, getYaml());
+    log.dumpToLog();
+    Assert.assertEquals(0, analyzer.getErrors().size());
+    Assert.assertEquals(0, analyzer.getFailed().size());
+    Assert.assertEquals(10, analyzer.getSucceeded());
     Assert.assertEquals(BuildState.State.SUCCEEDED, analyzer.getBuildState().getState());
     Assert.assertEquals(0, cr.getLogFilesToFetch().size());
   }
@@ -145,10 +232,25 @@ public class TestHiveResultAnalyzer {
     HiveResultAnalyzer analyzer = new HiveResultAnalyzer();
     analyzer.setConfig(new Config()).setLog(log);
     ContainerResult cr = new ContainerResult(new SimpleContainerCommand(
-        "unittest-7", "/Users/gates/git/hive/jdbc"), 0, LOG_WITH_SKIPPED_TESTS);
+        "unittest-7", "/Users/gates/git/hive/jdbc"), 0, TestUtils.readLogFile(MASTER_LOG_FILE_DIR + File.separator + "skip"));
     analyzer.analyzeLog(cr, getYaml());
     log.dumpToLog();
     Assert.assertEquals(26, analyzer.getSucceeded());
+    Assert.assertEquals(0, analyzer.getErrors().size());
+    Assert.assertEquals(0, analyzer.getFailed().size());
+    Assert.assertEquals(BuildState.State.SUCCEEDED, analyzer.getBuildState().getState());
+  }
+
+  @Test
+  public void logWithSkipBranch2() throws IOException {
+    TestUtils.TestLogger log = new TestUtils.TestLogger();
+    HiveResultAnalyzer analyzer = new HiveResultAnalyzer();
+    analyzer.setConfig(new Config()).setLog(log);
+    ContainerResult cr = new ContainerResult(new SimpleContainerCommand(
+        "unittest-7", "/Users/gates/git/hive/jdbc"), 0, TestUtils.readLogFile(BRANCH_2_LOG_FILE_DIR + File.separator + "skip"));
+    analyzer.analyzeLog(cr, getYaml());
+    log.dumpToLog();
+    Assert.assertEquals(12, analyzer.getSucceeded());
     Assert.assertEquals(0, analyzer.getErrors().size());
     Assert.assertEquals(0, analyzer.getFailed().size());
     Assert.assertEquals(BuildState.State.SUCCEEDED, analyzer.getBuildState().getState());
@@ -159,7 +261,20 @@ public class TestHiveResultAnalyzer {
     TestUtils.TestLogger log = new TestUtils.TestLogger();
     HiveResultAnalyzer analyzer = new HiveResultAnalyzer();
     analyzer.setConfig(new Config()).setLog(log);
-    analyzer.analyzeLog(new ContainerResult(new SimpleContainerCommand("bla", "bla"), 0, LOG_WITH_TIMEOUT), getYaml());
+    analyzer.analyzeLog(new ContainerResult(new SimpleContainerCommand("bla", "bla"), 0,
+        TestUtils.readLogFile(MASTER_LOG_FILE_DIR + File.separator + "timeout")), getYaml());
+    log.dumpToLog();
+    Assert.assertEquals(BuildState.State.HAD_TIMEOUTS, analyzer.getBuildState().getState());
+  }
+
+  @Test
+  @Ignore // Need to find a branch 2 timeout example
+  public void timeoutLogBranch2() throws IOException {
+    TestUtils.TestLogger log = new TestUtils.TestLogger();
+    HiveResultAnalyzer analyzer = new HiveResultAnalyzer();
+    analyzer.setConfig(new Config()).setLog(log);
+    analyzer.analyzeLog(new ContainerResult(new SimpleContainerCommand("bla", "bla"), 0,
+        TestUtils.readLogFile(BRANCH_2_LOG_FILE_DIR + File.separator + "timeout")), getYaml());
     log.dumpToLog();
     Assert.assertEquals(BuildState.State.HAD_TIMEOUTS, analyzer.getBuildState().getState());
   }
@@ -180,7 +295,7 @@ public class TestHiveResultAnalyzer {
     return yaml;
   }
 
-  @VisibleForTesting
+  /*
   private static final String LOG_UNIT_TESTS_WITH_FAILURES =
       "[INFO] ------------------------------------------------------------------------\n" +
       "[INFO] Building Hive Integration - Unit Tests 3.0.0-SNAPSHOT\n" +
@@ -310,4 +425,5 @@ public class TestHiveResultAnalyzer {
       "[INFO] Finished at: Wed Aug 01 00:37:35 UTC 2018\n" +
       "[INFO] Final Memory: 56M/2370M\n" +
       "[INFO] ------------------------------------------------------------------------";
+      */
 }

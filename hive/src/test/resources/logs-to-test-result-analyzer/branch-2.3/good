@@ -1,0 +1,45 @@
+
+-------------------------------------------------------
+ T E S T S
+-------------------------------------------------------
+Running org.apache.hadoop.hive.ql.util.JavaDataModelTest
+Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.103 sec - in org.apache.hadoop.hive.ql.util.JavaDataModelTest
+Running org.apache.hadoop.hive.ql.exec.vector.TestListColumnVector
+Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.132 sec - in org.apache.hadoop.hive.ql.exec.vector.TestListColumnVector
+Running org.apache.hadoop.hive.ql.exec.vector.TestMapColumnVector
+Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.096 sec - in org.apache.hadoop.hive.ql.exec.vector.TestMapColumnVector
+Running org.apache.hadoop.hive.ql.exec.vector.TestUnionColumnVector
+Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.077 sec - in org.apache.hadoop.hive.ql.exec.vector.TestUnionColumnVector
+Running org.apache.hadoop.hive.ql.exec.vector.expressions.TestStringExpr
+Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.076 sec - in org.apache.hadoop.hive.ql.exec.vector.expressions.TestStringExpr
+Running org.apache.hadoop.hive.ql.exec.vector.TestTimestampColumnVector
+Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.359 sec - in org.apache.hadoop.hive.ql.exec.vector.TestTimestampColumnVector
+Running org.apache.hadoop.hive.ql.exec.vector.TestStructColumnVector
+Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.114 sec - in org.apache.hadoop.hive.ql.exec.vector.TestStructColumnVector
+Running org.apache.hadoop.hive.ql.exec.vector.TestBytesColumnVector
+Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.087 sec - in org.apache.hadoop.hive.ql.exec.vector.TestBytesColumnVector
+Running org.apache.hadoop.hive.serde2.io.TestHiveDecimalWritableVersion
+Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.117 sec - in org.apache.hadoop.hive.serde2.io.TestHiveDecimalWritableVersion
+Running org.apache.hadoop.hive.serde2.io.TestHiveDecimalWritable
+Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.084 sec - in org.apache.hadoop.hive.serde2.io.TestHiveDecimalWritable
+Running org.apache.hadoop.hive.common.type.TestHiveDecimal
+Tests run: 85, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 90.744 sec - in org.apache.hadoop.hive.common.type.TestHiveDecimal
+Running org.apache.hadoop.hive.common.type.TestHiveDecimalVersion
+Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.129 sec - in org.apache.hadoop.hive.common.type.TestHiveDecimalVersion
+Running org.apache.hive.common.util.TestMurmur3
+Tests run: 9, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.216 sec - in org.apache.hive.common.util.TestMurmur3
+Running org.apache.hive.common.util.TestBloomFilter
+Tests run: 18, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.101 sec - in org.apache.hive.common.util.TestBloomFilter
+
+Results :
+
+Tests run: 133, Failures: 0, Errors: 0, Skipped: 0
+
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time: 1:53.165s
+[INFO] Finished at: Thu May 30 19:11:29 UTC 2019
+[INFO] Final Memory: 32M/1599M
+[INFO] ------------------------------------------------------------------------
+

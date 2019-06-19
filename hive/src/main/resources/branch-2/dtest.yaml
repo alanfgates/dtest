@@ -1,0 +1,211 @@
+baseImage: centos
+requiredPackages:
+  - java-1.8.0-openjdk-devel
+projectName: hive
+comment: hive branch-2 yaml file
+javaPackages:
+- org.apache.hadoop.hive
+- org.apache.hive
+additionalLogs:
+- target/tmp/log/hive.log
+repo: https://git-wip-us.apache.org/repos/asf/hive.git
+branch: branch-2
+hiveDirs:
+  - dir: accumulo-handler
+  - dir: beeline
+  - dir: cli
+  - dir: common
+  - dir: contrib
+  - dir: hplsql
+  - dir: jdbc
+  - dir: jdbc-handler
+  - dir: serde
+  - dir: shims/common
+  - dir: storage-api
+  - dir: llap-client
+    env:
+      USER: dtestuser
+  - dir: llap-common
+    env:
+      USER: dtestuser
+  - dir: llap-server
+    env:
+      USER: dtestuser
+  - dir: llap-tez
+    env:
+      USER: dtestuser
+  - dir: metastore
+    needsSplit: true
+  - dir: druid-handler
+  - dir: service
+  - dir: spark-client
+  - dir: hbase-handler
+  - dir: hcatalog/core
+    needsSplit: true
+  - dir: hcatalog/hcatalog-pig-adapter
+    needsSplit: true
+  - dir: hcatalog/server-extensions
+  - dir: hcatalog/streaming
+    needsSplit: true
+  - dir: hcatalog/webhcat/java-client
+  - dir: hcatalog/webhcat/svr
+  - dir: ql
+    needsSplit: true
+#   skippedTests:
+#     - TestTxnCommands2WithSplitUpdateAndVectorization       # verified 6/17/19
+#     - TestTxnCommands2WithSplitUpdate                       # verified 6/17/19
+#     - TestTxnCommands2                                      # verified 6/17/19
+  - dir: itests/hcatalog-unit
+    properties:
+      skipSparkTests: null
+  - dir: itests/hive-blobstore
+    singleTest: TestBlobstoreCliDriver
+    qfilesDir: itests/hive-blobstore/src/test/queries/clientpositive
+    properties:
+      skipSparkTests: null
+#   excludedQFiles:
+#     - insert_into_table.q
+#     - insert_overwrite_directory.q
+#     - insert_overwrite_dynamic_partitions.q
+#     - insert_into_dynamic_partitions.q
+  - dir: itests/hive-blobstore
+    singleTest: TestBlobstoreNegativeCliDriver
+    properties:
+      skipSparkTests: null
+  - dir: itests/hive-minikdc
+    properties:
+      skipSparkTests: null
+  - dir: itests/hive-unit
+    needsSplit: true
+    properties:
+      skipSparkTests: null
+    isolatedTests:
+      - TestTriggersWorkloadManager
+      - TestMetaStoreMetrics
+#   skippedTests:
+#     - TestReplicationScenarios                            # verified 6/10/19
+#     - TestJdbcWithLocalClusterSpark                       # verified 6/17/19
+#     - TestJdbcDriver2                                     # verified 6/17/19
+#     - TestMultiSessionsHS2WithLocalClusterSpark           # verified 6/17/19
+  - dir: itests/hive-unit-hadoop2
+    properties:
+      skipSparkTests: null
+  - dir: itests/test-serde
+    properties:
+      skipSparkTests: null
+    skippedTests:
+      - TestSerDe
+  - dir: itests/qtest
+    singleTest: TestBeeLineDriver
+    includedQFilesProperties:
+      - beeline.positive.include
+    properties:
+      skipSparkTests: null
+  - dir: itests/qtest
+    singleTest: TestContribCliDriver
+    properties:
+      skipSparkTests: null
+  - dir: itests/qtest
+    singleTest: TestContribNegativeCliDriver
+    properties:
+      skipSparkTests: null
+  - dir: itests/qtest
+    singleTest: TestHBaseNegativeCliDriver
+    properties:
+      skipSparkTests: null
+  - dir: itests/qtest
+    singleTest: TestParseNegativeDriver
+    properties:
+      skipSparkTests: null
+  - dir: itests/qtest-accumulo
+    properties:
+      skipSparkTests: null
+  - dir: itests/qtest
+    singleTest: TestCliDriver
+    qfilesDir: ql/src/test/queries/clientpositive
+    excludedQFilesProperties:
+      - minillap.query.files
+      - minillaplocal.query.files
+      - minimr.query.files
+      - minitez.query.files
+      - encrypted.query.files
+      - spark.only.query.files
+      - miniSparkOnYarn.only.query.files
+      - disabled.query.files
+      - localSpark.only.query.files
+      - druid.query.files
+    isolatedQFiles:
+      - authorization_show_grant.q
+#   excludedQFiles:
+#     - cte_4.q                             # verified 6/10/19
+#     - authorization_view_disable_cbo_1.q  # verified 6/10/19
+#     - orc_schema_evolution_float.q        # verified 6/10/19
+#     - selectindate.q                      # verified 6/10/19
+#     - cp_sel.q                            # verified 6/10/19
+#     - union37.q                           # verified 6/10/19
+#     - authorization_view_1.q              # verified 6/10/19
+#     - smb_mapjoin_46.q                    # verified 6/10/19
+#     - parquet_ppd_multifiles.q            # verified 6/10/19
+#     - orc_merge10.q                       # verified 6/10/19
+    properties:
+      skipSparkTests: null
+  - dir: itests/qtest
+    singleTest: TestEncryptedHDFSCliDriver
+    includedQFilesProperties:
+      - encrypted.query.files
+#   excludedQFiles:
+#     - encryption_with_trash.q      # verified 6/17/19
+    properties:
+      skipSparkTests: null
+  - dir: itests/qtest
+    singleTest: TestNegativeCliDriver
+    qfilesDir: ql/src/test/queries/clientnegative
+    excludedQFilesProperties:
+      - minimr.query.negative.files
+    properties:
+      skipSparkTests: null
+  - dir: itests/qtest
+    singleTest: TestHBaseCliDriver
+    qfilesDir: hbase-handler/src/test/queries/positive
+    properties:
+      skipSparkTests: null
+  - dir: itests/qtest
+    singleTest: TestMiniTezCliDriver
+    includedQFilesProperties:
+      - minitez.query.files
+      - minitez.query.files.shared
+    excludedQFilesProperties:
+      - minillap.query.files
+      - minillap.shared.query.files
+    properties:
+      skipSparkTests: null
+  - dir: itests/qtest
+    singleTest: TestMiniLlapCliDriver
+    includedQFilesProperties:
+      - minillap.query.files
+      - minillap.shared.query.files
+#   excludedQFiles:
+#     - tez_aggr_part_stats.q          # verified 6/10/19
+#     - tez_union_view.q               # verified 6/10/19
+#     - union_type_chk.q               # verified 6/10/19
+#     - insert_values_orig_table.      # verified 6/10/19
+    env:
+      USER: dtestuser
+    properties:
+      skipSparkTests: null
+  - dir: itests/qtest
+    singleTest: TestMiniLlapLocalCliDriver
+    includedQFilesProperties:
+      - minillaplocal.query.files
+      - minillaplocal.shared.query.files
+    isolatedQFiles:
+      - hybridgrace_hashjoin_2.q
+#   excludedQFiles:
+#     - mergejoin.q                               # verified 6/10/19
+#     - vectorized_dynamic_semijoin_reduction2.q  # verified 6/10/19
+#     - dynamic_semijoin_reduction.q              # verified 6/10/19
+#     - vectorized_dynamic_semijoin_reduction.q   # verified 6/10/19
+    env:
+      USER: dtestuser
+    properties:
+      skipSparkTests: null

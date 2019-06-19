@@ -33,6 +33,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -51,7 +52,7 @@ public class TestHiveDockerTest {
     }
 
     @Override
-    public void buildImage(ContainerCommandFactory cmdFactory) throws IOException {
+    public void buildImage(ContainerCommandFactory cmdFactory) {
       imageBuilt = true;
     }
 
@@ -59,29 +60,29 @@ public class TestHiveDockerTest {
     public ContainerResult runContainer(ContainerCommand cmd) throws
         IOException {
       String logs = "Ran: " + StringUtils.join(cmd.shellCommand(), " ") +
-          TestHiveResultAnalyzer.LOG_QFILE_WITH_FAILURES;
+          TestUtils.readLogFile(TestHiveResultAnalyzer.MASTER_LOG_FILE_DIR + File.separator + "qfile-fail");
       return new ContainerResult(cmd, 0, logs);
     }
 
     @Override
-    public void copyLogFiles(ContainerResult result, String targetDir) throws IOException {
+    public void copyLogFiles(ContainerResult result, String targetDir) {
 
     }
 
     @Override
-    public void removeContainer(ContainerResult result) throws IOException {
+    public void removeContainer(ContainerResult result) {
 
     }
 
     @Override
-    public void removeImage() throws IOException {
+    public void removeImage() {
 
     }
   }
 
   public static class ItestCommandList extends ContainerCommandFactory {
     @Override
-    public void buildContainerCommands(ContainerClient containerClient, BuildInfo label) throws IOException {
+    public void buildContainerCommands(ContainerClient containerClient, BuildInfo label) {
       getCmds().add(new ContainerCommand() {
         @Override
         public String containerSuffix() {
@@ -179,11 +180,10 @@ public class TestHiveDockerTest {
     test.setLogger(log);
     BuildState state = test.runBuild();
     Assert.assertTrue(imageBuilt);
-    Assert.assertEquals(1, errors.size());
-    Assert.assertEquals("TestNegativeCliDriver.alter_notnull_constraint_violation", errors.get(0));
+    Assert.assertEquals(0, errors.size());
     Assert.assertEquals(1, failures.size());
-    Assert.assertEquals("TestNegativeCliDriver.alter_table_constraint_duplicate_pk", failures.get(0));
-    Assert.assertEquals(72, succeeded);
+    Assert.assertEquals("TestCliDriver.show_functions", failures.get(0));
+    Assert.assertEquals(9, succeeded);
     Assert.assertEquals(BuildState.State.HAD_FAILURES_OR_ERRORS, state.getState());
     Assert.assertTrue(log.toString().contains("HAD FAILURES OR ERRORS"));
   }

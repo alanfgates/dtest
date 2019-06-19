@@ -1,0 +1,24 @@
+[INFO] 
+[INFO] -------------------------------------------------------
+[INFO]  T E S T S
+[INFO] -------------------------------------------------------
+[INFO] Running org.apache.hive.storage.jdbc.TestQueryConditionBuilder
+[INFO] Tests run: 8, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 3.914 s - in org.apache.hive.storage.jdbc.TestQueryConditionBuilder
+[INFO] Running org.apache.hive.storage.jdbc.dao.TestGenericJdbcDatabaseAccessor
+[INFO] Tests run: 12, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 4.585 s - in org.apache.hive.storage.jdbc.dao.TestGenericJdbcDatabaseAccessor
+[INFO] Running org.apache.hive.storage.jdbc.TestJdbcInputFormat
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 5.725 s - in org.apache.hive.storage.jdbc.TestJdbcInputFormat
+[INFO] Running org.apache.hive.config.TestJdbcStorageConfigManager
+[WARNING] Tests run: 4, Failures: 0, Errors: 0, Skipped: 1, Time elapsed: 3.084 s - in org.apache.hive.config.TestJdbcStorageConfigManager
+[INFO] 
+[INFO] Results:
+[INFO] 
+[WARNING] Tests run: 26, Failures: 0, Errors: 0, Skipped: 1
+[INFO] 
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time: 44.430s
+[INFO] Finished at: Tue Jun 04 20:52:01 UTC 2019
+[INFO] Final Memory: 56M/2360M
+[INFO] ------------------------------------------------------------------------
