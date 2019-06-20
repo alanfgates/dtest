@@ -48,8 +48,6 @@ hiveDirs:
   - dir: hcatalog/streaming
     needsSplit: true
   - dir: hcatalog/webhcat/java-client
-    skippedTests:
-      - TestHCatClient                              # verified 6/20/19
   - dir: hcatalog/webhcat/svr
   - dir: ql
     needsSplit: true
@@ -203,8 +201,8 @@ hiveDirs:
       - tez_union_view.q               # verified 6/20/19
       - union_type_chk.q               # verified 6/20/19
       - insert_values_orig_table.      # verified 6/20/19
-      - llap_smb.q                     # verified 6/20/19
-      - orc_ppd_basic.q                # verified 6/20/19
+#     - llap_smb.q                     # verified 6/20/19
+#     - orc_ppd_basic.q                # verified 6/20/19
       - table_nonprintable.q           # verified 6/20/19
     env:
       USER: dtestuser
