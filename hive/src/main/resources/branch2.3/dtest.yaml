@@ -103,6 +103,7 @@ hiveDirs:
       skipSparkTests: null
   - dir: itests/qtest
     singleTest: TestContribCliDriver
+    qfilesDir: contrib/src/test/queries/clientpositive
     properties:
       skipSparkTests: null
   - dir: itests/qtest
@@ -115,6 +116,7 @@ hiveDirs:
       skipSparkTests: null
   - dir: itests/qtest
     singleTest: TestParseNegativeDriver
+    qfilesDir: ql/src/test/queries/negative
     properties:
       skipSparkTests: null
   - dir: itests/qtest-accumulo
@@ -169,6 +171,13 @@ hiveDirs:
     qfilesDir: hbase-handler/src/test/queries/positive
     properties:
       skipSparkTests: null
+  - dir: itests/qtest
+    singleTest: TestPerfCliDriver
+    qfilesDir: ql/src/test/queries/clientpositive/perf
+    excludedQFilesProperties:
+      - minimr.query.files
+      - minitez.query.files
+      - encrypted.query.files
   - dir: itests/qtest
     singleTest: TestMiniTezCliDriver
     includedQFilesProperties:
