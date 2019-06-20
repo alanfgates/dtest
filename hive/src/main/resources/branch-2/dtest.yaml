@@ -120,6 +120,8 @@ hiveDirs:
   - dir: itests/qtest-accumulo
     properties:
       skipSparkTests: null
+    excludedQFiles:
+      - accumulo_queries.q                 # verified 6/20/19
   - dir: itests/qtest
     singleTest: TestCliDriver
     qfilesDir: ql/src/test/queries/clientpositive
@@ -134,19 +136,21 @@ hiveDirs:
     isolatedQFiles:
       - authorization_show_grant.q
     excludedQFiles:
-      - cte_4.q                             # verified 6/20/19
-      - authorization_view_disable_cbo_1.q  # verified 6/20/19
-      - orc_schema_evolution_float.q        # verified 6/20/19
-      - selectindate.q                      # verified 6/20/19
-      - cp_sel.q                            # verified 6/20/19
-      - union37.q                           # verified 6/20/19
-      - authorization_view_1.q              # verified 6/20/19
-      - smb_mapjoin_46.q                    # verified 6/20/19
-      - parquet_ppd_multifiles.q            # verified 6/20/19
-      - orc_merge10.q                       # verified 6/20/19
-      - avro_tableproperty_optimize.q       # verified 6/20/19
-      - explaindenpendencydiffengs.q        # verified 6/20/19
-      - vectorized_parquet_types.q          # verified 6/20/19
+      - cte_4.q                                    # verified 6/20/19
+      - authorization_view_disable_cbo_1.q         # verified 6/20/19
+      - orc_schema_evolution_float.q               # verified 6/20/19
+      - selectindate.q                             # verified 6/20/19
+      - cp_sel.q                                   # verified 6/20/19
+      - union37.q                                  # verified 6/20/19
+      - authorization_view_1.q                     # verified 6/20/19
+      - smb_mapjoin_46.q                           # verified 6/20/19
+      - parquet_ppd_multifiles.q                   # verified 6/20/19
+      - orc_merge10.q                              # verified 6/20/19
+      - avro_tableproperty_optimize.q              # verified 6/20/19
+      - explaindenpendencydiffengs.q               # verified 6/20/19
+      - vectorized_parquet_types.q                 # verified 6/20/19
+      - auto_sortmerge_join_2.q                    # verified 6/20/19
+      - insert_values_orig_table_use_metadata.q    # verified 6/20/19
     properties:
       skipSparkTests: null
   - dir: itests/qtest
