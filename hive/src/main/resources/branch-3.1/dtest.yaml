@@ -88,6 +88,9 @@ hiveDirs:
       - TestReplicationScenariosAcidTables            # verified 6/10/19
       - TestHS2ImpersonationWithRemoteMS              # verified 6/10/19
       - TestWarehouseExternalDir                      # verified 6/10/19
+      - TestSparkStatistics                           # Spark test
+      - TestJdbcWithLocalClusterSpark                 # Spark test
+      - TestMultiSessionsHS2WithLocalClusterSpark     # Spark test
   - dir: itests/hive-unit-hadoop2
     properties:
       skipSparkTests: null
@@ -238,6 +241,10 @@ hiveDirs:
       USER: dtestuser
     properties:
       skipSparkTests: null
+    excludedQFiles:
+      - tez_union_view.q                   # no such file
+      - union_type_chk.q                   # no such file
+      - tez_aggr_part_stats.q              # no such file
   - dir: itests/qtest
     singleTest: TestMiniLlapLocalCliDriver
     includedQFilesProperties:
@@ -246,18 +253,21 @@ hiveDirs:
     isolatedQFiles:
       - hybridgrace_hashjoin_2.q
     excludedQFiles:
-      - results_cache_with_masking.q       # verified 6/10/19
-      - load_data_using_job.q              # verified 6/10/19
-      - results_cache_2.q                  # verified 7/10/19
-      - sharedwork.q                       # verified 6/10/19
-      - subquery_views.q                   # verified 6/10/19
-      - bucket_map_join_tez1.q             # verified 6/12/19
-      - special_character_in_tabnames_1.q  # verified 6/12/19
-      - sysdb.q                            # verified 6/12/19
-      - tez_smb_1.q                        # verified 6/12/19
-      - union_fast_stats.q                 # verified 6/12/19
-      - schema_evol_orc_acidvec_part.q     # verified 6/12/19
-      - schema_evol_orc_vec_part_llap_io.q # verified 6/12/19
+      - results_cache_with_masking.q           # verified 6/10/19
+      - load_data_using_job.q                  # verified 6/10/19
+      - results_cache_2.q                      # verified 7/10/19
+      - sharedwork.q                           # verified 6/10/19
+      - subquery_views.q                       # verified 6/10/19
+      - bucket_map_join_tez1.q                 # verified 6/12/19
+      - special_character_in_tabnames_1.q      # verified 6/12/19
+      - sysdb.q                                # verified 6/12/19
+      - tez_smb_1.q                            # verified 6/12/19
+      - union_fast_stats.q                     # verified 6/12/19
+      - schema_evol_orc_acidvec_part.q         # verified 6/12/19
+      - schema_evol_orc_vec_part_llap_io.q     # verified 6/12/19
+      - vector_row__id.q                       # no such file
+      - load_data_acid_rename.q                # no such file
+      - alter_table_invalidate_column_stats.q  # no such file
     env:
       USER: dtestuser
     properties:
