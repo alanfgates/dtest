@@ -78,17 +78,6 @@ hiveDirs:
     isolatedTests:
       - TestTriggersWorkloadManager
       - TestMetaStoreMetrics
-      - TestReplicationScenariosAcidTables
-      - TestReplAcidTablesWithJsonMessage
-      - TestReplWithJsonMessageFormat
-      - TestStatsReplicationScenariosMigration
-      - TestStatsReplicationScenariosACID
-      - TestStatsReplicationScenariosMM
-      - TestReplTableMigrationWithJsonFormat
-      - TestReplAcidTablesBootstrapWithJsonMessage
-      - TestStatsReplicationScenariosACIDNoAutogather
-      - TestStatsReplicationScenariosMMNoAutogather
-      - TestReplicationScenariosIncrementalLoadAcidTables
     skippedTests:
       - TestReplicationScenarios                            # verified 6/20/19
       - TestJdbcWithLocalClusterSpark                       # verified 6/20/19
