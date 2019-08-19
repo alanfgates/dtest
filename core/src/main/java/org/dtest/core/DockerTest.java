@@ -27,6 +27,7 @@ import org.dtest.core.impl.ProcessResults;
 import org.dtest.core.impl.Utils;
 
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -58,6 +59,7 @@ public class DockerTest {
    */
   public static final String CFG_DOCKERTEST_NUMCONTAINERS = "dtest.core.dockertest.numcontainers";
   private static final int CFG_DOCKERTEST_NUMCONTAINERS_DEFAULT = 2;
+  private static final String ERROR_TEST_INFO_FILE = "error_log";
 
   /*~~
    * @document propsfile
@@ -81,7 +83,7 @@ public class DockerTest {
   private String cfgDir;
   private boolean cleanupAfter = true;
   private DTestLogger log;
-  private Properties cmdLineProps;
+  //private Properties cmdLineProps;
   private String repo;
   private String branch;
 
@@ -89,9 +91,11 @@ public class DockerTest {
     return cfgDir;
   }
 
+  /*
   @VisibleForTesting Properties getCmdLineProps() {
     return cmdLineProps;
   }
+  */
 
   @VisibleForTesting boolean isCleanupAfter() {
     return cleanupAfter;
@@ -180,11 +184,13 @@ public class DockerTest {
      * values in `dtest.properties`.  This argument is optional.  It can be passed as many times as desired.
      *
      */
+    /*
     opts.addOption(Option.builder("D")
         .desc("Property to set when running DockerTest, will override values in dtest.properties")
         .valueSeparator()
         .hasArgs()
         .build());
+        */
 
     /*~~
      * @document dockertest
@@ -213,9 +219,9 @@ public class DockerTest {
     CommandLine cmd;
     try {
       cmd = parser.parse(opts, args);
-      cleanupAfter = !cmd.hasOption("m");
+      cleanupAfter = !cmd.hasOption("n");
       cfgDir = cmd.getOptionValue("c");
-      cmdLineProps = cmd.hasOption("D") ? cmd.getOptionProperties("D") : new Properties();
+      //cmdLineProps = cmd.hasOption("D") ? cmd.getOptionProperties("D") : new Properties();
       if (cmd.hasOption("b")) branch = cmd.getOptionValue("b");
       if (cmd.hasOption("r")) repo = cmd.getOptionValue("r");
       return true;
@@ -331,6 +337,13 @@ public class DockerTest {
               + result.getCmd().containerSuffix());
           logDir.mkdir();
           docker.copyLogFiles(result, logDir.getAbsolutePath());
+          synchronized (this) {
+            FileWriter writer = new FileWriter(new File(buildInfo.getBuildDir(), ERROR_TEST_INFO_FILE), true);
+            for (String testName : result.getLogFilesToFetch().keySet()) {
+              writer.write("Test " + testName + " had issues, look in " + result.getCmd().containerSuffix() + "\n");
+            }
+            writer.close();
+          }
         }
         if (buildInfo.shouldCleanupAfter()) docker.removeContainer(result);
         return 1;
@@ -394,7 +407,8 @@ public class DockerTest {
     int rc;
     if (test.parseArgs(args)) {
       try {
-        test.buildConfig(test.cfgDir, test.cmdLineProps);
+        //test.buildConfig(test.cfgDir, test.cmdLineProps);
+        test.buildConfig(test.cfgDir, System.getProperties());
         test.setLogger(new Slf4jLogger());
         BuildState state = test.runBuild();
         switch (state.getState()) {

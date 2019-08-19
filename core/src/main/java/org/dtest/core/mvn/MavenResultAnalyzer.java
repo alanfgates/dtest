@@ -164,13 +164,13 @@ public class MavenResultAnalyzer extends ResultAnalyzer {
       if (m.matches()) {
         foundOne = true;
         // Don't use File.separator here as we are running these in the container, which is guaranteed to be Linux based.
-        result.addLogFileToFetch(result.getCmd().containerDirectory() + "/target/surefire-reports/" + m.group(1) + ".txt");
-        result.addLogFileToFetch(result.getCmd().containerDirectory() + "/target/surefire-reports/" + m.group(1) + "-output.txt");
+        result.addLogFileToFetch(testName, result.getCmd().containerDirectory() + "/target/surefire-reports/" + m.group(1) + ".txt");
+        result.addLogFileToFetch(testName, result.getCmd().containerDirectory() + "/target/surefire-reports/" + m.group(1) + "-output.txt");
       }
     }
     if (!foundOne) throw new IOException("Unable to find logfile for test " + testName + " from line <" + line + ">");
     for (String log : yaml.getAdditionalLogs()) {
-      result.addLogFileToFetch(result.getCmd().containerDirectory() + File.separator + log);
+      result.addLogFileToFetch(testName, result.getCmd().containerDirectory() + File.separator + log);
     }
   }
 }

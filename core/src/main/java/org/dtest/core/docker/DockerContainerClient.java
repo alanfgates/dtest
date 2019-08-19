@@ -96,11 +96,13 @@ public class DockerContainerClient extends ContainerClient {
   public void copyLogFiles(ContainerResult result, String targetDir)
       throws IOException {
     String containerName = Utils.buildContainerName(buildInfo.getLabel(), result.getCmd().containerSuffix());
-    for (String file : result.getLogFilesToFetch()) {
-      ProcessResults res = Utils.runProcess("copying-files-for-" + containerName, 60, log,
-          getDockerExec(), "cp", containerName + ":" + file, targetDir);
-      // Don't throw if we fail to copy a file.  It's possible not every system generates every possible type of
-      // output file.
+    for (List<String> files : result.getLogFilesToFetch().values()) {
+      for (String file : files) {
+        ProcessResults res = Utils.runProcess("copying-files-for-" + containerName, 60, log,
+            getDockerExec(), "cp", containerName + ":" + file, targetDir);
+        // Don't throw if we fail to copy a file.  It's possible not every system generates every possible type of
+        // output file.
+      }
     }
   }
 

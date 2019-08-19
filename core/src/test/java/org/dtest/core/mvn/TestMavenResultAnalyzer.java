@@ -24,7 +24,9 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.util.Collection;
 import java.util.Iterator;
+import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
@@ -68,8 +70,12 @@ public class TestMavenResultAnalyzer {
     Assert.assertEquals("TestActivePassiveHA.testManualFailover", analyzer.getFailed().get(0));
     Assert.assertEquals(32, analyzer.getSucceeded());
     Assert.assertEquals(BuildState.State.HAD_FAILURES_OR_ERRORS, analyzer.getBuildState().getState());
-    Assert.assertEquals(4, cr.getLogFilesToFetch().size());
-    SortedSet<String> orderedLogFiles = new TreeSet<>(cr.getLogFilesToFetch());
+    Assert.assertEquals(2, cr.getLogFilesToFetch().size());
+    Assert.assertTrue(cr.getLogFilesToFetch().containsKey("TestAcidOnTez"));
+    Assert.assertTrue(cr.getLogFilesToFetch().containsKey("TestActivePassiveHA"));
+    Collection<List<String>> allLogFiles = cr.getLogFilesToFetch().values();
+    SortedSet<String> orderedLogFiles = new TreeSet<>();
+    for (List<String> logFiles : allLogFiles) orderedLogFiles.addAll(logFiles);
     Iterator iter = orderedLogFiles.iterator();
     Assert.assertEquals("/Users/gates/git/hive/itests/hive-unit/target/surefire-reports/org.dtest.TestAcidOnTez-output.txt", iter.next());
     Assert.assertEquals("/Users/gates/git/hive/itests/hive-unit/target/surefire-reports/org.dtest.TestAcidOnTez.txt", iter.next());
