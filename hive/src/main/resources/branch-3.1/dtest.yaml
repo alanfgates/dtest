@@ -65,10 +65,6 @@ hiveDirs:
     qfilesDir: itests/hive-blobstore/src/test/queries/clientpositive
     properties:
       skipSparkTests: null
-#   excludedQFiles:
-#     - insert_into_dynamic_partitions.q
-#     - insert_overwrite_directory.q
-#     - insert_overwrite_dynamic_partitions.q
   - dir: itests/hive-blobstore
     singleTest: TestBlobstoreNegativeCliDriver
     properties:
@@ -82,23 +78,19 @@ hiveDirs:
       skipSparkTests: null
     isolatedTests:
       - TestTriggersWorkloadManager
+      - TestMetaStoreMetrics                          # ran individually, see if it passes on busy system
     skippedTests:
-      - TestMetaStoreMetrics                          # verified 6/13/19
-      - TestReplicationScenariosAcrossInstances       # verified 6/10/19
-      - TestReplicationScenariosAcidTables            # verified 6/10/19
-      - TestHS2ImpersonationWithRemoteMS              # verified 6/10/19
-      - TestWarehouseExternalDir                      # verified 6/10/19
+      - TestReplicationScenariosAcrossInstances       # verified 8/16/19
+      - TestReplicationScenariosAcidTables            # verified 8/16/19
+      - TestHS2ImpersonationWithRemoteMS              # verified 8/16/19
+      - TestWarehouseExternalDir                      # verified 8/16/19
+      - TestJdbcGenericUDTFGetSplits                  # verified 8/16/19
       - TestSparkStatistics                           # Spark test
       - TestJdbcWithLocalClusterSpark                 # Spark test
       - TestMultiSessionsHS2WithLocalClusterSpark     # Spark test
   - dir: itests/hive-unit-hadoop2
     properties:
       skipSparkTests: null
-    skippedTests:
-      - TestSparkStatistics                          # verified 6/13/19
-      - TestJdbcWithLocalClusterSpark                # verified 6/13/19
-      - TestMultiSessionsHS2WithLocalClusterSpark    # verified 6/13/19
-      - TestJdbcGenericUDTFGetSplits                 # verified 6/13/19
   - dir: itests/test-serde
     properties:
       skipSparkTests: null
@@ -111,6 +103,10 @@ hiveDirs:
     singleTest: TestBeeLineDriver
     includedQFilesProperties:
       - beeline.positive.include
+    excludedQFiles:
+      - insert_into_dynamic_partitions.q
+      - insert_overwrite_directory.q
+      - insert_overwrite_dynamic_partitions.q
     properties:
       skipSparkTests: null
   - dir: itests/qtest
@@ -136,16 +132,16 @@ hiveDirs:
     properties:
       skipSparkTests: null
     excludedQFiles:
-      - druidkafkamini_basic.q           # verified 6/10/19
-      - druid_basic2.q                   # verified 6/10/19
-      - druid_timestamptz.q              # verified 6/10/19
-      - druidmini_dynamic_partition.q    # verified 6/10/19
-      - druidmini_expressions.q          # verified 6/10/19
-      - druidmini_extractTime.q          # verified 6/10/19
-      - druidmini_floorTime.q            # verified 6/10/19
-      - druidmini_joins.q                # verified 6/10/19
-      - druidmini_masking.q              # verified 6/10/19
-      - druidmini_test1.q                # verified 6/10/19
+      - druidkafkamini_basic.q           # verified 8/16/19
+      - druid_basic2.q                   # verified 8/16/19
+      - druid_timestamptz.q              # verified 8/16/19
+      - druidmini_dynamic_partition.q    # verified 8/16/19
+      - druidmini_expressions.q          # verified 8/16/19
+      - druidmini_extractTime.q          # verified 8/16/19
+      - druidmini_floorTime.q            # verified 8/16/19
+      - druidmini_joins.q                # verified 8/16/19
+      - druidmini_masking.q              # verified 8/16/19
+      - druidmini_test1.q                # verified 8/16/19
   - dir: itests/qtest
     singleTest: TestMiniDruidKafkaCliDriver
     includedQFilesProperties:
@@ -185,17 +181,17 @@ hiveDirs:
     isolatedQFiles:
       - authorization_show_grant.q
     excludedQFiles:
-      - orc_merge10.q                             # verified 6/10/19
-      - load_static_ptn_into_bucketed_table.q     # verified 6/10/19
-      - orc_schema_evolution_float.q              # verified 6/10/19
-      - parquet_ppd_multifiles.q                  # verified 6/10/19
-      - selectindate.q                            # verified 6/10/19
-      - union38.q                                 # verified 6/10/19
-      - vector_bround.q                           # verified 6/10/19
-      - vector_coalesce_2.q                       # verified 6/10/19
-      - vector_coalesce_3.q                       # verified 6/10/19
-      - vector_interval_1.q                       # verified 6/10/19
-      - vectorized_parquet_types.q                # verified 6/10/19
+      - orc_merge10.q                             # verified 6/10/19  # passes on mac
+      - load_static_ptn_into_bucketed_table.q     # verified 8/16/19
+      - orc_schema_evolution_float.q              # verified 6/10/19  # passes on mac
+      - parquet_ppd_multifiles.q                  # verified 6/10/19  # passes on mac
+      - selectindate.q                            # verified 6/10/19  # passes on mac
+      - union38.q                                 # verified 6/10/19  # passes on mac
+      - vector_bround.q                           # verified 6/10/19  # passes on mac
+      - vector_coalesce_2.q                       # verified 6/10/19  # passes on mac
+      - vector_coalesce_3.q                       # verified 6/10/19  # passes on mac
+      - vector_interval_1.q                       # verified 6/10/19  # passes on mac
+      - vectorized_parquet_types.q                # verified 6/10/19  # passes on mac
     properties:
       skipSparkTests: null
   - dir: itests/qtest
@@ -268,6 +264,7 @@ hiveDirs:
       - vector_row__id.q                       # no such file
       - load_data_acid_rename.q                # no such file
       - alter_table_invalidate_column_stats.q  # no such file
+      - acid_export.q                          # no such file
     env:
       USER: dtestuser
     properties:
