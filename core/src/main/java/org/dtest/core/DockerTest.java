@@ -28,6 +28,9 @@ import org.dtest.core.impl.Utils;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
@@ -235,8 +238,9 @@ public class DockerTest {
       log.info("Going to build branch " + branch + " from repo " + repo + " using config in " + cfgDir);
       BuildYaml yaml = BuildYaml.readYaml(cfgDir, cfg, log, repo, branch);
       CodeSource codeSource = CodeSource.getInstance(cfg, log);
-      buildInfo = new BuildInfo(cfgDir, yaml, codeSource, cleanupAfter);
+      buildInfo = new BuildInfo(yaml, codeSource, cleanupAfter);
       buildInfo.setConfig(cfg).setLog(log);
+      linkLogFileIntoLogDir();
       docker = ContainerClient.getInstance(cfg, log);
       docker.setBuildInfo(buildInfo);
       ContainerCommandFactory cmdFactory = ContainerCommandFactory.getInstance(cfg, log);
@@ -251,6 +255,10 @@ public class DockerTest {
       if (state == null) state = new BuildState();
       state.fail();
       return state;
+    } catch (Throwable t) {
+      // Catch this in case we got a NPE or something, otherwise we don't get the output in the logs.
+      log.error("Failed to run build", t);
+      throw t;
     } finally {
       if (mightHaveBuiltImage && buildInfo.shouldCleanupAfter()) {
         try {
@@ -268,6 +276,14 @@ public class DockerTest {
   private void usage(Options opts) {
     HelpFormatter formatter = new HelpFormatter();
     formatter.printHelp("docker-test", opts);
+  }
+
+  // This makes a link between the existing dtest.log and the per-build directory we created so that our log
+  // file gets preserved
+  private void linkLogFileIntoLogDir() throws IOException {
+    Path linkedLogFile = Paths.get(buildInfo.getBuildDir().getAbsolutePath(), "dtest.log");
+    Path logfile = Paths.get(System.getenv("DTEST_HOME"), "log", "dtest.log");
+    Files.createLink(linkedLogFile, logfile);
   }
 
   private BuildState runContainers(ContainerCommandFactory cmdFactory)
@@ -358,7 +374,8 @@ public class DockerTest {
 
   private void packageLogs() throws IOException {
     ProcessResults res = Utils.runProcess("tar", 60, log, "tar", "zcf",
-        getResultsDir() + buildInfo.getLabel() + ".tgz", "-C", buildInfo.getBaseDir(), buildInfo.getLabel());
+        getResultsDir() + buildInfo.getBuildDir().getName() + ".tgz", "-C", buildInfo.getBaseDir().getAbsolutePath(),
+        buildInfo.getBuildDir().getName());
     if (res.rc != 0) {
       throw new IOException("Failed to tar up logs, error " + res.rc + " msg: " + res.stderr);
     }

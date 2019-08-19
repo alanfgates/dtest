@@ -17,7 +17,6 @@ package org.dtest.core.mvn;
 
 import org.apache.commons.lang3.StringUtils;
 import org.dtest.core.BuildInfo;
-import org.dtest.core.BuildYaml;
 import org.dtest.core.Config;
 import org.dtest.core.ContainerClient;
 import org.dtest.core.ContainerCommand;
@@ -29,7 +28,6 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.IOException;
-import java.util.List;
 
 public class TestMavenContainerCommandFactory {
 
@@ -41,7 +39,7 @@ public class TestMavenContainerCommandFactory {
     MavenContainerCommandFactory cmds = new MavenContainerCommandFactory();
     cmds.setConfig(cfg);
     cmds.setLog(log);
-    BuildInfo buildInfo = new BuildInfo(TestUtils.getConfDir(), TestUtils.buildYaml(cfg, log), new GitSource(), true);
+    BuildInfo buildInfo = new BuildInfo(TestUtils.buildYaml(cfg, log), new GitSource(), true);
     buildInfo.setConfig(cfg).setLog(log);
     buildInfo.getBuildDir();
     cmds.buildContainerCommands(new TestContainerClient(), buildInfo);
@@ -59,22 +57,22 @@ public class TestMavenContainerCommandFactory {
   private static class TestContainerClient extends ContainerClient {
 
     @Override
-    public void buildImage(ContainerCommandFactory cmdFactory) throws IOException {
+    public void buildImage(ContainerCommandFactory cmdFactory) {
 
     }
 
     @Override
-    public void copyLogFiles(ContainerResult result, String targetDir) throws IOException {
+    public void copyLogFiles(ContainerResult result, String targetDir) {
 
     }
 
     @Override
-    public void removeContainer(ContainerResult result) throws IOException {
+    public void removeContainer(ContainerResult result) {
 
     }
 
     @Override
-    public void removeImage() throws IOException {
+    public void removeImage() {
 
     }
 
@@ -84,7 +82,7 @@ public class TestMavenContainerCommandFactory {
     }
 
     @Override
-    public ContainerResult runContainer(ContainerCommand cmd) throws IOException {
+    public ContainerResult runContainer(ContainerCommand cmd) {
       // Doing our own mocking here
       String shellCmd = StringUtils.join(cmd.shellCommand(), " ");
       if (shellCmd.contains("standalone-metastore") && shellCmd.contains("find")) {

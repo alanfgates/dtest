@@ -26,6 +26,7 @@ import org.dtest.core.impl.Utils;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -76,7 +77,7 @@ public class DockerContainerClient extends ContainerClient {
     checkBuildSucceeded(Utils.runProcess(BUILD_CONTAINER_NAME,
         cfg.getAsTime(CFG_CONTAINERCLIENT_IMAGEBUILDTIME, TimeUnit.SECONDS,
             CFG_CONTAINERCLIENT_IMAGEBUILDTIME_DEFAULT),
-        log, getDockerExec(), "build", "--tag", imageName, buildInfo.getBuildDir()));
+        log, getDockerExec(), "build", "--tag", imageName, buildInfo.getBuildDir().getAbsolutePath()));
   }
 
   @Override
@@ -132,7 +133,7 @@ public class DockerContainerClient extends ContainerClient {
    * @throws IOException if the file cannot be written.
    */
   public void defineImage(ContainerCommandFactory cmdFactory) throws IOException {
-    FileWriter writer = new FileWriter(buildInfo.getBuildDir() + File.separatorChar + "Dockerfile");
+    FileWriter writer = new FileWriter(new File(buildInfo.getBuildDir(), "Dockerfile"));
     writer.write("FROM " + buildInfo.getYaml().getBaseImage() + "\n");
     writer.write("\n");
     String image = buildInfo.getYaml().getBaseImage();
@@ -160,7 +161,8 @@ public class DockerContainerClient extends ContainerClient {
       writer.write("    " + line + "; \\\n");
     }
     for (String line : cmdFactory.getInitialBuildCommand()) writer.write("    " + line + "; \\\n");
-    writer.write("    echo This build is labeled " + buildInfo.getLabel() + "; \\\n");
+    writer.write("    echo This build is labeled " + buildInfo.getLabel() + " and was generated at " +
+        LocalDateTime.now().toString() + "; \\\n");
     writer.write("}\n");
     writer.close();
   }

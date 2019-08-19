@@ -44,7 +44,7 @@ public class TestHiveContainerCommandFactory {
         BuildYaml.CFG_BUILDYAML_IMPL, HiveBuildYaml.class.getName());
     HiveContainerCommandFactory cmds = new HiveContainerCommandFactory();
     cmds.setConfig(cfg).setLog(log);
-    BuildInfo buildInfo = new BuildInfo(TestUtils.getConfDir(), TestUtils.buildYaml(cfg, log), new GitSource(), true);
+    BuildInfo buildInfo = new BuildInfo(TestUtils.buildYaml(cfg, log), new GitSource(), true);
     buildInfo.setConfig(cfg).setLog(log);
     buildInfo.getBuildDir();
     cmds.buildContainerCommands(new TestContainerClient(), buildInfo);
@@ -95,7 +95,7 @@ public class TestHiveContainerCommandFactory {
     }
 
     @Override
-    public ContainerResult runContainer(ContainerCommand cmd) throws IOException {
+    public ContainerResult runContainer(ContainerCommand cmd) {
       // Doing our own mocking here
       String shellCmd = StringUtils.join(cmd.shellCommand(), " ");
       if (shellCmd.contains("cat itests/src/test/resources/testconfiguration.properties")) {
@@ -143,22 +143,22 @@ public class TestHiveContainerCommandFactory {
     }
 
     @Override
-    public void buildImage(ContainerCommandFactory cmdFactory) throws IOException {
+    public void buildImage(ContainerCommandFactory cmdFactory) {
 
     }
 
     @Override
-    public void copyLogFiles(ContainerResult result, String targetDir) throws IOException {
+    public void copyLogFiles(ContainerResult result, String targetDir) {
 
     }
 
     @Override
-    public void removeContainer(ContainerResult result) throws IOException {
+    public void removeContainer(ContainerResult result) {
 
     }
 
     @Override
-    public void removeImage() throws IOException {
+    public void removeImage() {
 
     }
   }

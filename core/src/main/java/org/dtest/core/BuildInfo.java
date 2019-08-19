@@ -20,6 +20,7 @@ import org.dtest.core.impl.Utils;
 
 import java.io.File;
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -60,26 +61,25 @@ public class BuildInfo extends Configurable implements Comparable<BuildInfo> {
 
   private final Pattern dockerable = Pattern.compile("[a-z0-9_\\-]+");
   private final CodeSource src;
-  private final String confDir;
   private final boolean cleanupAfter;
   private final BuildYaml yaml;
+  private final String startTime;
   private String label;
-  private String buildDir; // Directory the build will be done in
-  private String baseDir; // base directory, CWD basically.  dtest.log will end up in this directory.
+  private File buildDir; // Directory the build will be done in
+  private File baseDir; // base directory, CWD basically.  dtest.log will end up in this directory.
 
   /**
    *
-   * @param confDir directory where we expect to find dtest.properties and dtest.yaml files
    * @param yaml Yaml file object
    * @param repo code source object that will be used to fetch code.
    * @param cleanupAfter whether we should cleanup after this build
    */
-  public BuildInfo(String confDir, BuildYaml yaml, CodeSource repo, boolean cleanupAfter) {
-    this.confDir = confDir;
+  public BuildInfo(BuildYaml yaml, CodeSource repo, boolean cleanupAfter) {
     this.src = repo;
     this.yaml = yaml;
     buildDir = baseDir = null;
     this.cleanupAfter = cleanupAfter;
+    startTime = LocalDateTime.now().toString().replace(':', '.');
   }
 
   /**
@@ -87,17 +87,17 @@ public class BuildInfo extends Configurable implements Comparable<BuildInfo> {
    * for the build.  The dtest.log for the build will be in this directory.  It is constructed by using
    * baseDir/labelname.  If the directory does not exist this call will create it.
    * You must call {@link #setConfig(Config)} before calling this.
-   * @return directory name
+   * @return directory
    * @throws IOException if the directory can't be built.
    */
-  public String getBuildDir() throws IOException {
+  public File getBuildDir() throws IOException {
     if (buildDir != null) return buildDir;
 
     // This cannot be done in the constructor because it requires the configuration.
     checkLabelIsDockerable();
-    File d = new File(getBaseDir(), label);
-    d.mkdir();
-    buildDir = d.getAbsolutePath();
+    buildDir = new File(getBaseDir(), label + "-" + startTime);
+    buildDir.mkdir();
+    log.info("Build dir for build is " + buildDir.getAbsolutePath());
     return buildDir;
   }
 
@@ -106,13 +106,14 @@ public class BuildInfo extends Configurable implements Comparable<BuildInfo> {
    * the label of this build.  This allows all dtest builds to use the same base directory.
    * @return base directory
    */
-  public String getBaseDir() {
+  public File getBaseDir() {
     if (baseDir == null) {
-      baseDir = cfg.getAsString(CFG_BUILDINFO_BASEDIR);
-      if (baseDir == null) {
-        baseDir = System.getProperty("java.io.tmpdir");
+      String baseDirName = cfg.getAsString(CFG_BUILDINFO_BASEDIR);
+      if (baseDirName == null) {
+        baseDirName = System.getProperty("java.io.tmpdir");
       }
-      log.info("Building in " + baseDir);
+      log.info("Base dir for build is " + baseDirName);
+      baseDir = new File(baseDirName);
     }
     return baseDir;
   }

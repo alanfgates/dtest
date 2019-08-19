@@ -6,7 +6,7 @@
 <Configuration status="warn">
 
     <Properties>
-        <Property name="logfile.name">dtest.log</Property>
+        <Property name="logfile.name">${env:DTEST_HOME}/log/dtest.log</Property>
     </Properties>
 
     <Appenders>

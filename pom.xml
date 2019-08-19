@@ -102,6 +102,9 @@ limitations under the License.
             <java.io.tmpdir>${project.build.directory}</java.io.tmpdir>
             <conf.dir>${project.build.directory}</conf.dir>
           </systemPropertyVariables>
+          <environmentVariables>
+            <DTEST_HOME>${project.build.directory}</DTEST_HOME>
+          </environmentVariables>
           <reuseForks>false</reuseForks>
           <failIfNoTests>false</failIfNoTests>
         </configuration>

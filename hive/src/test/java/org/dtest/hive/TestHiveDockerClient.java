@@ -58,14 +58,14 @@ public class TestHiveDockerClient {
     client.setConfig(cfg).setLog(log);
     CodeSource src = new GitSource();
     src.setConfig(cfg).setLog(log);
-    BuildInfo info = new BuildInfo(TestUtils.getConfDir(), TestUtils.buildYaml(cfg, log), src, true);
+    BuildInfo info = new BuildInfo(TestUtils.buildYaml(cfg, log), src, true);
     info.setConfig(cfg).setLog(log);
     client.setBuildInfo(info);
     ContainerCommandFactory cmdFactory = new HiveContainerCommandFactory();
     cmdFactory.setConfig(cfg).setLog(log);
     client.defineImage(cmdFactory);
 
-    BufferedReader reader = new BufferedReader(new FileReader(info.getBuildDir() + File.separatorChar + "Dockerfile"));
+    BufferedReader reader = new BufferedReader(new FileReader(new File(info.getBuildDir(), "Dockerfile")));
     StringBuilder buf = new StringBuilder();
     String line;
     do {
@@ -74,7 +74,7 @@ public class TestHiveDockerClient {
     } while (line != null);
     reader.close();
 
-    Assert.assertEquals("FROM centos\n" +
+    Assert.assertTrue(buf.toString().startsWith("FROM centos\n" +
         "\n" +
         "RUN yum upgrade -y && yum update -y\n" +
         "RUN yum install -y java-1.8.0-openjdk-devel git unzip maven \n" +
@@ -91,8 +91,7 @@ public class TestHiveDockerClient {
         "    /usr/bin/mvn install -DskipTests; \\\n" +
         "    cd itests; \\\n" +
         "    /usr/bin/mvn install -DskipSparkTests -DskipTests; \\\n" +
-        "    echo This build is labeled needsomething; \\\n" +
-        "}\n", buf.toString());
+        "    echo This build is labeled needsomething and was generated at"));
   }
 
   @Test

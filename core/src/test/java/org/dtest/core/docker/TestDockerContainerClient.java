@@ -16,7 +16,6 @@
 package org.dtest.core.docker;
 
 import org.dtest.core.BuildInfo;
-import org.dtest.core.BuildYaml;
 import org.dtest.core.CodeSource;
 import org.dtest.core.Config;
 import org.dtest.core.ContainerCommandFactory;
@@ -57,14 +56,14 @@ public class TestDockerContainerClient {
     client.setConfig(cfg).setLog(log);
     CodeSource src = new GitSource();
     src.setConfig(cfg).setLog(log);
-    BuildInfo info = new BuildInfo(TestUtils.getConfDir(), TestUtils.buildYaml(cfg, log), src, true);
+    BuildInfo info = new BuildInfo(TestUtils.buildYaml(cfg, log), src, true);
     info.setConfig(cfg).setLog(log);
     client.setBuildInfo(info);
     ContainerCommandFactory cmdFactory = new MavenContainerCommandFactory();
     cmdFactory.setConfig(cfg).setLog(log);
     client.defineImage(cmdFactory);
 
-    BufferedReader reader = new BufferedReader(new FileReader(info.getBuildDir() + File.separatorChar + "Dockerfile"));
+    BufferedReader reader = new BufferedReader(new FileReader(new File(info.getBuildDir(), "Dockerfile")));
     StringBuilder buf = new StringBuilder();
     String line;
     do {
@@ -73,7 +72,7 @@ public class TestDockerContainerClient {
     } while (line != null);
     reader.close();
 
-    Assert.assertEquals("FROM centos\n" +
+    Assert.assertTrue(buf.toString().startsWith("FROM centos\n" +
         "\n" +
         "RUN yum upgrade -y && yum update -y\n" +
         "RUN yum install -y java-1.8.0-openjdk-devel git unzip maven \n" +
@@ -88,8 +87,7 @@ public class TestDockerContainerClient {
         "    cd faky; \\\n" +
         "    /usr/bin/git checkout master; \\\n" +
         "    /usr/bin/mvn install -DskipTests; \\\n" +
-        "    echo This build is labeled needsomething; \\\n" +
-        "}\n", buf.toString());
+        "    echo This build is labeled needsomething and was generated at 20"));
 
 
 

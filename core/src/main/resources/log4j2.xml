@@ -11,19 +11,15 @@
         <Console name="STDERR" target="SYSTEM_ERR">
             <PatternLayout pattern="%d{DEFAULT} %5p [%t] %c{1}: %m%n"/>
         </Console>
-        <RollingFile name="RollingFile" fileName="${logfile.name}" filePattern="${logfile.name}.%d{yyyyMMdd-hhmm}">
+        <File name="File" fileName="${logfile.name}">
             <PatternLayout pattern="%d{DEFAULT} %5p [%t] %c{1}: %m%n"/>
-            <Policies>
-                <OnStartupTriggeringPolicy minSize="0"/>
-            </Policies>
-            <DefaultRolloverStrategy max="99"/>
-        </RollingFile>
+        </File>
     </Appenders>
 
     <Loggers>
         <Root level="debug">
             <AppenderRef ref="STDERR" level="warn"/>
-            <AppenderRef ref="RollingFile" level="debug"/>
+            <AppenderRef ref="File" level="debug"/>
         </Root>
     </Loggers>
 
