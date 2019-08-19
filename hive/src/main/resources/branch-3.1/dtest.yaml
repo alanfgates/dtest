@@ -65,6 +65,10 @@ hiveDirs:
     qfilesDir: itests/hive-blobstore/src/test/queries/clientpositive
     properties:
       skipSparkTests: null
+    excludedQFiles:
+     - insert_into_dynamic_partitions.q
+     - insert_overwrite_directory.q
+     - insert_overwrite_dynamic_partitions.q
   - dir: itests/hive-blobstore
     singleTest: TestBlobstoreNegativeCliDriver
     properties:
@@ -80,6 +84,7 @@ hiveDirs:
       - TestTriggersWorkloadManager
       - TestMetaStoreMetrics                          # ran individually, see if it passes on busy system
     skippedTests:
+      - TestMetaStoreMetrics                          # verified 8/19/19
       - TestReplicationScenariosAcrossInstances       # verified 8/16/19
       - TestReplicationScenariosAcidTables            # verified 8/16/19
       - TestHS2ImpersonationWithRemoteMS              # verified 8/16/19
