@@ -136,10 +136,10 @@ public class Utils {
   public static String generateLabel(String branch) {
     StringBuilder label = new StringBuilder();
     for (int i = 0; i < branch.length() && i < MAX_DOCKER_LABEL_LEN; i++) {
-      if (Character.isLetterOrDigit(branch.charAt(i)) || branch.charAt(i) == '-' || branch.charAt(i) == '.') {
+      if (Character.isLetterOrDigit(branch.charAt(i)) || branch.charAt(i) == '-') {
         label.append(branch.charAt(i));
       } else {
-        label.append('X');
+        label.append('_');
       }
 
     }

@@ -33,7 +33,7 @@ public class TestUtils {
         "the earth, the separate and equal station to which the Laws of Nature and of Nature's God entitle them, a" +
         "decent respect to the opinions of mankind requires that they should declare the causes which impel them to" +
         "the separation.");
-    Assert.assertEquals("WhenXinXtheXCourseXofXhumanXeventsXXitXbecomesXnecessaryXforXoneXpeople" +
-        "toXdissolveXtheXpoliticalXbandsXwhichXhaveXconnectedXthem", label);
+    Assert.assertEquals("When_in_the_Course_of_human_events__it_becomes_necessary_for_one_people" +
+        "to_dissolve_the_political_bands_which_have_connected_them", label);
   }
 }

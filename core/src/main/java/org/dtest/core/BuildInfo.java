@@ -184,7 +184,7 @@ public class BuildInfo extends Configurable implements Comparable<BuildInfo> {
       label = getLabel();
       Matcher m = dockerable.matcher(label);
       if (!m.matches()) {
-        throw new IOException("Label must be usable in docker container name, should only contain " +
+        throw new IOException("Label '" + label + "' must be usable in docker container name, should only contain " +
             "[A-Za-z0-9_\\-]");
       }
     }
