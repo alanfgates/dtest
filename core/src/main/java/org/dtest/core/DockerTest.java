@@ -23,8 +23,6 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
-import org.dtest.core.impl.ProcessResults;
-import org.dtest.core.impl.Utils;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -34,7 +32,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -59,7 +59,6 @@ public class DockerTest {
    */
   public static final String CFG_DOCKERTEST_NUMCONTAINERS = "dtest.core.dockertest.numcontainers";
   private static final int CFG_DOCKERTEST_NUMCONTAINERS_DEFAULT = 2;
-  private static final String ERROR_TEST_INFO_FILE = "error_log";
 
   /*~~
    * @document propsfile
@@ -85,6 +84,7 @@ public class DockerTest {
   private DTestLogger log;
   private String repo;
   private String branch;
+  private Map<String, String> logLinks; // HTML links to the logs
 
   @VisibleForTesting String getCfgDir() {
     return cfgDir;
@@ -95,6 +95,7 @@ public class DockerTest {
   }
 
   public DockerTest() {
+    logLinks = new ConcurrentHashMap<>();
   }
 
   /**
@@ -215,7 +216,7 @@ public class DockerTest {
    * @return BuildState indicating the status of the build.
    */
   public BuildState runBuild() {
-    BuildState state = null;
+    ResultAnalyzer result = null;
     boolean mightHaveBuiltImage = false;
     try {
       log.info("Going to build branch " + branch + " from repo " + repo + " using config in " + cfgDir);
@@ -229,13 +230,14 @@ public class DockerTest {
       ContainerCommandFactory cmdFactory = ContainerCommandFactory.getInstance(cfg, log);
       mightHaveBuiltImage = true;
       docker.buildImage(cmdFactory);
-      state = runContainers(cmdFactory);
-      //packageLogs();
-      return state;
+      result = runContainers(cmdFactory);
+      outputResults(result);
+      return result.getBuildState();
     } catch (IOException e) {
       log.error("Failed to run the build", e);
       // we might have failed before state got set
-      if (state == null) state = new BuildState();
+      BuildState state = null;
+      state = (result == null || result.getBuildState() == null) ? new BuildState() : result.getBuildState();
       state.fail();
       return state;
     } catch (Throwable t) {
@@ -269,7 +271,7 @@ public class DockerTest {
     Files.createLink(linkedLogFile, logfile);
   }
 
-  private BuildState runContainers(ContainerCommandFactory cmdFactory)
+  private ResultAnalyzer runContainers(ContainerCommandFactory cmdFactory)
       throws IOException {
     log.debug("Beginning our attack run");
     cmdFactory.buildContainerCommands(docker, buildInfo);
@@ -314,12 +316,8 @@ public class DockerTest {
               + result.getCmd().containerSuffix());
           logDir.mkdir();
           docker.copyLogFiles(result, logDir.getAbsolutePath());
-          synchronized (this) {
-            FileWriter writer = new FileWriter(new File(buildInfo.getBuildDir(), ERROR_TEST_INFO_FILE), true);
-            for (String testName : result.getLogFilesToFetch().keySet()) {
-              writer.write("Test " + testName + " had issues, look in " + result.getCmd().containerSuffix() + "\n");
-            }
-            writer.close();
+          for (String testName : result.getLogFilesToFetch().keySet()) {
+            logLinks.put(testName, result.getCmd().containerSuffix());
           }
         }
         if (buildInfo.shouldCleanupAfter()) docker.removeContainer(result);
@@ -343,6 +341,32 @@ public class DockerTest {
     assert buildState.getState() != BuildState.State.NOT_INITIALIZED;
 
     executor.shutdown();
+    return analyzer;
+  }
+
+  private void outputResults(ResultAnalyzer analyzer) throws IOException {
+    FileWriter writer = new FileWriter(new File(buildInfo.getBuildDir(), "index.html"));
+    writer.write("<html>\n");
+    writer.write("<head>\n");
+    writer.write("<title>Docker Test\n</title>");
+    writer.write("</head>\n");
+    writer.write("<body>\n");
+    writer.write("<h1>" + analyzer.getBuildState().getState().name().replace('_', ' ') + "</h1>\n");
+    writer.write("<p>Repository " + repo + "</p>\n");
+    writer.write("<p>Branch " + branch + "</p>\n");
+    writer.write("<p>Config Directory " + cfgDir + "</p>\n");
+    if (logLinks.size() > 0) {
+      writer.write("<p>Links to logfiles for tests with errors or failure:</p>\n");
+      writer.write("<ul>\n");
+      for (Map.Entry<String, String> e : logLinks.entrySet()) {
+        writer.write("<li>" + e.getKey() + "  <a href=\"" + e.getValue() + "\">" + e.getValue() + "</a></li>\n");
+      }
+      writer.write("</ul>\n");
+    }
+    writer.write("</body>\n");
+    writer.write("</html>\n");
+    writer.close();
+
     if (analyzer.getErrors().size() > 0) {
       log.info(SUMMARY_LOG, "All Errors:");
       for (String error : analyzer.getErrors()) {
@@ -358,21 +382,7 @@ public class DockerTest {
     log.info(SUMMARY_LOG, "Final counts: Succeeded: " + analyzer.getSucceeded() +
         ", Errors: " + analyzer.getErrors().size() +
         ", Failures: " + analyzer.getFailed().size());
-    log.info(SUMMARY_LOG, buildState.getState().getSummary());
-    return buildState;
-  }
-
-  private void packageLogs() throws IOException {
-    ProcessResults res = Utils.runProcess("tar", 60, log, "tar", "zcf",
-        getResultsDir() + buildInfo.getBuildDir().getName() + ".tgz", "-C", buildInfo.getBaseDir().getAbsolutePath(),
-        buildInfo.getBuildDir().getName());
-    if (res.rc != 0) {
-      throw new IOException("Failed to tar up logs, error " + res.rc + " msg: " + res.stderr);
-    }
-  }
-
-  private String getResultsDir() {
-    return cfg.getAsString(CFG_DOCKERTEST_RESULTLOCATION, CFG_DOCKERTEST_RESULTLOCATION_DEFAULT) + File.separator;
+    log.info(SUMMARY_LOG, analyzer.getBuildState().getState().getSummary());
   }
 
   /**

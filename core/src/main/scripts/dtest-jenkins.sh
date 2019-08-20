@@ -22,12 +22,8 @@ then
     exit 1
 fi
 
-build_branch=$1
-build_conf=$2
-build_repository=$3
-shift; shift; shift; shift;
-
-
-$DTEST_HOME/bin/dtest -b $build_branch -r $build_repository -c $build_conf
-exit $?
+cd $DTEST_HOME
+bin/dtest -b $Branch -r $Repository -c conf/hive/$Profile
+rc=$?
+mv $Branch* $WORKSPACE/results
 
