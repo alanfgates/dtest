@@ -83,19 +83,12 @@ public class DockerTest {
   private String cfgDir;
   private boolean cleanupAfter = true;
   private DTestLogger log;
-  //private Properties cmdLineProps;
   private String repo;
   private String branch;
 
   @VisibleForTesting String getCfgDir() {
     return cfgDir;
   }
-
-  /*
-  @VisibleForTesting Properties getCmdLineProps() {
-    return cmdLineProps;
-  }
-  */
 
   @VisibleForTesting boolean isCleanupAfter() {
     return cleanupAfter;
@@ -179,21 +172,6 @@ public class DockerTest {
 
     /*~~
      * @document dockertest
-     * @section cmdline_prop
-     * `-D` *property_name=propertyvalue* Configuration properties for this build.  Any value passed here overrides
-     * values in `dtest.properties`.  This argument is optional.  It can be passed as many times as desired.
-     *
-     */
-    /*
-    opts.addOption(Option.builder("D")
-        .desc("Property to set when running DockerTest, will override values in dtest.properties")
-        .valueSeparator()
-        .hasArgs()
-        .build());
-        */
-
-    /*~~
-     * @document dockertest
      * @section cmdline_noclean
      * `-n|--no-cleanup` Do not cleanup images and containers after the build.  Usually you want to cleanup to avoid
      * polluting hte build machine.  This is useful for debugging and for keeping the image around for a subsequent build.
@@ -221,7 +199,6 @@ public class DockerTest {
       cmd = parser.parse(opts, args);
       cleanupAfter = !cmd.hasOption("n");
       cfgDir = cmd.getOptionValue("c");
-      //cmdLineProps = cmd.hasOption("D") ? cmd.getOptionProperties("D") : new Properties();
       if (cmd.hasOption("b")) branch = cmd.getOptionValue("b");
       if (cmd.hasOption("r")) repo = cmd.getOptionValue("r");
       return true;
@@ -253,7 +230,7 @@ public class DockerTest {
       mightHaveBuiltImage = true;
       docker.buildImage(cmdFactory);
       state = runContainers(cmdFactory);
-      packageLogs();
+      //packageLogs();
       return state;
     } catch (IOException e) {
       log.error("Failed to run the build", e);
@@ -407,7 +384,6 @@ public class DockerTest {
     int rc;
     if (test.parseArgs(args)) {
       try {
-        //test.buildConfig(test.cfgDir, test.cmdLineProps);
         test.buildConfig(test.cfgDir, System.getProperties());
         test.setLogger(new Slf4jLogger());
         BuildState state = test.runBuild();
