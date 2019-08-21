@@ -24,6 +24,4 @@ fi
 
 cd $DTEST_HOME
 bin/dtest -b $Branch -r $Repository -c conf/hive/$Profile
-rc=$?
-mv $Branch* $WORKSPACE/results
 

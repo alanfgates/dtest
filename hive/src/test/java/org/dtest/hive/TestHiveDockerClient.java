@@ -58,7 +58,7 @@ public class TestHiveDockerClient {
     client.setConfig(cfg).setLog(log);
     CodeSource src = new GitSource();
     src.setConfig(cfg).setLog(log);
-    BuildInfo info = new BuildInfo(TestUtils.buildYaml(cfg, log), src, true);
+    BuildInfo info = new BuildInfo(TestUtils.buildYaml(cfg, log), src, true, "3");
     info.setConfig(cfg).setLog(log);
     client.setBuildInfo(info);
     ContainerCommandFactory cmdFactory = new HiveContainerCommandFactory();

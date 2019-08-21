@@ -19,7 +19,7 @@ public class TestBuildInfoForHive {
         BuildInfo.CFG_BUILDINFO_BASEDIR, System.getProperty("java.io.tmpdir"),
         BuildYaml.CFG_BUILDYAML_IMPL, HiveBuildYaml.class.getName());
     DTestLogger log = new TestUtils.TestLogger();
-    BuildInfo info = new BuildInfo(TestUtils.buildYaml(cfg, log), new GitSource(), true);
+    BuildInfo info = new BuildInfo(TestUtils.buildYaml(cfg, log), new GitSource(), true, "5");
     info.setConfig(cfg).setLog(log);
     info.getBuildDir();
     BuildYaml yaml = info.getYaml();
@@ -87,7 +87,7 @@ public class TestBuildInfoForHive {
         BuildYaml.CFG_BUILDYAML_IMPL, HiveBuildYaml.class.getName());
     String cfgDir = System.getProperty("java.io.tmpdir") + File.separator + "classes" + File.separator + "master";
     DTestLogger log = new TestUtils.TestLogger();
-    BuildInfo info = new BuildInfo(BuildYaml.readYaml(cfgDir, cfg, log, null, null), new GitSource(), true);
+    BuildInfo info = new BuildInfo(BuildYaml.readYaml(cfgDir, cfg, log, null, null), new GitSource(), true, "6");
     info.setConfig(cfg).setLog(log);
     info.getBuildDir();
     BuildYaml yaml = info.getYaml();
@@ -104,7 +104,7 @@ public class TestBuildInfoForHive {
         BuildYaml.CFG_BUILDYAML_IMPL, HiveBuildYaml.class.getName());
     String cfgDir = System.getProperty("java.io.tmpdir") + File.separator + "classes" + File.separator + "branch-3";
     DTestLogger log = new TestUtils.TestLogger();
-    BuildInfo info = new BuildInfo(BuildYaml.readYaml(cfgDir, cfg, log, null, null), new GitSource(), true);
+    BuildInfo info = new BuildInfo(BuildYaml.readYaml(cfgDir, cfg, log, null, null), new GitSource(), true, "7");
     info.setConfig(cfg).setLog(log);
     info.getBuildDir();
     BuildYaml yaml = info.getYaml();

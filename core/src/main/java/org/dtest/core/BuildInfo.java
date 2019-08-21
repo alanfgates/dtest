@@ -63,7 +63,7 @@ public class BuildInfo extends Configurable implements Comparable<BuildInfo> {
   private final CodeSource src;
   private final boolean cleanupAfter;
   private final BuildYaml yaml;
-  private final String startTime;
+  private final String buildId;
   private String label;
   private File buildDir; // Directory the build will be done in
   private File baseDir; // base directory, CWD basically.  dtest.log will end up in this directory.
@@ -73,13 +73,14 @@ public class BuildInfo extends Configurable implements Comparable<BuildInfo> {
    * @param yaml Yaml file object
    * @param repo code source object that will be used to fetch code.
    * @param cleanupAfter whether we should cleanup after this build
+   * @param buildId Id for this build.
    */
-  public BuildInfo(BuildYaml yaml, CodeSource repo, boolean cleanupAfter) {
+  public BuildInfo(BuildYaml yaml, CodeSource repo, boolean cleanupAfter, String buildId) {
     this.src = repo;
     this.yaml = yaml;
     buildDir = baseDir = null;
     this.cleanupAfter = cleanupAfter;
-    startTime = LocalDateTime.now().toString().replace(':', '.');
+    this.buildId = buildId;
   }
 
   /**
@@ -95,7 +96,7 @@ public class BuildInfo extends Configurable implements Comparable<BuildInfo> {
 
     // This cannot be done in the constructor because it requires the configuration.
     checkLabelIsDockerable();
-    buildDir = new File(getBaseDir(), label + "-" + startTime);
+    buildDir = new File(getBaseDir(), label + "-" + buildId);
     buildDir.mkdir();
     log.info("Build dir for build is " + buildDir.getAbsolutePath());
     return buildDir;

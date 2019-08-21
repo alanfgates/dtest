@@ -30,6 +30,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -84,6 +85,7 @@ public class DockerTest {
   private DTestLogger log;
   private String repo;
   private String branch;
+  private String buildId;
   private Map<String, String> logLinks; // HTML links to the logs
 
   @VisibleForTesting String getCfgDir() {
@@ -173,6 +175,20 @@ public class DockerTest {
 
     /*~~
      * @document dockertest
+     * @section cmdline_confdir
+     * `-i|--build-id` *build_id* The identifier for this build.  This will be used in filenames.  If not set defaults
+     * to current datetime.
+     *
+     */
+    opts.addOption(Option.builder("i")
+        .longOpt("build-id")
+        .desc("Build identifier.  Will be used as a filename so spaces etc. not recommended.  Defaults to current datetime")
+        .hasArg()
+        .build());
+
+
+    /*~~
+     * @document dockertest
      * @section cmdline_noclean
      * `-n|--no-cleanup` Do not cleanup images and containers after the build.  Usually you want to cleanup to avoid
      * polluting hte build machine.  This is useful for debugging and for keeping the image around for a subsequent build.
@@ -202,6 +218,7 @@ public class DockerTest {
       cfgDir = cmd.getOptionValue("c");
       if (cmd.hasOption("b")) branch = cmd.getOptionValue("b");
       if (cmd.hasOption("r")) repo = cmd.getOptionValue("r");
+      buildId = cmd.hasOption('i') ? cmd.getOptionValue('i') : LocalDateTime.now().toString().replace(':', '.');
       return true;
     } catch (ParseException e) {
       System.err.println("Failed to parse command line: " + e.getMessage());
@@ -222,7 +239,7 @@ public class DockerTest {
       log.info("Going to build branch " + branch + " from repo " + repo + " using config in " + cfgDir);
       BuildYaml yaml = BuildYaml.readYaml(cfgDir, cfg, log, repo, branch);
       CodeSource codeSource = CodeSource.getInstance(cfg, log);
-      buildInfo = new BuildInfo(yaml, codeSource, cleanupAfter);
+      buildInfo = new BuildInfo(yaml, codeSource, cleanupAfter, buildId);
       buildInfo.setConfig(cfg).setLog(log);
       linkLogFileIntoLogDir();
       docker = ContainerClient.getInstance(cfg, log);

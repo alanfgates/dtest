@@ -39,7 +39,7 @@ public class TestMavenContainerCommandFactory {
     MavenContainerCommandFactory cmds = new MavenContainerCommandFactory();
     cmds.setConfig(cfg);
     cmds.setLog(log);
-    BuildInfo buildInfo = new BuildInfo(TestUtils.buildYaml(cfg, log), new GitSource(), true);
+    BuildInfo buildInfo = new BuildInfo(TestUtils.buildYaml(cfg, log), new GitSource(), true, "1");
     buildInfo.setConfig(cfg).setLog(log);
     buildInfo.getBuildDir();
     cmds.buildContainerCommands(new TestContainerClient(), buildInfo);
