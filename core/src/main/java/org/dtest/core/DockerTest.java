@@ -241,7 +241,7 @@ public class DockerTest {
       CodeSource codeSource = CodeSource.getInstance(cfg, log);
       buildInfo = new BuildInfo(yaml, codeSource, cleanupAfter, buildId);
       buildInfo.setConfig(cfg).setLog(log);
-      linkLogFileIntoLogDir();
+      //linkLogFileIntoLogDir();
       docker = ContainerClient.getInstance(cfg, log);
       docker.setBuildInfo(buildInfo);
       ContainerCommandFactory cmdFactory = ContainerCommandFactory.getInstance(cfg, log);
@@ -282,11 +282,13 @@ public class DockerTest {
 
   // This makes a link between the existing dtest.log and the per-build directory we created so that our log
   // file gets preserved
+  /*
   private void linkLogFileIntoLogDir() throws IOException {
     Path linkedLogFile = Paths.get(buildInfo.getBuildDir().getAbsolutePath(), "dtest.log");
     Path logfile = Paths.get(System.getenv("DTEST_HOME"), "log", "dtest.log");
     Files.createLink(linkedLogFile, logfile);
   }
+  */
 
   private ResultAnalyzer runContainers(ContainerCommandFactory cmdFactory)
       throws IOException {

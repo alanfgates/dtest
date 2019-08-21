@@ -21,6 +21,11 @@ if [ "x${DTEST_HOME}" = "x" ]
   export DTEST_HOME="."
 fi
 
+if [ "x${DTEST_LOG_DIR}" = "x" ]
+  then
+  export DTEST_LOG_DIR=${DTEST_HOME}/log
+fi
+
 if [ "x${JAVA_HOME}" = "x" ]
   then
   JAVA_HOME="/usr"
@@ -33,4 +38,4 @@ for f in ${DTEST_HOME}/lib/*.jar; do
 done
 
 $JAVA_HOME/bin/java -cp $CLASSPATH -Dlog4j.configurationFile=${DTEST_HOME}/conf/log4j2.xml \
-    -Ddtest.core.buildinfo.basedir=${DTEST_HOME}/log org.dtest.core.DockerTest "$@"
+    -Ddtest.core.buildinfo.basedir=${DTEST_LOG_DIR} org.dtest.core.DockerTest "$@"
