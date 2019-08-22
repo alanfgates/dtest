@@ -42,6 +42,8 @@ hiveDirs:
       test.groups: '""'
   - dir: druid-handler
   - dir: service
+    skippedTests:
+      - TestSessionManagerMetrics
   - dir: spark-client
   - dir: streaming
   - dir: hbase-handler
@@ -232,6 +234,7 @@ hiveDirs:
       - vector_udf_inline.q                  # verified 6/13/19
       - alter_partition_change_col           # verified 6/12/19 no .q is intentional, as it's a mistake in testconfiguration.properties
       - semijoin_reddedup                    # verified 6/12/19 no .q is intentional, as it's a mistake in testconfiguration.properties
+      - sysdb.q                              # verified 8/22/19
     env:
       USER: dtestuser
     properties:
