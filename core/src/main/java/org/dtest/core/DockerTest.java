@@ -27,10 +27,6 @@ import org.apache.commons.cli.ParseException;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -242,7 +238,6 @@ public class DockerTest {
       CodeSource codeSource = CodeSource.getInstance(cfg, log);
       buildInfo = new BuildInfo(yaml, codeSource, cleanupAfter, buildDir);
       buildInfo.setConfig(cfg).setLog(log);
-      //linkLogFileIntoLogDir();
       docker = ContainerClient.getInstance(cfg, log);
       docker.setBuildInfo(buildInfo);
       ContainerCommandFactory cmdFactory = ContainerCommandFactory.getInstance(cfg, log);
@@ -280,16 +275,6 @@ public class DockerTest {
     HelpFormatter formatter = new HelpFormatter();
     formatter.printHelp("docker-test", opts);
   }
-
-  // This makes a link between the existing dtest.log and the per-build directory we created so that our log
-  // file gets preserved
-  /*
-  private void linkLogFileIntoLogDir() throws IOException {
-    Path linkedLogFile = Paths.get(buildInfo.getBuildDir().getAbsolutePath(), "dtest.log");
-    Path logfile = Paths.get(System.getenv("DTEST_HOME"), "log", "dtest.log");
-    Files.createLink(linkedLogFile, logfile);
-  }
-  */
 
   private ResultAnalyzer runContainers(ContainerCommandFactory cmdFactory)
       throws IOException {
@@ -339,6 +324,26 @@ public class DockerTest {
           for (String testName : result.getLogFilesToFetch().keySet()) {
             logLinks.put(testName, result.getCmd().containerSuffix());
           }
+          // Create an index.html file in the target directory so that Jenkins can display them
+          FileWriter writer = new FileWriter(new File(logDir, "index.html"));
+          writer.write("<html>\n");
+          writer.write("<head>\n");
+          writer.write("<title>" + result.getCmd().containerSuffix() + "</title>\n");
+          writer.write("</head>\n");
+          writer.write("<body>\n");
+          writer.write("<h1>Log Files</h1>\n");
+          writer.write("<ul>\n");
+          for (List<String> files : result.getLogFilesToFetch().values()) {
+            for (String file : files) {
+              File f = new File(file);
+              writer.write("<li><a href=\"" + f.getName() + "\">" + f.getName() + "</a></li>\n");
+            }
+          }
+          writer.write("</ul>\n");
+          writer.write("</body>\n");
+          writer.write("</html>\n");
+          writer.close();
+
         }
         if (buildInfo.shouldCleanupAfter()) docker.removeContainer(result);
         return 1;
@@ -368,10 +373,10 @@ public class DockerTest {
     FileWriter writer = new FileWriter(new File(buildInfo.getBuildDir(), "index.html"));
     writer.write("<html>\n");
     writer.write("<head>\n");
-    writer.write("<title>Docker Test\n</title>");
+    writer.write("<title>Docker Test</title>\n");
     writer.write("</head>\n");
     writer.write("<body>\n");
-    writer.write("<h1> Status:  " + analyzer.getBuildState().getState().name().replace('_', ' ') + "</h1>\n");
+    writer.write("<h1>Status:  " + analyzer.getBuildState().getState().name().replace('_', ' ') + "</h1>\n");
     writer.write("<p>Repository:  " + repo + "</p>\n");
     writer.write("<p>Branch:  " + branch + "</p>\n");
     writer.write("<p>Config Directory:  " + cfgDir + "</p>\n");
@@ -384,6 +389,7 @@ public class DockerTest {
       writer.write("</ul>\n");
     }
     writer.write("<p>Logfile from build: <a href=\"dtest.log\">dtest.log</a></p>");
+    writer.write("<p>Dockerfile used for build: <a href=\"Dockerfile\">Dockerfile</a></p>");
     writer.write("</body>\n");
     writer.write("</html>\n");
     writer.close();

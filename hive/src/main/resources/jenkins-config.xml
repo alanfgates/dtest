@@ -1,0 +1,100 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<!--
+Copyright (C) 2018 Hortonworks Inc.
+
+Licenced under the Apache License, Version 2.0
+(the "License"); you may not use this file except in compliance with
+the License.  You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
+<!--
+This is the config file for the Jenkins job used to run Docker test for Hive.  To configure a new Jenkins
+instance with this run:
+  java -jar <jenkins-path>/jenkins-cli.jar -s <url> -auth <user>:<password> create-job < jenkins-config.xml
+  <jenkins-path> is the path to the jenkins-cli.jar.  You may have to look around in your jenkins installation to find
+                 it.  In the Jenkins on gates-omalley its at ~jenkins/.jenkins/war/WEB-INF
+  <url>          is the url to your Jenkins server
+  <user>         is a user authorized to create jobs in Jenkins
+  <password>     is that users password
+-->
+<project>
+  <actions/>
+  <description>Build Hive using Docker Test</description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>Profile</name>
+          <description>Profile to build with.  This should be the Hive branch your branch is based on.  If you don&apos;t see your desired branch here please contact the administrator.</description>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>master</string>
+              <string>branch-2</string>
+              <string>branch-2.3</string>
+              <string>branch-3</string>
+              <string>branch-3.1</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>Branch</name>
+          <description>The branch you want to build</description>
+          <defaultValue></defaultValue>
+          <trim>true</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.ChoiceParameterDefinition>
+          <name>Repository</name>
+          <description>Repository to build from.  To get your repository added to the list talk to the administrator.</description>
+          <choices class="java.util.Arrays$ArrayList">
+            <a class="string-array">
+              <string>https://github.com/apache/hive.git</string>
+              <string>https://github.com/alanfgates/hive.git</string>
+              <string>https://github.com/omalley/hive.git</string>
+            </a>
+          </choices>
+        </hudson.model.ChoiceParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <canRoam>true</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>export DTEST_HOME=$JENKINS_HOME/dtest/dtest-hive-0.2-SNAPSHOT-bin
+cd $DTEST_HOME
+bin/dtest -b $Branch -r $Repository -c conf/hive/$Profile -d $WORKSPACE/$BUILD_ID
+</command>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers>
+    <htmlpublisher.HtmlPublisher plugin="htmlpublisher@1.18">
+      <reportTargets>
+        <htmlpublisher.HtmlPublisherTarget>
+          <reportName>HTML Report</reportName>
+          <reportDir>$BUILD_ID</reportDir>
+          <reportFiles>index.html</reportFiles>
+          <alwaysLinkToLastBuild>false</alwaysLinkToLastBuild>
+          <reportTitles></reportTitles>
+          <keepAll>true</keepAll>
+          <allowMissing>false</allowMissing>
+          <includes>**/*</includes>
+          <escapeUnderscores>true</escapeUnderscores>
+        </htmlpublisher.HtmlPublisherTarget>
+      </reportTargets>
+    </htmlpublisher.HtmlPublisher>
+  </publishers>
+  <buildWrappers/>
+</project>
