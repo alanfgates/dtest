@@ -331,7 +331,7 @@ public class TestDockerTest {
   @Test
   public void cmdline() {
     DockerTest test = new DockerTest();
-    Assert.assertTrue(test.parseArgs(new String[]{"-c", "cfgdir", "-n"}));
+    Assert.assertTrue(test.parseArgs(new String[]{"-c", "cfgdir", "-n", "-d", "/tmp"}));
     Assert.assertEquals("cfgdir", test.getCfgDir());
     Assert.assertFalse(test.isCleanupAfter());
   }

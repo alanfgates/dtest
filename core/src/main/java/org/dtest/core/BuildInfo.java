@@ -63,24 +63,22 @@ public class BuildInfo extends Configurable implements Comparable<BuildInfo> {
   private final CodeSource src;
   private final boolean cleanupAfter;
   private final BuildYaml yaml;
-  private final String buildId;
-  private String label;
+  private String buildDirName;
   private File buildDir; // Directory the build will be done in
-  private File baseDir; // base directory, CWD basically.  dtest.log will end up in this directory.
+  private String label;
 
   /**
    *
    * @param yaml Yaml file object
    * @param repo code source object that will be used to fetch code.
    * @param cleanupAfter whether we should cleanup after this build
-   * @param buildId Id for this build.
+   * @param buildDir Directory for this build.
    */
-  public BuildInfo(BuildYaml yaml, CodeSource repo, boolean cleanupAfter, String buildId) {
+  public BuildInfo(BuildYaml yaml, CodeSource repo, boolean cleanupAfter, String buildDir) {
     this.src = repo;
     this.yaml = yaml;
-    buildDir = baseDir = null;
     this.cleanupAfter = cleanupAfter;
-    this.buildId = buildId;
+    buildDirName = buildDir;
   }
 
   /**
@@ -95,28 +93,20 @@ public class BuildInfo extends Configurable implements Comparable<BuildInfo> {
     if (buildDir != null) return buildDir;
 
     // This cannot be done in the constructor because it requires the configuration.
-    checkLabelIsDockerable();
-    buildDir = new File(getBaseDir(), label + "-" + buildId);
+    buildDir = new File(getBuildDirName());
     buildDir.mkdir();
     log.info("Build dir for build is " + buildDir.getAbsolutePath());
     return buildDir;
   }
 
-  /**
-   * Get the base directory for this build.  The build directory will be in a subdirectory of this directory, named with
-   * the label of this build.  This allows all dtest builds to use the same base directory.
-   * @return base directory
-   */
-  public File getBaseDir() {
-    if (baseDir == null) {
-      String baseDirName = cfg.getAsString(CFG_BUILDINFO_BASEDIR);
-      if (baseDirName == null) {
-        baseDirName = System.getProperty("java.io.tmpdir");
+  private String getBuildDirName() {
+    if (buildDirName == null) {
+      buildDirName = cfg.getAsString(CFG_BUILDINFO_BASEDIR);
+      if (buildDirName == null) {
+        buildDirName = System.getProperty("java.io.tmpdir");
       }
-      log.info("Base dir for build is " + baseDirName);
-      baseDir = new File(baseDirName);
     }
-    return baseDir;
+    return buildDirName;
   }
 
 
@@ -132,13 +122,14 @@ public class BuildInfo extends Configurable implements Comparable<BuildInfo> {
    * Get the label for the build.
    * @return build label.
    */
-  public String getLabel() {
+  public String getLabel() throws IOException {
     // Don't check validity of label here, we'll do that when we construct the build buildDir.
     if (label == null) {
       label = cfg.getAsString(CFG_BUILDINFO_LABEL);
       if (label == null) {
         label = Utils.generateLabel(getYaml().getBranch());
       }
+      checkLabelIsDockerable();
       log.info("Using label " + label);
     }
     return label;

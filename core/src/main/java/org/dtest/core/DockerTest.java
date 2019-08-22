@@ -85,7 +85,7 @@ public class DockerTest {
   private DTestLogger log;
   private String repo;
   private String branch;
-  private String buildId;
+  private String buildDir;
   private Map<String, String> logLinks; // HTML links to the logs
 
   @VisibleForTesting String getCfgDir() {
@@ -180,10 +180,11 @@ public class DockerTest {
      * to current datetime.
      *
      */
-    opts.addOption(Option.builder("i")
-        .longOpt("build-id")
-        .desc("Build identifier.  Will be used as a filename so spaces etc. not recommended.  Defaults to current datetime")
+    opts.addOption(Option.builder("d")
+        .longOpt("build-dir")
+        .desc("Build directory.  This should be unique to the build.")
         .hasArg()
+        .required()
         .build());
 
 
@@ -218,7 +219,7 @@ public class DockerTest {
       cfgDir = cmd.getOptionValue("c");
       if (cmd.hasOption("b")) branch = cmd.getOptionValue("b");
       if (cmd.hasOption("r")) repo = cmd.getOptionValue("r");
-      buildId = cmd.hasOption('i') ? cmd.getOptionValue('i') : LocalDateTime.now().toString().replace(':', '.');
+      buildDir = cmd.getOptionValue('d');
       return true;
     } catch (ParseException e) {
       System.err.println("Failed to parse command line: " + e.getMessage());
@@ -239,7 +240,7 @@ public class DockerTest {
       log.info("Going to build branch " + branch + " from repo " + repo + " using config in " + cfgDir);
       BuildYaml yaml = BuildYaml.readYaml(cfgDir, cfg, log, repo, branch);
       CodeSource codeSource = CodeSource.getInstance(cfg, log);
-      buildInfo = new BuildInfo(yaml, codeSource, cleanupAfter, buildId);
+      buildInfo = new BuildInfo(yaml, codeSource, cleanupAfter, buildDir);
       buildInfo.setConfig(cfg).setLog(log);
       //linkLogFileIntoLogDir();
       docker = ContainerClient.getInstance(cfg, log);
@@ -370,10 +371,10 @@ public class DockerTest {
     writer.write("<title>Docker Test\n</title>");
     writer.write("</head>\n");
     writer.write("<body>\n");
-    writer.write("<h1>" + analyzer.getBuildState().getState().name().replace('_', ' ') + "</h1>\n");
-    writer.write("<p>Repository " + repo + "</p>\n");
-    writer.write("<p>Branch " + branch + "</p>\n");
-    writer.write("<p>Config Directory " + cfgDir + "</p>\n");
+    writer.write("<h1> Status:  " + analyzer.getBuildState().getState().name().replace('_', ' ') + "</h1>\n");
+    writer.write("<p>Repository:  " + repo + "</p>\n");
+    writer.write("<p>Branch:  " + branch + "</p>\n");
+    writer.write("<p>Config Directory:  " + cfgDir + "</p>\n");
     if (logLinks.size() > 0) {
       writer.write("<p>Links to logfiles for tests with errors or failure:</p>\n");
       writer.write("<ul>\n");
@@ -382,6 +383,7 @@ public class DockerTest {
       }
       writer.write("</ul>\n");
     }
+    writer.write("<p>Logfile from build: <a href=\"dtest.log\">dtest.log</a></p>");
     writer.write("</body>\n");
     writer.write("</html>\n");
     writer.close();

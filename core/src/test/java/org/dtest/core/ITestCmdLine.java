@@ -36,10 +36,11 @@ public class ITestCmdLine {
   public void dogfood() throws IOException, InterruptedException {
 
     String confDir = System.getProperty("conf.dir") + File.separator + "test-classes" + File.separator + "itest";
+    String buildDir = System.getProperty("java.io.tmpdir");
 
     Map<String, String> env = new HashMap<>();
     env.put("DTEST_HOME", System.getProperty("dtest.home"));
-    String[] cmd = {env.get("DTEST_HOME") + File.separator + "bin" + File.separator + "dtest", "-c", confDir};
+    String[] cmd = {env.get("DTEST_HOME") + File.separator + "bin" + File.separator + "dtest", "-c", confDir, "-d", buildDir};
     LOG.info("Going to run: " + StringUtils.join(cmd, " ") + " with environment " +
         StringUtils.join(env, " "));
     String[] envArray = new String[env.size()];

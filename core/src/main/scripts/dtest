@@ -21,11 +21,6 @@ if [ "x${DTEST_HOME}" = "x" ]
   export DTEST_HOME="."
 fi
 
-if [ "x${DTEST_LOG_DIR}" = "x" ]
-  then
-  export DTEST_LOG_DIR=${DTEST_HOME}/log
-fi
-
 if [ "x${JAVA_HOME}" = "x" ]
   then
   JAVA_HOME="/usr"
@@ -37,5 +32,29 @@ for f in ${DTEST_HOME}/lib/*.jar; do
   CLASSPATH=${CLASSPATH}:$f;
 done
 
+# Find the build directory and set the DTEST_BUILD_DIR so that the log4j logfile ends up in the right place.
+# Also find any Java properties that were passed in and pass them to Java instead of to DockerTest
+dirNext="false"
+PROPS=""
+export DTEST_BUILD_DIR="/tmp"  # Preset it to tmp in case it isn't set
+for arg in $@
+do
+  if [ $dirNext = "true" ]
+    then
+    export DTEST_BUILD_DIR=$arg
+    dirNext="false"
+  else
+    case $arg in
+      -d | --build-dir)
+        dirNext="true"
+        ;;
+
+      -D*)
+        PROPS="$PROPS $arg"
+        ;;
+    esac
+  fi
+done
+
 $JAVA_HOME/bin/java -cp $CLASSPATH -Dlog4j.configurationFile=${DTEST_HOME}/conf/log4j2.xml \
-    -Ddtest.core.buildinfo.basedir=${DTEST_LOG_DIR} org.dtest.core.DockerTest "$@"
+    $PROPS org.dtest.core.DockerTest "$@"
