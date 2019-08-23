@@ -43,32 +43,11 @@ import java.util.concurrent.Future;
  * using {@link #setLogger(DTestLogger)}, then run the build using {@link #runBuild()}.
  */
 public class DockerTest {
-  /*~~
-   * @document propsfile
-   * @section dt_numcontainers
-   * @after header
-   * - dtest.core.dockertest.numcontainers: Number of containers to run.  This defaults to 2 so that is runs well
-   * out of the box on a laptop.  For serious applications you likely want to set this higher.  How high to set it
-   * requires experimentation.
-   */
   /**
    * Number of containers to run.  Defaults to 2.
    */
   public static final String CFG_DOCKERTEST_NUMCONTAINERS = "dtest.core.dockertest.numcontainers";
   private static final int CFG_DOCKERTEST_NUMCONTAINERS_DEFAULT = 2;
-
-  /*~~
-   * @document propsfile
-   * @section dt_resultlocation
-   * @after dt_numcontainers
-   * - dtest.core.dockertest.resultlocation:  Directory on the build machine where results of the run will
-   * be written.  Defaults to `java.io.tmpdir`.
-   */
-  /**
-   * Where to drop the tar file produced by the build.  Defaults to java.io.tmpdir.
-   */
-  public static final String CFG_DOCKERTEST_RESULTLOCATION = "dtest.core.dockertest.resultlocation";
-  private static final String CFG_DOCKERTEST_RESULTLOCATION_DEFAULT = System.getProperty("java.io.tmpdir");
 
   private static final String SUMMARY_LOG = "summary";
   public static final String EXEC_LOG = "dtest-exec"; // for log entries by dtest
@@ -140,28 +119,12 @@ public class DockerTest {
 
     Options opts = new Options();
 
-    /*~~
-     * @document dockertest
-     * @section cmdline_branch
-     * @after body
-     * `-b|--branch` *branch* branch in the source control to use when building.  If set this overrides the value
-     * of `branch` in `dtest.yaml`.  If no value is specified here or there then a default that makes sense for the
-     * source control system in use will be used (e.g., master for git).
-     *
-     */
     opts.addOption(Option.builder("b")
         .longOpt("branch")
         .desc("Source control branch to build from")
         .hasArg()
         .build());
 
-    /*~~
-     * @document dockertest
-     * @section cmdline_confdir
-     * `-c|--conf-dir` *conf_directory* The configuration directory that contains the `dtest.properties` and `dtest.yaml` files
-     * for this build.  This is required.
-     *
-     */
     opts.addOption(Option.builder("c")
         .longOpt("conf-dir")
         .desc("Directory where configuration and build profile files are")
@@ -169,13 +132,6 @@ public class DockerTest {
         .required()
         .build());
 
-    /*~~
-     * @document dockertest
-     * @section cmdline_confdir
-     * `-i|--build-id` *build_id* The identifier for this build.  This will be used in filenames.  If not set defaults
-     * to current datetime.
-     *
-     */
     opts.addOption(Option.builder("d")
         .longOpt("build-dir")
         .desc("Build directory.  This should be unique to the build.")
@@ -183,25 +139,11 @@ public class DockerTest {
         .required()
         .build());
 
-
-    /*~~
-     * @document dockertest
-     * @section cmdline_noclean
-     * `-n|--no-cleanup` Do not cleanup images and containers after the build.  Usually you want to cleanup to avoid
-     * polluting hte build machine.  This is useful for debugging and for keeping the image around for a subsequent build.
-     *
-     */
     opts.addOption(Option.builder("n")
         .longOpt("no-cleanup")
         .desc("do not cleanup docker containers and image after build")
         .build());
 
-    /*~~
-     * @document dockertest
-     * @section cmdline_repo
-     * `-r|--repo` *source_repository* Source repository from which the code will be checked out.  If set this
-     * overrides the value of `repo` in `dtest.yaml`.  This must be set in one of those places.
-     */
     opts.addOption(Option.builder("r")
         .longOpt("repo")
         .desc("Source control repository to checkout code from")
@@ -446,72 +388,4 @@ public class DockerTest {
     }
     System.exit(rc);
   }
-
-  /*~~
-   * @document dockertest
-   * @section body
-   * @begin
-   * # DockerTest
-   * DockerTest is a tool that allows users to run their tests in containers.  The intended users are large projects
-   * with many tests that take more than a few minutes to run.  Using this tool a build machine can compile the project
-   * once and then run tests in containers in parallel.  Currently the implementation is tied to Docker, Maven, and
-   * Git, though effort has gone into making dtest plugable so that other container, build, and VCS tools can be used.
-   *
-   * ## Overview
-   * DockerTest begins by building a docker image of the project.  This includes any packages the project requires,
-   * as well as checking out the code and building it.  The project is built as part of the image so that each
-   * container running tests starts with the code built and only needs to run the tests.
-   *
-   * Where to check out code from and which branch to use is controlled by the configuration files (see below).  The
-   * user can also override this (and other configuration values) on the command line.  This makes it easy to use
-   * dtest with build tools such as Jenkins for pre-commit builds.  The contributor can provide his or her git repo and
-   * branch and then dtest can run all the tests before the code is committed.
-   *
-   * Each build it labeled.  The user can pass an explicit label or a random one an be generated by the system.  This
-   * label is used to force a fresh image build on every run.  An image can be reused for a test run by setting the
-   * system to not clean up used images and setting the label to a previous label.
-   *
-   * Once the image has been built a number of containers are spun up to run the tests.  The simplest configuration is
-   * to have one container per directory.  Directories that take significantly longer than others can be split into
-   * multiple containers.  Tests that need to be run alone can be isolated in their own containers.  Bad tests
-   * can be skipped.  All of this is controlled by the [dtest.yaml](./yamlfile.html).
-   *
-   * Once all the containers are finished the logs from any tests that have failed or returned errors are collected
-   * and returned to the user.
-   *
-   * dtest has five possible return states:
-   * - Success:  All the tests were run, and all passed.
-   * - Had failures or errors:  All the tests were run, some failed or returned errors.
-   * - Had timeouts:  Some of the tests timed out.  This state overrides the previous, so some tests may also have
-   * failed or returned errors.
-   * - Build failed: dtest failed to complete.  This can be caused by the image failing to build or problems running
-   * the containers, or the image build or containers failing to return in the configured amount of time.
-   *
-   * ## Usage
-   * DockerTest can be run as a command line tool, `dtest` or as a maven plugin `dtest-maven-plugin`.  The functionality
-   * is the same for each, but configuration and logging are done differently.  See [Maven Plugin](../dtest-maven-plugin/plugin.html)
-   * for details on the plugin.  The `dtest` command line tool is described here.
-   *
-   * Command line users should define an environment variable `DTEST_HOME` that describes where the tool is located.
-   * Under this directory there is a `bin` directory that controls the `dtest` executable, a `lib` directory with all
-   * of the required jars, a `conf` directory, and `log`.
-   *
-   * `dtest` is controlled by two configuration files.  [dtest.properties](./propsfile.html) contains general
-   * information for a given instance of dtest, such as which repository to use by default, how many containers to
-   * spawn simultaneously, etc.  Properties can be overridden on the command line.
-   *
-   * [dtest.yaml](./yamlfile.html) contains specific information for a build such as what packages it requires and
-   * what directories to run tests in.
-   *
-   * It is assumed that different builds will have different configuration files.  Even between branches of a project
-   * there will often be different versions of the configuration files since which tests to run and which to skip
-   * can change.  For this reason `dtest` does not look in the `conf` directory for its configuration files but rather
-   * requires the user to pass the conf directory location as part of the command line.
-   *
-   * Logging is handled by Log4j.  The logging configuration is in `conf/log4j2.xml`.  Logs are written to
-   * `log/dtest.log`.
-   *
-   * The command line takes the following arguments:
-   *
-   */
 }

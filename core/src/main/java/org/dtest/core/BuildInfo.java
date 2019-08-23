@@ -28,30 +28,12 @@ import java.util.regex.Pattern;
  * Track information about the build.
  */
 public class BuildInfo extends Configurable implements Comparable<BuildInfo> {
-  /*~~
-   * @document propsfile
-   * @section buildinfo_basedir
-   * @after dt_resultlocation
-   * - dtest.core.buildinfo.basedir: Working directory for the build on the build machine.  When using the
-   * command line this value must
-   * be set.  When using the plugin this defaults to `${project.build.directory}/dtest-plugin-build`.
-   */
   /**
    * Directory to run the build in.  This is the directory on the base machine, not in the container.
    * This value must be set.
    */
   public static final String CFG_BUILDINFO_BASEDIR = "dtest.core.buildinfo.basedir";
 
-  /*~~
-   * @document propsfile
-   * @section buildinfo_label
-   * @after buildinfo_basedir
-   * - dtest.core.buildinfo.label:  Label for this build.  For the command line this value must be set.  When
-   * using the plugin the plugin will generate a random name if one it not provided.  Usually you want this value
-   * to be unique so that it forces a new build.  If you want to rerun an existing build, using an existing image,
-   * you should set this value to that of a previous label.  This value will be used as a docker label, so it must
-   * meet Docker's requirements for a label, which matches this pattern: `[A-Za-z0-9_\\-]+`.
-   */
   /**
    * Label for this build.  This value must be set.  Usually you want this to be unique, as this is used
    * for the docker image label.  You can force a new build from scratch on the same repo and branch/hash by

@@ -32,6 +32,8 @@ hiveDirs:
   - dir: llap-server
     env:
       USER: dtestuser
+    skippedTests:
+      - TestLlapSignerImpl     # verified 8/23/19
   - dir: llap-tez
     env:
       USER: dtestuser
@@ -97,6 +99,8 @@ hiveDirs:
       - TestWarehouseExternalDir                    # verified 6/10/19
       - TestJdbcGenericUDTFGetSplits                # verified 6/13/19
       - TestActivePassiveHA                         # verified 6/18/19
+      - TestJdbcDriver2                             # verified 8/23/19
+      - TestJdbcWithMiniLlapArrow                   # verified 8/23/19
   - dir: itests/hive-unit-hadoop2
     properties:
       skipSparkTests: null

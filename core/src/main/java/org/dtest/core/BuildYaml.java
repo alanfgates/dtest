@@ -22,37 +22,6 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import java.io.File;
 import java.io.IOException;
 
-/*~~
- * @document yamlfile
- * @section header
- * # YAML Build File
- * The `dtest.yaml` file determines how the project is built.  It contains information that defines how to
- * build the image (such as the base image and required packages that must be installed) as well as
- * how to run each set of tests.
- *
- * ### Example `dtest.yaml`
- * ```
- * baseImage: centos
- * requiredPackages:
- *   - java-1.8.0-openjdk-devel
- * projectName: myproject
- * javaPackages:
- *   - org.myproject
- * dirs:
- *   - dir: core
- *   - dir: apps
- *     skippedTests:
- *       - TestThatDoesNotWork
- *     needsSplit: true
- * ```
- * You can extend the functionality of the system by extending the `BuildYaml` class and adding new elements.
- * If you do this, be sure to set `dtest.core.buildyaml.impl` in your properties file to the name of your
- * new class.  Doing this allows the implementation to define its own values to be placed in `dtest.yaml`.  To
- * make use of this you will also need to subclass `MavenContainerCommandFactory` so that the custom values are used
- * when generating test commands.
- *
- * The following list describes all valid entries in `dtest.yaml`.
- */
 /**
  * BuildYaml is the top level file for holding the object described in the dtest.yaml file.  It contains general
  * build information as well as an array of ModuleDirectory.  Implementations can override this class in order to
@@ -63,13 +32,6 @@ import java.io.IOException;
  */
 public class BuildYaml {
 
-  /*~~
-   * @document propsfile
-   * @section buildyaml_impl
-   * @after buildinfo_label
-   * - dtest.core.buildyaml.impl: Subclass of BuildYaml to use to interpret the `dtest.yaml` file.  Defaults
-   * to `BuildYaml`.
-   */
   /**
    * Implementation of `BuildYaml` to use to interpret dtest.yaml.  Defaults to BuildYaml.
    */
@@ -78,87 +40,24 @@ public class BuildYaml {
 
   private static final String[] EMPTY_STRING_ARRAY = new String[0];
 
-  /*~~
-   * @document yamlfile
-   * @section baseimage
-   * @after header
-   * - baseImage: Base docker image to use.  Currently supported values are `centos`, `ubuntu`, or `debian`.  These
-   * can also include a version number if desired.
-   */
   private String baseImage;
 
-  /*~~
-   * @document yamlfile
-   * @section requiredpackages
-   * - requiredPackages: A list of required packages that should be installed for your build to work.
-   */
   private String[] requiredPackages;
 
-  /*~~
-   * @document yamlfile
-   * @section projectname
-   * - projectName: Name of the project.  When using git, this needs to match the directory name of your project
-   * when the project is cloned.
-   */
   private String projectName;
 
-  /*~~
-   * @document yamlfile
-   * @section projectdir
-   * - projectDir: Directory in the project to run `mvn install` in when building the image.  Usually this will be
-   * the same as `projectName`.  In that case this value does not need to be set, and the value of `projectName`
-   * will be used.
-   */
   private String projectDir;
 
-  /*~~
-   * @document yamlfile
-   * @section repo
-   * - repo: Default repository to use for source control.  This can be overridden by values passed on
-   * the command line or to the plugin.
-   */
   private String repo;
 
-  /*~~
-   * @document yamlfile
-   * @section branch
-   * - branch: Default branch to use with source control.  This can be overridden by values passed on the
-   * command line or to the plugin.  The default for this value is source control specific.  For git it is 'master'.
-   */
   private String branch;
 
-  /*~~
-   * @document yamlfile
-   * @section dirs
-   * - dirs: A list of test groups to run.  Each element of this list is a `ModuleDirectory`.
-   */
   private ModuleDirectory[] dirs;
 
-  /*~~
-   * @document yamlfile
-   * @section comment
-   * - comment: Free form, all for you to comment as you please.
-   */
   private String comment;
 
-  /*~~
-   * @document yamlfile
-   * @section javapackages
-   * - javaPackages: A list of top level Java packages that the tests are in.  These are not the individual
-   * modules but top level ones, such as org.apache.hadoop or org.dtest.  Done as a list because some projects
-   * have tests in multiple top level packages, e.g. Apache Hive has tests in org.apache.hadoop.hive and org.apache.hive.
-   */
   private String[] javaPackages;
 
-  /*~~
-   * @document yamlfile
-   * @section additionallogs
-   * - additionalLogs: A list of any additional log files that should be picked up as part of the collection of
-   * log files to ship back to the user.  By default the system picks up output from the `surefire-reports`
-   * directory.  If your system uses log4j or a similar package and you want to fetch the resulting logs you should
-   * place that log in this list as dtest cannot determine how the logging is configured and where the logfile is.
-   *
-   */
   private String[] additionalLogs;
 
   /**

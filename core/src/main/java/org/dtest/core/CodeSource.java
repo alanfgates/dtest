@@ -27,13 +27,6 @@ import java.util.List;
  */
 public abstract class CodeSource extends Configurable {
 
-  /*~~
-   * @document propsfile
-   * @section codesource_impl
-   * @after buildyaml_impl
-   * - dtest.core.codesource.impl: Subclass of `CodeSource` to use.  `CodeSource` controls how dtest interacts
-   * with the source control system.  Defaults to `GitSource`.
-   */
   /**
    * Class that will be used to communicate with the code repository.  Defaults to git.
    */
