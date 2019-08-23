@@ -30,13 +30,11 @@ limitations under the License.
   has unit tests that need > 10 minutes to run because there are a so many, you can use this tool to break up
   the test execution into a number of parallel builds.  The build (without tests) is first done as part of a
   Docker image build.  Then containers are spun up for each module (or parts of a module, depending on configuration)
-  and the tests run.  This can be run as a command line tool or via its maven plugin.</description>
+  and the tests run.  This can be configured to be part of a Jenkins build.</description>
 
   <modules>
-    <module>documentation</module>
     <module>core</module>
     <module>hive</module>
-    <module>maven</module>
   </modules>
 
   <properties>
