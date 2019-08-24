@@ -64,69 +64,16 @@ limitations under the License.
       <fileMode>644</fileMode>
       <includes>
         <include>jenkins-config.xml</include>
+        <include>dtest.properties</include>
+        <include>master.yaml</include>
+        <include>branch-3.yaml</include>
+        <include>branch-3.1.yaml</include>
+        <include>branch-2.yaml</include>
+        <include>branch-2.3.yaml</include>
       </includes>
       <outputDirectory>conf</outputDirectory>
     </fileSet>
 
-    <fileSet>
-      <directory>${project.basedir}/src/main/resources/master</directory>
-      <fileMode>644</fileMode>
-      <includes>
-        <include>dtest.yaml</include>
-        <include>dtest.properties</include>
-      </includes>
-      <outputDirectory>conf/hive/master</outputDirectory>
-    </fileSet>
-
-    <fileSet>
-      <directory>${project.basedir}/src/main/resources/branch3</directory>
-      <fileMode>644</fileMode>
-      <includes>
-        <include>dtest.yaml</include>
-        <include>dtest.properties</include>
-      </includes>
-      <outputDirectory>conf/hive/branch3</outputDirectory>
-    </fileSet>
-
-    <fileSet>
-      <directory>${project.basedir}/src/main/resources/branch-2</directory>
-      <fileMode>644</fileMode>
-      <includes>
-        <include>dtest.yaml</include>
-        <include>dtest.properties</include>
-      </includes>
-      <outputDirectory>conf/hive/branch-2</outputDirectory>
-    </fileSet>
-
-    <fileSet>
-      <directory>${project.basedir}/src/main/resources/branch2.3</directory>
-      <fileMode>644</fileMode>
-      <includes>
-        <include>dtest.yaml</include>
-        <include>dtest.properties</include>
-      </includes>
-      <outputDirectory>conf/hive/branch-2.3</outputDirectory>
-    </fileSet>
-
-    <fileSet>
-      <directory>${project.basedir}/src/main/resources/branch-3</directory>
-      <fileMode>644</fileMode>
-      <includes>
-        <include>dtest.yaml</include>
-        <include>dtest.properties</include>
-      </includes>
-      <outputDirectory>conf/hive/branch-3</outputDirectory>
-    </fileSet>
-
-    <fileSet>
-      <directory>${project.basedir}/src/main/resources/branch-3.1</directory>
-      <fileMode>644</fileMode>
-      <includes>
-        <include>dtest.yaml</include>
-        <include>dtest.properties</include>
-      </includes>
-      <outputDirectory>conf/hive/branch-3.1</outputDirectory>
-    </fileSet>
   </fileSets>
 </assembly>
 

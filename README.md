@@ -6,24 +6,24 @@ users are large projects  with many tests that take more than a few minutes to r
 Using this tool a build machine can compile the project once and then run tests in
 containers in parallel.  
  
-DTest uses Git, Maven, Docker, and Jenkins.  To build the user provides a configuration
+DTest uses Git, Maven, Docker, and Jenkins.  To build the user provides a 
 profile (more about this later) a git repo and a branch.  The provided git repo is cloned,
 the indicated branch checked
 out, and then the code is build and a docker image created.  This results in a 
 large docker image (currently several G in the case of Apache Hive) but has the 
 benefit that the build is only done once.  Since the build is done in a new
 container all maven dependencies are pulled fresh for the build.  Then, as indicated by
-the configuration in the profile a set of tests are run in separate containers in 
+the profile a set of tests are run in separate containers in 
 parallel.  The number of simultaneous containers is controlled by the installation,
 with the intention of having one per core on the machine.  When
 all the tests have finished an HTML report is generated with the status.  If any tests
 failed logs from those tests are included in the report.
 
-The docker image created by DTest is labled using the name of the branch.  The image
+The docker image created by DTest is labeled using the name of the branch.  The image
 is constructed in such a way that subsequent builds will generate new images rather than
 pull from the cache.
 
-The simplest configuration is  to have one test execution container per directory.
+The simplest profile is to have one test execution container per directory.
 Directories that take significantly longer than others can be split into multiple
 containers.  Tests that need to be run alone can be isolated in their own containers.
 Bad tests can be skipped.
@@ -65,18 +65,18 @@ and github repos.
 To add new profiles or repositories to your build go to the job in Jenkins and click on
 **Configure**.  In the **General** section modify the *Profile* and *Repository* parameters to
 add the new options you need.  In the case of profile, there must be corresponding 
-`dtest.yaml` and `dtest.properties` files in the config directory.
+*profile*`.yaml` in the config directory.
 
 ## Configuration
 ### DTest Configuration
-Configuration for DTest wide values are defined in the file `dtest.properties`.  You will
+Configuration for DTest values are defined in the file `dtest.properties`.  You will
 find this file in the config profile directory.
 
 Property | Explanation | Default
 ---------|-------------|--------
 dtest.core.buildinfo.basedir | Working directory for the build on the build machine | *DTEST_HOME*/log/*label*-*buildid*
 dtest.core.buildinfo.label |  Label for this build | Branch name
-dtest.core.buildyaml.impl | Class to use to interpret `dtest.yaml`.  It must either be or subclass `BuildYaml`|  `BuildYaml`
+dtest.core.buildyaml.impl | Class to use to interpret the Yaml build file.  It must either be or subclass `BuildYaml`|  `BuildYaml`
 dtest.core.codesource.impl | Subclass of `CodeSource` to use, which controls how DTest interacts with the source control system.  | `GitSource`
 dtest.core.containerclient.impl | Subclass of `ContainerClient` to use, which handles container operations | `DockerContainerClient`
 dtest.core.containerclient.containerruntime | Maximum runtime for a single container.  If any container exceeds this value the build will be marked as timed out.  You should set this higher than `dtest.core.containercommand.singletestruntime` so that you can distinguish between a container timing out and a test timing out.|  30 minutes  
@@ -89,12 +89,13 @@ dtest.core.resultanalyzer.impl | Subclass of `ResultAnalyzer` to use to analyze 
 dtest.docker.dockercontainerclient.dockerpath | Path to the docker executable | `/usr/local/bin/docker`
 
 ### Profile Configuration
-Each profile is controlled by a `dtest.yaml` file.  This file controls what code is 
+Each profile is controlled by a Yaml file.  The name of this file will be *profile*.yaml, where *profile* 
+is the name of the profile.  This file controls what code is 
 checked out, what tests are run, and how those tests are split up.
 
 #### Entries
-The entries are presented here, with nesting in the list representing nesting in `dtest.yaml`.  There are
-also multiple examples in the source code, with Hive having some very complex `dtest.yaml` files.
+The entries are presented here, with nesting in the list representing nesting in the Yaml file.  There are
+also multiple examples in the source code, with Hive having some very complex Yaml files.
 * `baseImage`: Base docker image to use.  Currently supported values are `centos`, `ubuntu`, or `debian`. 
 These can also include a version number if desired.  **Required**
 * `requiredPackages`: A list of required packages that should be installed for your build to work. 
@@ -134,7 +135,7 @@ logging is configured and where the logfile is.
     * `env`: Map of environment variables to set when running the tests.
     * `properties`: Map of Java properties to set when running the tests.
 
-Example `dtest.yaml`
+example.yaml:
 ```
 baseImage: centos
 requiredPackages:
@@ -155,7 +156,7 @@ DTest was initially built to use with Apache Hive.  The core is built and tested
 Hive.  Hive extends a number of the existing classes as its build has some non-standard features.
 In particular the Hive qfile tests require special handling, both in launching the tests
 and evaluating success or failure.  Hive adds the following additional entries to the `dir` structure
-in `dtest.yaml`.  All of these are intended for use with qfiles, and assume that the directory has
+in the Yaml file.  All of these are intended for use with qfiles, and assume that the directory has
 been configured to run only a `singleTest`, the driver for the qfile tests (e.g. `TestCliDriver`).
 * `qfilesDir`:  Directory containing qfiles to run.  If this is set all qfiles in this directory will
 be run (but see `excludedQFilesProperties` and `excludedQFiles` below for caveats).
@@ -174,29 +175,36 @@ to be run in a separate container.
 \*Located in `itests/src/test/resources/`
 
 ## Command Line Usage
-You can also use DTest directly from the command line.
+You can also use DTest directly from the command line.  You must set the environment `DTEST_HOME` to
+the directory where DTest is installed.
 ```
-dtest -c <confdir> [-b <branch>] [-i <id>] [-n] [-r <repo>]
+dtest -p <profile> -d <dir> [-b <branch>] [-r <repo>] [-n]
 -b --branch <branch>     Branch in the source control to use when building.
                          If set this overrides the value of branch in
-                         dtest.yaml.  If no value is specified on the command
-                         line or in dtest.yaml, then a default that makes sense
-                         for the source control system in use will be used
+                         the Yaml file.  If no value is specified on the command
+                         line or in the Yaml file, then a default that makes
+                         sense for the source control system in use will be used
                          (e.g., master for git).
--c --conf-dir <confdir>  The configuration directory that contains the
-                         dtest.properties and dtest.yaml files for this build.
-                         This is required.
+-d --build-dir <dir>     Directory to build in.  This should be unique to this 
+                         build.  All of the files produced by the build (the
+                         log file, HTML report, and logs collected from build
+                         containers) will be placed in this directory.  This
+                         argument is required.
 -Dkey=value              Standard Java properties.  These will override
                          values set in dtest.properties.
--i --build-id <id>       The identifier for this build.  This will be used in
-                         filenames.  If not set defaults to current datetime.
 -n --no-cleanup          Do not cleanup images and containers after the build.
                          Usually you want to cleanup to avoid polluting the
                          build machine.  This is useful for debugging.
+-p --profile <profile>   The profile for this build.  $DTEST_HOME/conf must contain
+                         a <profile>.yaml file for this profile. This is required.
 -r --repo <repo>         Source repository from which the code will be checked
                          out.  If set this overrides the value of repo in
-                         dtest.yaml.  This must be set in one of those places.
+                         the Yaml file.  This must be set in one of those places.
 ```
+Logs from running DTest will be located in `$DTEST_HOME/log`.  DTest is designed assuming it
+is run in a separate instance each time (as this works well with Jenkins), so you should
+clean out this log file between runs if running from the command line.
+
 ## Extending DTest
 You can extend DTest for your project.  For projects that run standard maven builds and use 
 standard JUnit, no extension is necessary.  
@@ -207,7 +215,7 @@ tests executed, and results analyzed.  Which instances of these classes are used
 controlled by configuration so that you can easily add your own classes and use
 them without changes to DTest core.
 
-`BuildYaml`: Controls how `dtest.yaml` is interpreted.  Defaults to `BuildYaml`.  You will need
+`BuildYaml`: Controls how the Yaml file is interpreted.  Defaults to `BuildYaml`.  You will need
 to extend this if you have implemented other classes that require additional information beyond
 what is supported in `BuildYaml`.
 

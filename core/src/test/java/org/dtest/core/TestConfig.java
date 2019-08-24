@@ -60,7 +60,7 @@ public class TestConfig {
     // Make sure we don't overwrite existing properites
     Properties props = new Properties();
     props.setProperty(ContainerClient.CFG_CONTAINERCLIENT_IMAGEBUILDTIME, "1h");
-    Config cfg = new Config(System.getProperty("java.io.tmpdir"), props);
+    Config cfg = new Config(new File(System.getProperty("java.io.tmpdir")), props);
 
     // Test ones from the file
     Assert.assertEquals("/base/dir", cfg.getAsString(BuildInfo.CFG_BUILDINFO_BASEDIR));

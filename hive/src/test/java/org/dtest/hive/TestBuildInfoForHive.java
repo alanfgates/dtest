@@ -19,7 +19,7 @@ public class TestBuildInfoForHive {
         BuildInfo.CFG_BUILDINFO_BASEDIR, System.getProperty("java.io.tmpdir"),
         BuildYaml.CFG_BUILDYAML_IMPL, HiveBuildYaml.class.getName());
     DTestLogger log = new TestUtils.TestLogger();
-    BuildInfo info = new BuildInfo(TestUtils.buildYaml(cfg, log), new GitSource(), true, "5");
+    BuildInfo info = new BuildInfo(TestUtils.buildYaml(cfg, log, "hivetest"), new GitSource(), true, "5");
     info.setConfig(cfg).setLog(log);
     info.getBuildDir();
     BuildYaml yaml = info.getYaml();
@@ -78,37 +78,47 @@ public class TestBuildInfoForHive {
     Assert.assertEquals("orc_merge10.q", mDir.getExcludedQFiles()[1]);
   }
 
+  // Test reading the actual Hive master yaml file.  This uses the master.yaml file from hive/src/main/resources
+  // rather than hivetest.yaml from hive/src/test/resources
   @Test
   public void masterYaml() throws IOException {
-    // Don't confirm all the contents, as I assume these will change, but make sure we can at least parse the
-    // master yaml file
-    Config cfg = TestUtils.buildCfg(BuildInfo.CFG_BUILDINFO_LABEL, "parse-master-yaml",
-        BuildInfo.CFG_BUILDINFO_BASEDIR, System.getProperty("java.io.tmpdir"),
-        BuildYaml.CFG_BUILDYAML_IMPL, HiveBuildYaml.class.getName());
-    String cfgDir = System.getProperty("java.io.tmpdir") + File.separator + "classes" + File.separator + "master";
-    DTestLogger log = new TestUtils.TestLogger();
-    BuildInfo info = new BuildInfo(BuildYaml.readYaml(cfgDir, cfg, log, null, null), new GitSource(), true, "6");
-    info.setConfig(cfg).setLog(log);
-    info.getBuildDir();
-    BuildYaml yaml = info.getYaml();
-    assert yaml instanceof HiveBuildYaml;
-    Assert.assertEquals("hive master yaml file", yaml.getComment());
+    readYaml("parse-master-yaml", "master", "master", "hive master yaml file");
+  }
+
+  // Test reading the actual Hive branch yaml file.  This uses the master.yaml file from hive/src/main/resources
+  // rather than hivetest.yaml from hive/src/test/resources
+  @Test
+  public void branch3Yaml() throws IOException {
+    readYaml("parse-branch-3-yaml", "branch-3", "branch-3", "hive branch-3 yaml file");
   }
 
   @Test
-  public void branch3Yaml() throws IOException {
-    // Don't confirm all the contents, as I assume these will change, but make sure we can at least parse the
-    // branch-3 yaml file
-    Config cfg = TestUtils.buildCfg(BuildInfo.CFG_BUILDINFO_LABEL, "parse-branch-3-yaml",
+  public void branch31Yaml() throws IOException {
+    readYaml("parse-branch-31-yaml", "branch-3.1", "branch-3.1", "hive branch-3.1 yaml file");
+  }
+
+  @Test
+  public void branch2Yaml() throws IOException {
+    readYaml("parse-branch-2-yaml", "branch-2", "branch-2", "hive branch-2 yaml file");
+  }
+
+  @Test
+  public void branch23() throws IOException {
+    readYaml("parse-branch-23-yaml", "branch-2.3", "branch-2.3", "hive branch-2.3 yaml file");
+  }
+
+  private void readYaml(String label, String profile, String branch, String expectedComment) throws IOException {
+    Config cfg = TestUtils.buildCfg(BuildInfo.CFG_BUILDINFO_LABEL, label,
         BuildInfo.CFG_BUILDINFO_BASEDIR, System.getProperty("java.io.tmpdir"),
         BuildYaml.CFG_BUILDYAML_IMPL, HiveBuildYaml.class.getName());
-    String cfgDir = System.getProperty("java.io.tmpdir") + File.separator + "classes" + File.separator + "branch-3";
+    File cfgDir = new File(System.getProperty("java.io.tmpdir"), "classes");
     DTestLogger log = new TestUtils.TestLogger();
-    BuildInfo info = new BuildInfo(BuildYaml.readYaml(cfgDir, cfg, log, null, null), new GitSource(), true, "7");
+    BuildInfo info = new BuildInfo(BuildYaml.readYaml(cfgDir, cfg, log, null, profile, branch), new GitSource(), true, "7");
     info.setConfig(cfg).setLog(log);
     info.getBuildDir();
     BuildYaml yaml = info.getYaml();
     assert yaml instanceof HiveBuildYaml;
-    Assert.assertEquals("hive branch-3 yaml file", yaml.getComment());
+    Assert.assertEquals(expectedComment, yaml.getComment());
+
   }
 }

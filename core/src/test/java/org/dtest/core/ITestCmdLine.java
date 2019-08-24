@@ -25,41 +25,54 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 public class ITestCmdLine {
   private static final Logger LOG = LoggerFactory.getLogger(ITestCmdLine.class);
+  private static final String RESOURCE_DIR = "dtest.itest.resource.dir";
+  private static final String PROFILE_YAML = "master.yaml";
 
   @Test
   public void dogfood() throws IOException, InterruptedException {
 
-    String confDir = System.getProperty("conf.dir") + File.separator + "test-classes" + File.separator + "itest";
-    String buildDir = System.getProperty("java.io.tmpdir");
+    // Link the master.yaml in our source tree to our distribution so we can use it.
+    Path profileYamlInDTestHome = Paths.get(System.getProperty("dtest.home"), "conf", PROFILE_YAML);
+    Path profileYamlInSourceTree = Paths.get(System.getProperty(RESOURCE_DIR), PROFILE_YAML);
+    Files.deleteIfExists(profileYamlInDTestHome);
+    Files.createLink(profileYamlInDTestHome, profileYamlInSourceTree);
+    try {
+      String buildDir = System.getProperty("java.io.tmpdir");
 
-    Map<String, String> env = new HashMap<>();
-    env.put("DTEST_HOME", System.getProperty("dtest.home"));
-    String[] cmd = {env.get("DTEST_HOME") + File.separator + "bin" + File.separator + "dtest", "-c", confDir, "-d", buildDir};
-    LOG.info("Going to run: " + StringUtils.join(cmd, " ") + " with environment " +
-        StringUtils.join(env, " "));
-    String[] envArray = new String[env.size()];
-    int i = 0;
-    for (Map.Entry<String, String> e : env.entrySet()) envArray[i++] = e.getKey() + "=" + e.getValue();
-    Process proc = Runtime.getRuntime().exec(cmd, envArray);
-    BufferedReader reader = new BufferedReader(new InputStreamReader(proc.getInputStream()));
-    final StringBuilder lines = new StringBuilder();
-    reader.lines()
-        .forEach(s -> lines.append(s).append('\n'));
+      Map<String, String> env = new HashMap<>();
+      env.put("DTEST_HOME", System.getProperty("dtest.home"));
+      String[] cmd = {env.get("DTEST_HOME") + File.separator + "bin" + File.separator + "dtest", "-d", buildDir, "-p", "master"};
+      LOG.info("Going to run: " + StringUtils.join(cmd, " ") + " with environment " +
+          StringUtils.join(env, " "));
+      String[] envArray = new String[env.size()];
+      int i = 0;
+      for (Map.Entry<String, String> e : env.entrySet()) envArray[i++] = e.getKey() + "=" + e.getValue();
+      Process proc = Runtime.getRuntime().exec(cmd, envArray);
+      BufferedReader reader = new BufferedReader(new InputStreamReader(proc.getInputStream()));
+      final StringBuilder lines = new StringBuilder();
+      reader.lines()
+          .forEach(s -> lines.append(s).append('\n'));
 
-    reader = new BufferedReader(new InputStreamReader(proc.getErrorStream()));
-    final StringBuilder errLines = new StringBuilder();
-    reader.lines()
-        .forEach(s -> errLines.append(s).append('\n'));
-    LOG.info("stdout: " + lines.toString());
-    LOG.info("stderr: " + errLines.toString());
-    Assert.assertTrue(proc.waitFor(300, TimeUnit.SECONDS));
-    Assert.assertEquals(0, proc.exitValue());
+      reader = new BufferedReader(new InputStreamReader(proc.getErrorStream()));
+      final StringBuilder errLines = new StringBuilder();
+      reader.lines()
+          .forEach(s -> errLines.append(s).append('\n'));
+      LOG.info("stdout: " + lines.toString());
+      LOG.info("stderr: " + errLines.toString());
+      Assert.assertTrue(proc.waitFor(300, TimeUnit.SECONDS));
+      Assert.assertEquals(0, proc.exitValue());
+    } finally {
+      Files.deleteIfExists(profileYamlInDTestHome);
+    }
 
   }
 }

@@ -33,7 +33,7 @@ public class TestMavenContainerCommandFactory {
 
   @Test
   public void buildCommands() throws IOException {
-    Config cfg = TestUtils.buildCfg(BuildInfo.CFG_BUILDINFO_LABEL, "mylabel",
+    Config cfg = TestUtils.buildCfg(BuildInfo.CFG_BUILDINFO_LABEL, "profile",
                                     BuildInfo.CFG_BUILDINFO_BASEDIR, System.getProperty("java.io.tmpdir"));
     TestUtils.TestLogger log = new TestUtils.TestLogger();
     MavenContainerCommandFactory cmds = new MavenContainerCommandFactory();

@@ -49,7 +49,6 @@ public class Config {
   /**
    * Name of the yaml file that describes the build for this instance of dtest.
    */
-  public static final String YAML_FILE = "dtest.yaml";
   private static final Pattern TIME_UNIT_SUFFIX = Pattern.compile("([0-9]+)([a-zA-Z]+)");
 
   private final Properties entries;
@@ -77,9 +76,8 @@ public class Config {
    * @param props Properties that will override anything found in the file
    * @throws IOException if the file cannot be read
    */
-  public Config(String confDir, Properties props) throws IOException {
-    String filename = confDir + File.separator + PROPERTIES_FILE;
-    FileInputStream input = new FileInputStream(filename);
+  public Config(File confDir, Properties props) throws IOException {
+    FileInputStream input = new FileInputStream(new File(confDir, PROPERTIES_FILE));
     Properties p = new Properties();
     p.load(input);
     entries = new Properties(p); // Set the file values as defaults for our properties

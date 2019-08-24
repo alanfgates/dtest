@@ -63,19 +63,19 @@ public class BuildYaml {
   /**
    * Read the YAML file.  If you have configured another class to override BuildYaml it will be used here,
    * otherwise an instance of BuildYaml will be returned.
-   * @param confDir Configuration directory, dtest expects dtest.yaml to be in this directory.
+   * @param confDir Configuration directory, dtest expects the yaml file to be in this directory.
    * @param cfg Configuration object.
    * @param log logger
    * @param repo repository value that should override repo in the yaml file.  This can be left null.
+   * @param profile The profile we are building.  The YAML file should be named <i>profile</i>.yaml
    * @param branch branch value that should override branch in the yaml file.  This can be left null.
    * @return yaml as an object.
    * @throws IOException if the file cannot be read.
    */
-  public static BuildYaml readYaml(String confDir, Config cfg, DTestLogger log, String repo, String branch) throws IOException {
-    String filename = confDir + File.separator + Config.YAML_FILE;
+  public static BuildYaml readYaml(File confDir, Config cfg, DTestLogger log, String repo, String profile, String branch) throws IOException {
     Class<? extends BuildYaml> yamlClass = cfg.getAsClass(CFG_BUILDYAML_IMPL, BuildYaml.class, CFG_BUILDYAML_IMPL_DEFAULT);
-    log.debug("Reading YAML file " + filename + " and interpreting using " + yamlClass.getName());
-    File yamlFile = new File(filename);
+    File yamlFile = new File(confDir, profile + ".yaml");
+    log.debug("Reading YAML file " + yamlFile.getAbsolutePath() + " and interpreting using " + yamlClass.getName());
     ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
     ObjectReader reader = mapper.readerFor(yamlClass);
     BuildYaml yaml = reader.readValue(yamlFile);

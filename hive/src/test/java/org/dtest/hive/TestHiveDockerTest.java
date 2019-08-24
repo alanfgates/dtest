@@ -175,9 +175,7 @@ public class TestHiveDockerTest {
         BuildInfo.CFG_BUILDINFO_BASEDIR, System.getProperty("java.io.tmpdir"),
         BuildInfo.CFG_BUILDINFO_LABEL, "secondtry",
         BuildYaml.CFG_BUILDYAML_IMPL, HiveBuildYaml.class.getName());
-    DockerTest test = new DockerTest();
-    test.buildConfig(TestUtils.getConfDir(), props);
-    test.setLogger(log);
+    DockerTest test = TestUtils.getAndPrepDockerTest(props, log, "hivetest");
     BuildState state = test.runBuild();
     Assert.assertTrue(imageBuilt);
     Assert.assertEquals(0, errors.size());

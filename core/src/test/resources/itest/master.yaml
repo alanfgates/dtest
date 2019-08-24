@@ -8,4 +8,4 @@ dirs:
   - dir: core
   - dir: maven
 repo: https://github.com/alanfgates/dtest.git
-branch: maven-plugin
+branch: master

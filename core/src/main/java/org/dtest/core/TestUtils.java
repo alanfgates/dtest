@@ -20,7 +20,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -60,8 +59,8 @@ public class TestUtils {
    * files are in src/test/resources and you have defined java.io.tmpdir to point to your target directory.
    * @return directory where the configuration files are
    */
-  public static String getConfDir() {
-    return System.getProperty("java.io.tmpdir") + File.separator + "test-classes";
+  public static File getConfDir() {
+    return new File(System.getProperty("java.io.tmpdir"), "test-classes");
   }
 
   /**
@@ -73,7 +72,19 @@ public class TestUtils {
    * @throws IOException if readYaml underneath does.
    */
   public static BuildYaml buildYaml(Config cfg, DTestLogger log) throws IOException {
-    return BuildYaml.readYaml(getConfDir(), cfg, log, "repo", null);
+    return buildYaml(cfg, log, "profile");
+  }
+
+  /**
+   * Build a Yaml file from a particular profile
+   * @param cfg config object
+   * @param log dtest logger
+   * @param profile profile to build, you must have a matching yaml file
+   * @return the read yaml file object
+   * @throws IOException if readYaml underneath fails.
+   */
+  public static BuildYaml buildYaml(Config cfg, DTestLogger log, String profile) throws IOException {
+    return BuildYaml.readYaml(getConfDir(), cfg, log, "repo", profile, null);
   }
 
   /**
@@ -207,5 +218,37 @@ public class TestUtils {
     while ((line = reader.readLine()) != null) log.append(line).append("\n");
     return log.toString();
   }
+
+  /**
+   * Get a prefab DockerTest instance with a baked in profile (that matches the .yaml file in
+   * test/resources) and the builddir set to target.
+   * @param props Config properties to pass to this build.
+   * @param log Logger to use in this build.
+   * @return prefab DockerTest
+   * @throws IOException if one of the called methods throws it.
+   */
+  public static DockerTest getAndPrepDockerTest(Properties props, DTestLogger log) throws IOException {
+    return getAndPrepDockerTest(props, log, "profile");
+  }
+
+  /**
+   * Get a prefab DockerTest instance with a baked in profile (that matches the .yaml file in
+   * test/resources) and the builddir set to target.
+   * @param props Config properties to pass to this build.
+   * @param log Logger to use in this build.
+   * @param profile profile name
+   * @return prefab DockerTest
+   * @throws IOException if one of the called methods throws it.
+   */
+  public static DockerTest getAndPrepDockerTest(Properties props, DTestLogger log, String profile) throws IOException {
+    DockerTest test = new DockerTest();
+    test.parseArgs(new String[] {"-p", profile, "-d", System.getProperty("java.io.tmpdir")});
+    test.determineCfgDir();
+    test.buildConfig(props);
+    test.setLogger(log);
+    return test;
+  }
+
+
 
 }

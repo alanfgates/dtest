@@ -22,6 +22,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import javax.print.Doc;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -244,12 +245,10 @@ public class TestDockerTest {
           ContainerClient.CFG_CONTAINERCLIENT_IMPL, SuccessfulClient.class.getName(),
           ContainerCommandFactory.CFG_CONTAINERCOMMANDLIST_IMPL, HelloWorldCommandList.class.getName(),
           ResultAnalyzer.CFG_RESULTANALYZER_IMPL, SpyingResultAnalyzer.class.getName(),
-          BuildInfo.CFG_BUILDINFO_BASEDIR, TestUtils.getConfDir(),
+          BuildInfo.CFG_BUILDINFO_BASEDIR, TestUtils.getConfDir().getAbsolutePath(),
           BuildInfo.CFG_BUILDINFO_LABEL, "firsttry");
       logToReturn = TestMavenResultAnalyzer.LOG_SUCCESSFUL_RUN_ALL_SUCCEEDED;
-      DockerTest test = new DockerTest();
-      test.buildConfig(TestUtils.getConfDir(), props);
-      test.setLogger(log);
+      DockerTest test = TestUtils.getAndPrepDockerTest(props, log);
       BuildState state = test.runBuild();
       Assert.assertEquals(BuildState.State.SUCCEEDED, state.getState());
       Assert.assertTrue(imageBuilt);
@@ -272,9 +271,7 @@ public class TestDockerTest {
         BuildInfo.CFG_BUILDINFO_BASEDIR, System.getProperty("java.io.tmpdir"),
         BuildInfo.CFG_BUILDINFO_LABEL, "firsttry");
     logToReturn = TestMavenResultAnalyzer.LOG_SUCCESSFUL_RUN_FAILED_TESTS;
-    DockerTest test = new DockerTest();
-    test.buildConfig(TestUtils.getConfDir(), props);
-    test.setLogger(log);
+    DockerTest test = TestUtils.getAndPrepDockerTest(props, log);
     BuildState state = test.runBuild();
     log.dumpToLog();
     Assert.assertEquals(BuildState.State.HAD_FAILURES_OR_ERRORS, state.getState());
@@ -296,9 +293,7 @@ public class TestDockerTest {
         ResultAnalyzer.CFG_RESULTANALYZER_IMPL, SpyingResultAnalyzer.class.getName(),
         BuildInfo.CFG_BUILDINFO_BASEDIR, System.getProperty("java.io.tmpdir"),
         BuildInfo.CFG_BUILDINFO_LABEL, "will-time-out");
-    DockerTest test = new DockerTest();
-    test.buildConfig(TestUtils.getConfDir(), props);
-    test.setLogger(log);
+    DockerTest test = TestUtils.getAndPrepDockerTest(props, log);
     BuildState state = test.runBuild();
     log.dumpToLog();
     Assert.assertEquals(BuildState.State.HAD_TIMEOUTS, state.getState());
@@ -315,9 +310,7 @@ public class TestDockerTest {
         ResultAnalyzer.CFG_RESULTANALYZER_IMPL, SpyingResultAnalyzer.class.getName(),
         BuildInfo.CFG_BUILDINFO_BASEDIR, System.getProperty("java.io.tmpdir"),
         BuildInfo.CFG_BUILDINFO_LABEL, "take2");
-    DockerTest test = new DockerTest();
-    test.buildConfig(TestUtils.getConfDir(), props);
-    test.setLogger(log);
+    DockerTest test = TestUtils.getAndPrepDockerTest(props, log);
     BuildState state = test.runBuild();
     log.dumpToLog();
     Assert.assertEquals(BuildState.State.FAILED, state.getState());
@@ -328,8 +321,7 @@ public class TestDockerTest {
   @Test
   public void cmdline() {
     DockerTest test = new DockerTest();
-    Assert.assertTrue(test.parseArgs(new String[]{"-c", "cfgdir", "-n", "-d", "/tmp"}));
-    Assert.assertEquals("cfgdir", test.getCfgDir());
+    Assert.assertTrue(test.parseArgs(new String[]{"-p", "profile", "-n", "-d", "/tmp"}));
     Assert.assertFalse(test.isCleanupAfter());
   }
 

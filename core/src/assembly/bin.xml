@@ -45,8 +45,6 @@ limitations under the License.
       <directory>${project.basedir}/src/main/scripts</directory>
       <includes>
         <include>dtest</include>
-        <include>dtest-cleanup</include>
-        <include>dtest-jenkins.sh</include>
       </includes>
       <outputDirectory>bin</outputDirectory>
     </fileSet>
@@ -56,6 +54,7 @@ limitations under the License.
       <fileMode>644</fileMode>
       <includes>
         <include>log4j2.xml</include>
+        <include>dtest.properties</include>
       </includes>
       <outputDirectory>conf</outputDirectory>
     </fileSet>

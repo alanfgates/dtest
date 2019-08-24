@@ -96,9 +96,10 @@ limitations under the License.
         <version>2.21.0</version>
         <configuration>
           <workingDirectory>${project.build.directory}</workingDirectory>
+          <redirectTestOutputToFile>true</redirectTestOutputToFile>
           <systemPropertyVariables>
             <java.io.tmpdir>${project.build.directory}</java.io.tmpdir>
-            <conf.dir>${project.build.directory}</conf.dir>
+            <dtest.testonly.conf.dir>${project.build.directory}/test-classes</dtest.testonly.conf.dir>
           </systemPropertyVariables>
           <environmentVariables>
             <DTEST_HOME>${project.build.directory}</DTEST_HOME>
@@ -127,7 +128,7 @@ limitations under the License.
           <systemPropertyVariables>
             <java.io.tmpdir>${project.build.directory}</java.io.tmpdir>
             <dtest.home>${project.build.directory}/${distribution.dir}/dtest</dtest.home>
-            <conf.dir>${project.build.directory}</conf.dir>
+            <dtest.itest.resource.dir>${project.build.directory}/test-classes/itest</dtest.itest.resource.dir>
           </systemPropertyVariables>
         </configuration>
       </plugin>
@@ -154,12 +155,5 @@ limitations under the License.
       </plugin>
     </plugins>
   </reporting>
-
-  <distributionManagement>
-    <site>
-      <id>www.hortonworks.com</id>
-      <url>https://nosuch</url>
-    </site>
-  </distributionManagement>
 
 </project>

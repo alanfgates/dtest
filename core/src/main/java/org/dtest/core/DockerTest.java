@@ -40,7 +40,7 @@ import java.util.concurrent.Future;
 
 /**
  * DockerTest is the main class.  It can be accessed via the command line or called from a tool.  If using from
- * a tool you need to first setup the configuration via {@link #buildConfig(String, Properties)}, the log
+ * a tool you need to first setup the configuration via {@link #buildConfig(Properties)}, the log
  * using {@link #setLogger(DTestLogger)}, then run the build using {@link #runBuild()}.
  */
 public class DockerTest {
@@ -50,23 +50,22 @@ public class DockerTest {
   public static final String CFG_DOCKERTEST_NUMCONTAINERS = "dtest.core.dockertest.numcontainers";
   private static final int CFG_DOCKERTEST_NUMCONTAINERS_DEFAULT = 2;
 
+  private static final String TESTONLY_CFGDIR = "dtest.testonly.conf.dir";
+
   private static final String SUMMARY_LOG = "summary";
   public static final String EXEC_LOG = "dtest-exec"; // for log entries by dtest
 
   private ContainerClient docker;
   private Config cfg;
   private BuildInfo buildInfo;
-  private String cfgDir;
+  private File cfgDir;
+  private String profile;
   private boolean cleanupAfter = true;
   private DTestLogger log;
   private String repo;
   private String branch;
   private String buildDir;
   private Map<String, String> logLinks; // HTML links to the logs
-
-  @VisibleForTesting String getCfgDir() {
-    return cfgDir;
-  }
 
   @VisibleForTesting boolean isCleanupAfter() {
     return cleanupAfter;
@@ -78,13 +77,11 @@ public class DockerTest {
 
   /**
    * Setup the configuration.  This should be called before other methods in this class.
-   * @param confDir directory with dtest.properties and dtest.yaml configuration files in it.
    * @param override properties that take precedence over values in dtest.properties.
    * @throws IOException if the config file cannot be read.
    */
-  public void buildConfig(String confDir, Properties override) throws IOException {
-    cfgDir = confDir; // If you came from the outside and not main this won't be set yet.
-    cfg = new Config(confDir, override);
+  public void buildConfig(Properties override) throws IOException {
+    cfg = new Config(cfgDir, override);
   }
 
   /**
@@ -126,13 +123,6 @@ public class DockerTest {
         .hasArg()
         .build());
 
-    opts.addOption(Option.builder("c")
-        .longOpt("conf-dir")
-        .desc("Directory where configuration and build profile files are")
-        .hasArg()
-        .required()
-        .build());
-
     opts.addOption(Option.builder("d")
         .longOpt("build-dir")
         .desc("Build directory.  This should be unique to the build.")
@@ -145,6 +135,13 @@ public class DockerTest {
         .desc("do not cleanup docker containers and image after build")
         .build());
 
+    opts.addOption(Option.builder("p")
+        .longOpt("profile")
+        .desc("Profile to build with")
+        .hasArg()
+        .required()
+        .build());
+
     opts.addOption(Option.builder("r")
         .longOpt("repo")
         .desc("Source control repository to checkout code from")
@@ -155,16 +152,25 @@ public class DockerTest {
     try {
       cmd = parser.parse(opts, args);
       cleanupAfter = !cmd.hasOption("n");
-      cfgDir = cmd.getOptionValue("c");
+      profile = cmd.getOptionValue("p");
       if (cmd.hasOption("b")) branch = cmd.getOptionValue("b");
       if (cmd.hasOption("r")) repo = cmd.getOptionValue("r");
       buildDir = cmd.getOptionValue('d');
-      return true;
     } catch (ParseException e) {
       System.err.println("Failed to parse command line: " + e.getMessage());
       usage(opts);
       return false;
     }
+
+    // Find our configuration file.
+    try {
+      determineCfgDir();
+    } catch (IOException e) {
+      System.err.println("Could not determine configuration directory: " + e.getMessage());
+      return false;
+    }
+
+    return true;
   }
 
   /**
@@ -176,8 +182,8 @@ public class DockerTest {
     ResultAnalyzer result = null;
     boolean mightHaveBuiltImage = false;
     try {
-      log.info("Going to build branch " + branch + " from repo " + repo + " using config in " + cfgDir);
-      BuildYaml yaml = BuildYaml.readYaml(cfgDir, cfg, log, repo, branch);
+      log.info("Going to build branch " + branch + " from repo " + repo + " using profile in " + profile);
+      BuildYaml yaml = BuildYaml.readYaml(cfgDir, cfg, log, repo, profile, branch);
       CodeSource codeSource = CodeSource.getInstance(cfg, log);
       buildInfo = new BuildInfo(yaml, codeSource, cleanupAfter, buildDir);
       buildInfo.setConfig(cfg).setLog(log);
@@ -217,6 +223,27 @@ public class DockerTest {
   private void usage(Options opts) {
     HelpFormatter formatter = new HelpFormatter();
     formatter.printHelp("docker-test", opts);
+  }
+
+  @VisibleForTesting
+  void determineCfgDir() throws IOException {
+    // For testing we set the cfg value as System property rather than using DTEST_HOME
+    String testing = System.getProperty(TESTONLY_CFGDIR );
+    if (testing != null) {
+      cfgDir = new File(testing);
+    } else {
+      String dtestHome = System.getenv("DTEST_HOME");
+      if (dtestHome == null || dtestHome.isEmpty()) {
+        throw new IOException("You must set DTEST_HOME before running bin/dtest");
+      }
+      cfgDir = new File(dtestHome, "conf");
+    }
+    if (!cfgDir.exists()) {
+      throw new IOException(cfgDir.getAbsolutePath() + ": no such directory");
+    }
+    if (!cfgDir.isDirectory()) {
+      throw new IOException(cfgDir.getAbsolutePath() + " is not a directory");
+    }
   }
 
   private ResultAnalyzer runContainers(ContainerCommandFactory cmdFactory)
@@ -326,7 +353,7 @@ public class DockerTest {
     writer.write("<h1>Status:  " + analyzer.getBuildState().getState().name().replace('_', ' ') + "</h1>\n");
     writer.write("<p>Repository:  " + repo + "</p>\n");
     writer.write("<p>Branch:  " + branch + "</p>\n");
-    writer.write("<p>Config Directory:  " + cfgDir + "</p>\n");
+    writer.write("<p>Profile:  " + profile + "</p>\n");
     if (logLinks.size() > 0) {
       writer.write("<p>Links to logfiles for tests with errors, failures, or timeout:</p>\n");
       writer.write("<ul>\n");
@@ -368,7 +395,7 @@ public class DockerTest {
     int rc;
     if (test.parseArgs(args)) {
       try {
-        test.buildConfig(test.cfgDir, System.getProperties());
+        test.buildConfig(System.getProperties());
         test.setLogger(new Slf4jLogger());
         BuildState state = test.runBuild();
         switch (state.getState()) {
