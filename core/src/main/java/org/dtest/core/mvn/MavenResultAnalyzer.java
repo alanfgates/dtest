@@ -38,6 +38,13 @@ import java.util.regex.Pattern;
 public class MavenResultAnalyzer extends ResultAnalyzer {
 
   /**
+   * When a test times out it is not easy to figure out from the logs which test timed out.  Maven just reports no results for
+   * that test and at the end says, "btw, there were timeouts".  So we don't find the exact test name, we just record that
+   * some test timed out.
+   */
+  public static final String TIMED_OUT_KEY = "Timed out";
+
+  /**
    * A list of patterns to use to look for errors.  The first pattern that matches will be used, so order matter here.
    */
   protected final Deque<Pattern> unitTestErrorPatterns;
@@ -112,8 +119,12 @@ public class MavenResultAnalyzer extends ResultAnalyzer {
   private void analyzeLogLine(ContainerResult result, String line, BuildYaml yaml) throws IOException {
     // Look for timeouts
     Matcher m = timeout.matcher(line);
-    if (m.matches()) lastContainerState.sawTimeouts();
-    else findErrorsAndFailures(result, line, yaml);
+    if (m.matches()) {
+      lastContainerState.sawTimeouts();
+      findAdditionalLogs(result, TIMED_OUT_KEY, yaml);
+    } else {
+      findErrorsAndFailures(result, line, yaml);
+    }
     // We need to examine each line for errors because one test with multiple failures will report each one on a separate line
   }
 
@@ -169,6 +180,10 @@ public class MavenResultAnalyzer extends ResultAnalyzer {
       }
     }
     if (!foundOne) throw new IOException("Unable to find logfile for test " + testName + " from line <" + line + ">");
+    findAdditionalLogs(result, testName, yaml);
+  }
+
+  private void findAdditionalLogs(ContainerResult result, String testName, BuildYaml yaml) {
     for (String log : yaml.getAdditionalLogs()) {
       result.addLogFileToFetch(testName, result.getCmd().containerDirectory() + File.separator + log);
     }

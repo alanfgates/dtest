@@ -13,6 +13,9 @@ branch: branch-3
 hiveDirs:
   - dir: accumulo-handler
   - dir: beeline
+    needsSplit: true
+    isolatedTests:
+      - TestHiveCli
   - dir: cli
   - dir: common
   - dir: contrib

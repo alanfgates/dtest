@@ -48,24 +48,23 @@ public class TestDockerTest {
     }
 
     @Override
-    public ContainerResult runContainer(ContainerCommand cmd) throws IOException {
+    public ContainerResult runContainer(ContainerCommand cmd) {
       String logs = "Ran: " + StringUtils.join(cmd.shellCommand(), " ") + logToReturn;
-          //TestMavenResultAnalyzer.LOG_SUCCESSFUL_RUN_FAILED_TESTS;
       return new ContainerResult(cmd, 0, logs);
     }
 
     @Override
-    public void copyLogFiles(ContainerResult result, String targetDir) throws IOException {
+    public void copyLogFiles(ContainerResult result, String targetDir) {
 
     }
 
     @Override
-    public void removeContainer(ContainerResult result) throws IOException {
+    public void removeContainer(ContainerResult result) {
 
     }
 
     @Override
-    public void removeImage() throws IOException {
+    public void removeImage() {
 
     }
   }
@@ -83,25 +82,24 @@ public class TestDockerTest {
     }
 
     @Override
-    public ContainerResult runContainer(ContainerCommand cmd) throws
-        IOException {
+    public ContainerResult runContainer(ContainerCommand cmd) {
       String logs = "Ran: " + StringUtils.join(cmd.shellCommand(), " ") +
           TestMavenResultAnalyzer.LOG_TIMED_OUT;
       return new ContainerResult(cmd, 0, logs);
     }
 
     @Override
-    public void copyLogFiles(ContainerResult result, String targetDir) throws IOException {
+    public void copyLogFiles(ContainerResult result, String targetDir) {
 
     }
 
     @Override
-    public void removeContainer(ContainerResult result) throws IOException {
+    public void removeContainer(ContainerResult result) {
 
     }
 
     @Override
-    public void removeImage() throws IOException {
+    public void removeImage() {
 
     }
   }
@@ -123,22 +121,21 @@ public class TestDockerTest {
         IOException {
       String logs = "Ran: " + StringUtils.join(cmd.shellCommand(), " ") +
           TestMavenResultAnalyzer.LOG_SUCCESSFUL_RUN_FAILED_TESTS;
-      //return new ContainerResult(cmd, 130, logs);
       throw new IOException("Help me!");
     }
 
     @Override
-    public void copyLogFiles(ContainerResult result, String targetDir) throws IOException {
+    public void copyLogFiles(ContainerResult result, String targetDir) {
 
     }
 
     @Override
-    public void removeContainer(ContainerResult result) throws IOException {
+    public void removeContainer(ContainerResult result) {
 
     }
 
     @Override
-    public void removeImage() throws IOException {
+    public void removeImage() {
 
     }
   }
@@ -146,7 +143,7 @@ public class TestDockerTest {
 
   public static class HelloWorldCommandList extends ContainerCommandFactory {
     @Override
-    public void buildContainerCommands(ContainerClient containerClient, BuildInfo label) throws IOException {
+    public void buildContainerCommands(ContainerClient containerClient, BuildInfo label) {
       ContainerCommand cmd = new ContainerCommand() {
         @Override
         public String containerSuffix() {

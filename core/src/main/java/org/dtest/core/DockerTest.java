@@ -23,6 +23,7 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
+import org.dtest.core.mvn.MavenResultAnalyzer;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -264,7 +265,11 @@ public class DockerTest {
           logDir.mkdir();
           docker.copyLogFiles(result, logDir.getAbsolutePath());
           for (String testName : result.getLogFilesToFetch().keySet()) {
-            logLinks.put(testName, result.getCmd().containerSuffix());
+            // If it's a timeout we need to rename it because every timeout from every container
+            // has the same testName.  See MavenResultAnalyzer.TIMED_OUT_KEY for why.
+            String key = testName.equals(MavenResultAnalyzer.TIMED_OUT_KEY) ?
+                result.getCmd().containerSuffix() + " timed out" : testName;
+            logLinks.put(key, result.getCmd().containerSuffix());
           }
           // Create an index.html file in the target directory so that Jenkins can display them
           FileWriter writer = new FileWriter(new File(logDir, "index.html"));
@@ -323,7 +328,7 @@ public class DockerTest {
     writer.write("<p>Branch:  " + branch + "</p>\n");
     writer.write("<p>Config Directory:  " + cfgDir + "</p>\n");
     if (logLinks.size() > 0) {
-      writer.write("<p>Links to logfiles for tests with errors or failure:</p>\n");
+      writer.write("<p>Links to logfiles for tests with errors, failures, or timeout:</p>\n");
       writer.write("<ul>\n");
       for (Map.Entry<String, String> e : logLinks.entrySet()) {
         writer.write("<li>" + e.getKey() + "  <a href=\"" + e.getValue() + "\">" + e.getValue() + "</a></li>\n");

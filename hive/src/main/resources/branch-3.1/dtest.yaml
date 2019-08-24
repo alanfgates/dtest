@@ -82,7 +82,6 @@ hiveDirs:
       skipSparkTests: null
     isolatedTests:
       - TestTriggersWorkloadManager
-      - TestMetaStoreMetrics                          # ran individually, see if it passes on busy system
     skippedTests:
       - TestMetaStoreMetrics                          # verified 8/19/19
       - TestReplicationScenariosAcrossInstances       # verified 8/16/19
@@ -90,6 +89,8 @@ hiveDirs:
       - TestHS2ImpersonationWithRemoteMS              # verified 8/16/19
       - TestWarehouseExternalDir                      # verified 8/16/19
       - TestJdbcGenericUDTFGetSplits                  # verified 8/16/19
+      - TestMetaStoreMetrics                          # verified 8/23/19
+      - TestActivePassiveHA                           # verified 8/23/19
       - TestSparkStatistics                           # Spark test
       - TestJdbcWithLocalClusterSpark                 # Spark test
       - TestMultiSessionsHS2WithLocalClusterSpark     # Spark test
