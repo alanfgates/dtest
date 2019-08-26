@@ -21,7 +21,7 @@ limitations under the License.
 
   <groupId>org.dtest</groupId>
   <artifactId>dtest</artifactId>
-  <version>0.2-SNAPSHOT</version>
+  <version>0.2.0</version>
   <packaging>pom</packaging>
 
   <name>Docker Test Utility</name>
