@@ -118,6 +118,7 @@ hiveDirs:
   - dir: itests/qtest-accumulo
     properties:
       skipSparkTests: null
+    singleTest: TestAccumuloCliDriver
     excludedQFiles:
       - accumulo_queries.q                 # verified 6/20/19
   - dir: itests/qtest
