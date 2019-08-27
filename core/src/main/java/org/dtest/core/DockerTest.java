@@ -23,7 +23,6 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
-import org.dtest.core.mvn.MavenResultAnalyzer;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -32,7 +31,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -65,14 +63,15 @@ public class DockerTest {
   private String repo;
   private String branch;
   private String buildDir;
-  private Map<String, String> logLinks; // HTML links to the logs
+  //private Map<String, String> logLinks; // HTML links to the logs
+  private Reporter reporter;
 
   @VisibleForTesting boolean isCleanupAfter() {
     return cleanupAfter;
   }
 
   public DockerTest() {
-    logLinks = new ConcurrentHashMap<>();
+    //logLinks = new ConcurrentHashMap<>();
   }
 
   /**
@@ -187,6 +186,11 @@ public class DockerTest {
       CodeSource codeSource = CodeSource.getInstance(cfg, log);
       buildInfo = new BuildInfo(yaml, codeSource, cleanupAfter, buildDir);
       buildInfo.setConfig(cfg).setLog(log);
+      reporter = Reporter.getInstance(cfg, log)
+          .setRepo(repo)
+          .setBranch(branch)
+          .setProfile(profile)
+          .setBuildInfo(buildInfo);
       docker = ContainerClient.getInstance(cfg, log);
       docker.setBuildInfo(buildInfo);
       ContainerCommandFactory cmdFactory = ContainerCommandFactory.getInstance(cfg, log);
@@ -285,40 +289,7 @@ public class DockerTest {
         log.info(result.getCmd().containerSuffix(), statusMsg.toString());
 
         // Copy log files from any failed tests to a directory specific to this container
-        if (result.getLogFilesToFetch() != null && !result.getLogFilesToFetch().isEmpty()) {
-          File logDir = new File(buildInfo.getBuildDir(), result.getCmd().containerSuffix());
-          log.info("Creating directory " + logDir.getAbsolutePath() + " for logs from container "
-              + result.getCmd().containerSuffix());
-          logDir.mkdir();
-          docker.copyLogFiles(result, logDir.getAbsolutePath());
-          for (String testName : result.getLogFilesToFetch().keySet()) {
-            // If it's a timeout we need to rename it because every timeout from every container
-            // has the same testName.  See MavenResultAnalyzer.TIMED_OUT_KEY for why.
-            String key = testName.equals(MavenResultAnalyzer.TIMED_OUT_KEY) ?
-                result.getCmd().containerSuffix() + " timed out" : testName;
-            logLinks.put(key, result.getCmd().containerSuffix());
-          }
-          // Create an index.html file in the target directory so that Jenkins can display them
-          FileWriter writer = new FileWriter(new File(logDir, "index.html"));
-          writer.write("<html>\n");
-          writer.write("<head>\n");
-          writer.write("<title>" + result.getCmd().containerSuffix() + "</title>\n");
-          writer.write("</head>\n");
-          writer.write("<body>\n");
-          writer.write("<h1>Log Files</h1>\n");
-          writer.write("<ul>\n");
-          for (List<String> files : result.getLogFilesToFetch().values()) {
-            for (String file : files) {
-              File f = new File(file);
-              writer.write("<li><a href=\"" + f.getName() + "\">" + f.getName() + "</a></li>\n");
-            }
-          }
-          writer.write("</ul>\n");
-          writer.write("</body>\n");
-          writer.write("</html>\n");
-          writer.close();
-
-        }
+        reporter.addFailedTests(docker, result);
         if (buildInfo.shouldCleanupAfter()) docker.removeContainer(result);
         return 1;
       }));
@@ -344,29 +315,8 @@ public class DockerTest {
   }
 
   private void outputResults(ResultAnalyzer analyzer) throws IOException {
-    FileWriter writer = new FileWriter(new File(buildInfo.getBuildDir(), "index.html"));
-    writer.write("<html>\n");
-    writer.write("<head>\n");
-    writer.write("<title>Docker Test</title>\n");
-    writer.write("</head>\n");
-    writer.write("<body>\n");
-    writer.write("<h1>Status:  " + analyzer.getBuildState().getState().name().replace('_', ' ') + "</h1>\n");
-    writer.write("<p>Repository:  " + repo + "</p>\n");
-    writer.write("<p>Branch:  " + branch + "</p>\n");
-    writer.write("<p>Profile:  " + profile + "</p>\n");
-    if (logLinks.size() > 0) {
-      writer.write("<p>Links to logfiles for tests with errors, failures, or timeout:</p>\n");
-      writer.write("<ul>\n");
-      for (Map.Entry<String, String> e : logLinks.entrySet()) {
-        writer.write("<li>" + e.getKey() + "  <a href=\"" + e.getValue() + "\">" + e.getValue() + "</a></li>\n");
-      }
-      writer.write("</ul>\n");
-    }
-    writer.write("<p>Logfile from build: <a href=\"dtest.log\">dtest.log</a></p>");
-    writer.write("<p>Dockerfile used for build: <a href=\"Dockerfile\">Dockerfile</a></p>");
-    writer.write("</body>\n");
-    writer.write("</html>\n");
-    writer.close();
+    reporter.summarize(analyzer);
+    reporter.publish();
 
     if (analyzer.getErrors().size() > 0) {
       log.info(SUMMARY_LOG, "All Errors:");

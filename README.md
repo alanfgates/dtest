@@ -85,6 +85,7 @@ dtest.core.containercommand.singtestruntime | Timeout for a single test.  If a t
 dtest.core.containercommandfactory.impl | Subclass of `ContainerCommandFactory` to use to build container commands | `MavenContainerCommandFactory`
 dtest.core.containercommandfactory.testspercontainer | When splitting tests, tests to run per container.  This will only be used in directories where tests are split.  Setting this higher cuts down on setup and teardown time for tests, but extends the runtime of each container and can require more memory, disk, etc. per container.  | 10
 dtest.core.dockertest.numcontainers | Number of containers to run, should be 1 per core | 2
+dtest.core.reporter.impl | Subclass of `Reporter` to use to generate reports on the run | `HtmlReporter`
 dtest.core.resultanalyzer.impl | Subclass of `ResultAnalyzer` to use to analyze the output of the container commands and interpret test success, error, failure, or timeout |  `MavenResultAnalyzer`
 dtest.docker.dockercontainerclient.dockerpath | Path to the docker executable | `/usr/local/bin/docker`
 
@@ -236,6 +237,9 @@ build systems such as groovy or ant please consider contributing it back.
 `ContainerCommandFactory`:  Builds the list of `ContainerCommand`s.  Defaults to 
 `MavenContainerCommandFactory`.  If you need to extend `ContainerCommand`, you will 
 need to extend this one too.
+
+`Reporter`: Reports the results of the tests.  Defaults to `HtmlReporter`.  You could extend
+this to generate other formats that tools could read.
 
 `ResultAnalyzer`: Analyzes the output of tests and decides whether the test succeeded, failed,
 threw an error, or timed out.  Defaults to `MavenResultAnalyzer`, which really should be 
