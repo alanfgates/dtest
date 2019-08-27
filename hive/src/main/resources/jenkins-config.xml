@@ -73,7 +73,7 @@ instance with this run:
   <concurrentBuild>false</concurrentBuild>
   <builders>
     <hudson.tasks.Shell>
-      <command>export DTEST_HOME=$JENKINS_HOME/dtest/dtest-hive-0.2-SNAPSHOT-bin
+      <command>export DTEST_HOME=$JENKINS_HOME/dtest/dtest-hive-0.3-SNAPSHOT-bin
 cd $DTEST_HOME
 bin/dtest -b $Branch -r $Repository -p $Profile -d $WORKSPACE/$BUILD_ID
 </command>
