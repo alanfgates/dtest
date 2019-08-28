@@ -23,6 +23,8 @@ instance with this run:
   <url>          is the url to your Jenkins server
   <user>         is a user authorized to create jobs in Jenkins
   <password>     is that users password
+
+  Note that you must have first installed DTest on the system.  See the README for details.
 -->
 <project>
   <actions/>
@@ -73,9 +75,8 @@ instance with this run:
   <concurrentBuild>false</concurrentBuild>
   <builders>
     <hudson.tasks.Shell>
-      <command>export DTEST_HOME=$JENKINS_HOME/dtest/dtest-hive-0.3-SNAPSHOT-bin
-cd $DTEST_HOME
-bin/dtest -b $Branch -r $Repository -p $Profile -d $WORKSPACE/$BUILD_ID
+      <command>export DTEST_HOME=/usr/share/dtest/hive
+$DTEST_HOME/bin/dtest -b $Branch -r $Repository -p $Profile -d $WORKSPACE/$BUILD_ID
 </command>
     </hudson.tasks.Shell>
   </builders>

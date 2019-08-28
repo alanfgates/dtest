@@ -25,7 +25,7 @@ limitations under the License.
     <format>tar.gz</format>
   </formats>
 
-  <baseDirectory>dtest-hive-${project.version}-bin</baseDirectory>
+  <baseDirectory>dtest-hive</baseDirectory>
 
   <dependencySets>
     <dependencySet>

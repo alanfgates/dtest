@@ -25,11 +25,9 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -59,11 +57,11 @@ public class DockerTest {
   private File cfgDir;
   private String profile;
   private boolean cleanupAfter = true;
+  private boolean getVersion = false;
   private DTestLogger log;
   private String repo;
   private String branch;
   private String buildDir;
-  //private Map<String, String> logLinks; // HTML links to the logs
   private Reporter reporter;
 
   @VisibleForTesting boolean isCleanupAfter() {
@@ -71,7 +69,6 @@ public class DockerTest {
   }
 
   public DockerTest() {
-    //logLinks = new ConcurrentHashMap<>();
   }
 
   /**
@@ -126,7 +123,6 @@ public class DockerTest {
         .longOpt("build-dir")
         .desc("Build directory.  This should be unique to the build.")
         .hasArg()
-        .required()
         .build());
 
     opts.addOption(Option.builder("n")
@@ -138,7 +134,6 @@ public class DockerTest {
         .longOpt("profile")
         .desc("Profile to build with")
         .hasArg()
-        .required()
         .build());
 
     opts.addOption(Option.builder("r")
@@ -147,13 +142,28 @@ public class DockerTest {
         .hasArg()
         .build());
 
+    opts.addOption(Option.builder("v")
+        .longOpt("version")
+        .desc("Get the version")
+        .build());
+
     CommandLine cmd;
     try {
       cmd = parser.parse(opts, args);
+      if (cmd.hasOption('v')) {
+        getVersion = true;
+        return true;
+      }
       cleanupAfter = !cmd.hasOption("n");
+      if (!cmd.hasOption('p')) {
+        throw new ParseException("Please specify a profile");
+      }
       profile = cmd.getOptionValue("p");
       if (cmd.hasOption("b")) branch = cmd.getOptionValue("b");
       if (cmd.hasOption("r")) repo = cmd.getOptionValue("r");
+      if (!cmd.hasOption('d')) {
+        throw new ParseException("Please specify a build directory");
+      }
       buildDir = cmd.getOptionValue('d');
     } catch (ParseException e) {
       System.err.println("Failed to parse command line: " + e.getMessage());
@@ -345,21 +355,27 @@ public class DockerTest {
     int rc;
     if (test.parseArgs(args)) {
       try {
-        test.buildConfig(System.getProperties());
-        test.setLogger(new Slf4jLogger());
-        BuildState state = test.runBuild();
-        switch (state.getState()) {
-          case NOT_INITIALIZED:
-            throw new RuntimeException("This shouldn't happen");
-          case SUCCEEDED:
-            rc = 0;
-            break;
-          case HAD_FAILURES_OR_ERRORS:
-            rc = 1;
-            break;
-          default:
-            rc = -1;
-            break;
+        if (test.getVersion) {
+          System.out.println("Version: " + Version.VERSION);
+          System.out.println("Built at " + Version.BUILD_TIME);
+          rc = 0;
+        } else {
+          test.buildConfig(System.getProperties());
+          test.setLogger(new Slf4jLogger());
+          BuildState state = test.runBuild();
+          switch (state.getState()) {
+            case NOT_INITIALIZED:
+              throw new RuntimeException("This shouldn't happen");
+            case SUCCEEDED:
+              rc = 0;
+              break;
+            case HAD_FAILURES_OR_ERRORS:
+              rc = 1;
+              break;
+            default:
+              rc = -1;
+              break;
+          }
         }
       } catch (IOException e) {
         rc = 1;

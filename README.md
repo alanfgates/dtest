@@ -55,6 +55,18 @@ will be reflected in the status as that is deemed to be a larger issue.
  4. Build failed:  DTest failed.  Usually this is caused by the image creation failing,
     usually because `mvn install` failed.
     
+## Installing DTest on Your System
+Clone this git repository and then build the system:
+```
+git clone https://github.com/alanfgates/dtest.git
+cd dtest
+mvn install
+```
+For Hive builds there is a deployment script `hive/src/main/scripts/deploy`.  This will
+install a DTest configured to run Hive in `/usr/share/dtest-hive`.  You need to be root
+to run this.  For other builds you can take a look at this script and adapt it
+to your build.
+    
 ## Setting Up Jenkins
 Configuration for using DTest on Jenkins to test Apache Hive is included in the 
 distribution.  The file includes instructions on how to import the job into Jenkins.
@@ -201,6 +213,7 @@ dtest -p <profile> -d <dir> [-b <branch>] [-r <repo>] [-n]
 -r --repo <repo>         Source repository from which the code will be checked
                          out.  If set this overrides the value of repo in
                          the Yaml file.  This must be set in one of those places.
+-v --version             Print out the version.
 ```
 Logs from running DTest will be located in `$DTEST_HOME/log`.  DTest is designed assuming it
 is run in a separate instance each time (as this works well with Jenkins), so you should

@@ -1,0 +1,72 @@
+#!/usr/bin/env bash
+
+#
+#  Copyright (C) 2018 Hortonworks Inc.
+#
+#  Licenced under the Apache License, Version 2.0
+#  (the "License"); you may not use this file except in compliance with
+#  the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+#
+
+usage() {
+  echo "Usage: $1 [-h|--help] [install_location]"
+  echo "  install_location defaults to /usr/share/dtest"
+  exit 0
+}
+
+if [ `whoami` != "root" ]
+  then
+  echo "You probably really want to run this as root"
+  exit 1
+fi
+
+DEST=/usr/share/dtest/hive
+
+if [ $# -gt 1 ]
+  then
+  usage $0
+fi
+
+for arg in $@
+  do
+  if [ $arg == "-h" ] || [ $arg == "--help" ]
+    then
+    usage $0
+  fi
+  DEST=$arg
+done
+
+FILE=hive/target/dtest-hive*-bin.tar.gz
+if [ "x${FILE}" == "x" ]
+  then
+  echo "Please build the code before invoking this script"
+  exit 1
+fi
+
+TMPDIR=/tmp/dtest-deploy
+if [ -d $TMPDIR ]
+  then
+  rm -rf $TMPDIR
+fi
+
+mkdir $TMPDIR
+cp $FILE $TMPDIR
+cd $TMPDIR
+tar zxf dtest-hive*-bin.tar.gz
+
+mkdir -p ${DEST}
+rm -rf ${DEST}/*
+cp -r dtest-hive/* ${DEST}
+chmod -R 755 ${DEST}
+
+
+
+

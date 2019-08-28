@@ -34,6 +34,12 @@ limitations under the License.
   you also need the dtest-maven-plugin module.  You can build your own implementations of the base classes in this
   file if you have more elaborate requirements.</description>
 
+  <properties>
+      <version.src.dir>${project.build.sourceDirectory}</version.src.dir>
+      <version.package.dir>org/dtest/core</version.package.dir>
+      <version.package.name>org.dtest.core</version.package.name>
+  </properties>
+
   <dependencies>
     <dependency>
       <groupId>commons-cli</groupId>
@@ -71,6 +77,49 @@ limitations under the License.
                 <descriptor>src/assembly/bin.xml</descriptor>
               </descriptors>
               <tarLongFileMode>gnu</tarLongFileMode>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin> <!-- This automatically creates a version class with the current version. -->
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <version>1.8</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <phase>generate-sources</phase>
+            <configuration>
+              <tasks>
+                <echo file="${project.build.directory}/generated-sources/${version.package.dir}/Version.java" message="package ${version.package.name};${line.separator}" />
+                <echo file="${project.build.directory}/generated-sources/${version.package.dir}/Version.java" append="true" message="public final class Version {${line.separator}" />
+                <echo file="${project.build.directory}/generated-sources/${version.package.dir}/Version.java" append="true"
+                      message=" public static String VERSION=&quot;${project.version}&quot;;${line.separator}" />
+                <echo file="${project.build.directory}/generated-sources/${version.package.dir}/Version.java" append="true"
+                      message=" public static String BUILD_TIME=&quot;${maven.build.timestamp}&quot;;${line.separator}" />
+                <echo file="${project.build.directory}/generated-sources/${version.package.dir}/Version.java" append="true" message="}${line.separator}" />
+              </tasks>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin> <!-- This adds the generated sources into the set of things to be compiled -->
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>build-helper-maven-plugin</artifactId>
+        <version>3.0.0</version>
+        <executions>
+          <execution>
+            <id>add-source</id>
+            <phase>generate-sources</phase>
+            <goals>
+              <goal>add-source</goal>
+            </goals>
+            <configuration>
+              <sources>
+                <source>${project.build.directory}/generated-sources</source>
+              </sources>
             </configuration>
           </execution>
         </executions>
