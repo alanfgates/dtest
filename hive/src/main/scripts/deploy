@@ -65,7 +65,8 @@ tar zxf dtest-hive*-bin.tar.gz
 mkdir -p ${DEST}
 rm -rf ${DEST}/*
 cp -r dtest-hive/* ${DEST}
-chmod -R 755 ${DEST}
+chmod 755 ${DEST}/bin ${DEST}/bin/dtest ${DEST}/conf ${DEST}/lib
+chmod 744 ${DEST}/conf/* ${DEST}/lib/*
 
 
 

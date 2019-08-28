@@ -63,11 +63,13 @@ cd dtest
 mvn install
 ```
 For Hive builds there is a deployment script `hive/src/main/scripts/deploy`.  This will
-install a DTest configured to run Hive in `/usr/share/dtest-hive`.  You need to be root
+install a DTest configured to run Hive in `/usr/share/dtest/hive`.  You need to be root
 to run this.  For other builds you can take a look at this script and adapt it
 to your build.
     
 ## Setting Up Jenkins
+After you have installed DTest on your system you can configure Jenkins jobs to use it.
+
 Configuration for using DTest on Jenkins to test Apache Hive is included in the 
 distribution.  The file includes instructions on how to import the job into Jenkins.
 Search for `jenkins-config.xml` in the source tree.  You can modify this to build
