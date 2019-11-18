@@ -57,10 +57,10 @@ public class TestHiveContainerCommandFactory {
     Assert.assertEquals("/bin/bash -c ( cd /tmp/ql; /usr/bin/mvn test -Dsurefire.timeout=300 -Dtest=TestCleaner2)", StringUtils.join(cmds.getCmds().get(4).shellCommand(), " "));
     Assert.assertEquals("/bin/bash -c ( cd /tmp/ql; /usr/bin/mvn test -Dsurefire.timeout=300 -Dtest=CompactorTest,TestCleaner,TestInitiator,TestWorker2)", StringUtils.join(cmds.getCmds().get(5).shellCommand(), " "));
     Assert.assertEquals("/bin/bash -c ( cd /tmp/itests/qtest; /usr/bin/mvn test -Dsurefire.timeout=300 -Dtest=TestContribCliDriver -DskipSparkTests)", StringUtils.join(cmds.getCmds().get(6).shellCommand(), " "));
-    Assert.assertEquals("/bin/bash -c ( cd /tmp/itests/qtest; USER=dtestuser /usr/bin/mvn test -Dsurefire.timeout=300 -Dtest=TestMiniLlapLocalCliDriver -Dqfile=llapdecider.q,acid_bucket_pruning.q,insert_into1.q,bucket6.q -DskipSparkTests)", StringUtils.join(cmds.getCmds().get(7).shellCommand(), " "));
-    Assert.assertEquals("/bin/bash -c ( cd /tmp/itests/qtest; /usr/bin/mvn test -Dsurefire.timeout=300 -Dtest=TestCliDriver -Dqfile=authorization_show_grant.q -DskipSparkTests)", StringUtils.join(cmds.getCmds().get(8).shellCommand(), " "));
-    Assert.assertEquals("/bin/bash -c ( cd /tmp/itests/qtest; /usr/bin/mvn test -Dsurefire.timeout=300 -Dtest=TestCliDriver -Dqfile=masking_acid_no_masking.q,masking_8.q,masking_9.q,masking_6.q -DskipSparkTests)", StringUtils.join(cmds.getCmds().get(9).shellCommand(), " "));
-    Assert.assertEquals("/bin/bash -c ( cd /tmp/itests/qtest; /usr/bin/mvn test -Dsurefire.timeout=300 -Dtest=TestCliDriver -Dqfile=masking_7.q -DskipSparkTests)", StringUtils.join(cmds.getCmds().get(10).shellCommand(), " "));
+    Assert.assertEquals("/bin/bash -c ( cd /tmp/itests/qtest; USER=dtestuser /usr/bin/mvn test -Dsurefire.timeout=300 -Dtest=TestMiniLlapLocalCliDriver -DskipSparkTests -Dqfile=llapdecider.q,acid_bucket_pruning.q,insert_into1.q,bucket6.q)", StringUtils.join(cmds.getCmds().get(7).shellCommand(), " "));
+    Assert.assertEquals("/bin/bash -c ( cd /tmp/itests/qtest; /usr/bin/mvn test -Dsurefire.timeout=300 -Dtest=TestCliDriver -DskipSparkTests -Dqfile=authorization_show_grant.q)", StringUtils.join(cmds.getCmds().get(8).shellCommand(), " "));
+    Assert.assertEquals("/bin/bash -c ( cd /tmp/itests/qtest; /usr/bin/mvn test -Dsurefire.timeout=300 -Dtest=TestCliDriver -DskipSparkTests -Dqfile=masking_acid_no_masking.q,masking_8.q,masking_9.q,masking_6.q)", StringUtils.join(cmds.getCmds().get(9).shellCommand(), " "));
+    Assert.assertEquals("/bin/bash -c ( cd /tmp/itests/qtest; /usr/bin/mvn test -Dsurefire.timeout=300 -Dtest=TestCliDriver -DskipSparkTests -Dqfile=masking_7.q)", StringUtils.join(cmds.getCmds().get(10).shellCommand(), " "));
   }
 
   @Test

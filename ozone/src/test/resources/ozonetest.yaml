@@ -1,0 +1,12 @@
+baseImage: centos:7
+requiredPackages:
+  - java-1.8.0-openjdk-devel
+  - protobuf-devel-2.5.0
+projectName: ozone
+comment: Ozone master yaml file
+javaPackages:
+- org.apache.hadoop
+repo: https://git-wip-us.apache.org/repos/asf/hadoop.git
+dirs:
+  - dir: hadoop-hdds
+  - dir: hadoop-ozone

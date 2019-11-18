@@ -15,6 +15,7 @@
  */
 package org.dtest.core.mvn;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.dtest.core.ContainerCommand;
 import org.dtest.core.impl.Utils;
 
@@ -58,8 +59,8 @@ public class MavenContainerCommand extends ContainerCommand {
   }
 
   @Override
-  public String[] shellCommand() {
-    return Utils.shellCmdInRoot(buildDir, new SimpleMvnCommandSupplier());
+  final public String[] shellCommand() {
+    return Utils.shellCmdInRoot(buildDir, getCommandSupplier());
   }
 
   @Override
@@ -68,10 +69,11 @@ public class MavenContainerCommand extends ContainerCommand {
   }
 
   /**
-   * Add a test to this container's list of tests.
+   * Add a test to this container's list of tests.  Public so that it can be called by tests of subclasses.
    * @param test test to add
    */
-  protected void addTest(String test) {
+  @VisibleForTesting
+  public void addTest(String test) {
     tests.add(test);
   }
 
@@ -108,7 +110,11 @@ public class MavenContainerCommand extends ContainerCommand {
     properties.putAll(props);
   }
 
-  private class SimpleMvnCommandSupplier implements Supplier<String> {
+  protected MavenCommandSupplier getCommandSupplier() {
+    return new MavenCommandSupplier();
+  }
+
+  protected class MavenCommandSupplier implements Supplier<String> {
     public String get() {
       StringBuilder buf = new StringBuilder();
       for (Map.Entry<String, String> e : envs.entrySet()) {
@@ -148,7 +154,16 @@ public class MavenContainerCommand extends ContainerCommand {
               .append(e.getValue());
         }
       }
+      addAdditionalArguments(buf);
       return buf.toString();
+    }
+
+    /**
+     * Allows subclasses to add additional arguments maven command if desired.  Defaults to NOP.
+     * @param buf StringBuilder that will be used to construct the command line.
+     */
+    protected void addAdditionalArguments(StringBuilder buf) {
+
     }
   }
 }

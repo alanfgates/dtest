@@ -25,7 +25,7 @@ limitations under the License.
     <format>tar.gz</format>
   </formats>
 
-  <baseDirectory>dtest-hive</baseDirectory>
+  <baseDirectory>dtest-ozone</baseDirectory>
 
   <dependencySets>
     <dependencySet>
@@ -58,16 +58,12 @@ limitations under the License.
     </fileSet>
 
     <fileSet>
-      <directory>${project.parent.basedir}/hive/src/main/resources/</directory>
+      <directory>${project.parent.basedir}/ozone/src/main/resources/</directory>
       <fileMode>644</fileMode>
       <includes>
         <include>jenkins-config.xml</include>
         <include>dtest.properties</include>
-        <include>master.yaml</include>
-        <include>branch-3.yaml</include>
-        <include>branch-3.1.yaml</include>
-        <include>branch-2.yaml</include>
-        <include>branch-2.3.yaml</include>
+        <include>trunk.yaml</include>
       </includes>
       <outputDirectory>conf</outputDirectory>
     </fileSet>

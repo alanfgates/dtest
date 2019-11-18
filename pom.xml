@@ -35,6 +35,7 @@ limitations under the License.
   <modules>
     <module>core</module>
     <module>hive</module>
+    <module>ozone</module>
   </modules>
 
   <properties>
