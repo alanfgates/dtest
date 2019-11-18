@@ -255,6 +255,7 @@ hiveDirs:
       - spark.only.query.negative.files
     excludedQFiles:
       - authorization_uri_import.q    # verified 6/12/19
+      - strict_pruning_2.q            # verified 11/18/19
     properties:
       skipSparkTests: null
   - dir: itests/qtest
