@@ -1,0 +1,30 @@
+baseImage: centos:7
+requiredPackages:
+  - java-1.8.0-openjdk-devel
+  - protobuf-devel-2.5.0
+  - wget
+projectName: ozone
+projectDir: hadoop-ozone
+comment: Ozone master yaml file
+javaPackages:
+- org.apache.hadoop
+#additionalLogs:
+#- target/tmp/log/hive.log
+repo: https://github.com/apache/hadoop-ozone.git
+dirs:
+  - dir: hadoop-hdds/client
+  - dir: hadoop-hdds/common
+  - dir: hadoop-hdds/container-service
+  - dir: hadoop-hdds/framework
+  - dir: hadoop-hdds/server-scm
+    isolatedTests:
+      - TestBlockManager
+  - dir: hadoop-ozone/client
+  - dir: hadoop-ozone/common
+  - dir: hadoop-ozone/insight
+  - dir: hadoop-ozone/integration-test
+  - dir: hadoop-ozone/ozone-manager
+  - dir: hadoop-ozone/ozonefs
+  - dir: hadoop-ozone/recon
+  - dir: hadoop-ozone/s3gateway
+  - dir: hadoop-ozone/tools

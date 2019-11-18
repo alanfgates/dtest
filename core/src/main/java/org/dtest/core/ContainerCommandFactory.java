@@ -20,6 +20,7 @@ import org.dtest.core.mvn.MavenContainerCommandFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -72,6 +73,16 @@ public abstract class ContainerCommandFactory extends Configurable {
    */
   public List<ContainerCommand> getCmds() {
     return cmds;
+  }
+
+  /**
+   * Get a list of additional commands to run in the Docker image build.  These will be run after all the packages
+   * have been installed and before the user is added.  This is useful for installing packages that don't have a
+   * rpm or deb package, or where you need to custom build them for whatever reason.
+   * @return list of commands to run.
+   */
+  public List<String> getAdditionalDockerBuildCommands() {
+    return Collections.emptyList();
   }
 
   static ContainerCommandFactory getInstance(Config cfg, DTestLogger log) throws IOException {

@@ -63,7 +63,7 @@ limitations under the License.
       <includes>
         <include>jenkins-config.xml</include>
         <include>dtest.properties</include>
-        <include>trunk.yaml</include>
+        <include>master.yaml</include>
       </includes>
       <outputDirectory>conf</outputDirectory>
     </fileSet>

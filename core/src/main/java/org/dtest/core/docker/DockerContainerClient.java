@@ -146,6 +146,8 @@ public class DockerContainerClient extends ContainerClient {
     for (String pkg : buildInfo.getSrc().getRequiredPackages()) writer.write(pkg + " ");
     for (String pkg : cmdFactory.getRequiredPackages()) writer.write(pkg + " ");
     writer.write("\n\n");
+    for (String cmd : cmdFactory.getAdditionalDockerBuildCommands()) writer.write(cmd + "\n");
+    writer.write("\n");
     writer.write("RUN useradd -m " + getUser() + "\n");
     writer.write("\n");
     writer.write("USER " + getUser() + "\n");
