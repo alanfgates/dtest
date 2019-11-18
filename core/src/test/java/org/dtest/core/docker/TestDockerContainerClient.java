@@ -77,6 +77,7 @@ public class TestDockerContainerClient {
         "RUN yum upgrade -y && yum update -y\n" +
         "RUN yum install -y java-1.8.0-openjdk-devel git unzip maven \n" +
         "\n" +
+        "\n" +
         "RUN useradd -m dtestuser\n" +
         "\n" +
         "USER dtestuser\n" +
