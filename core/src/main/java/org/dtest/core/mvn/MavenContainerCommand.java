@@ -19,6 +19,7 @@ import com.google.common.annotations.VisibleForTesting;
 import org.dtest.core.ContainerCommand;
 import org.dtest.core.impl.Utils;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -33,6 +34,7 @@ import java.util.function.Supplier;
 public class MavenContainerCommand extends ContainerCommand {
 
   protected final String buildDir;
+  protected final String moduleDir;
   protected final int cmdNumber;
   protected List<String> tests; // set of tests to run
   protected List<String> excludedTests; // set of tests to NOT run
@@ -42,10 +44,12 @@ public class MavenContainerCommand extends ContainerCommand {
   /**
    * Protected because it should only be called by {@link MavenContainerCommandFactory} or subclasses.
    * @param buildDir working directory on the build machine.
+   * @param moduleDir directory to run the module in
    * @param cmdNumber command number for this command, used in logging and labeling containers.
    */
-  protected MavenContainerCommand(String buildDir, int cmdNumber) {
+  protected MavenContainerCommand(String buildDir, String moduleDir, int cmdNumber) {
     this.buildDir = buildDir;
+    this.moduleDir = moduleDir;
     this.cmdNumber = cmdNumber;
     tests = new ArrayList<>();
     excludedTests = new ArrayList<>();
@@ -65,7 +69,7 @@ public class MavenContainerCommand extends ContainerCommand {
 
   @Override
   public String containerDirectory() {
-    return buildDir;
+    return buildDir + File.separator + moduleDir;
   }
 
   /**
@@ -111,10 +115,16 @@ public class MavenContainerCommand extends ContainerCommand {
   }
 
   protected MavenCommandSupplier getCommandSupplier() {
-    return new MavenCommandSupplier();
+    return new MavenCommandSupplier(moduleDir);
   }
 
   protected class MavenCommandSupplier implements Supplier<String> {
+    private final String moduleDir;
+
+    protected MavenCommandSupplier(String moduleDir) {
+      this.moduleDir = moduleDir;
+    }
+
     public String get() {
       StringBuilder buf = new StringBuilder();
       for (Map.Entry<String, String> e : envs.entrySet()) {
@@ -124,7 +134,9 @@ public class MavenContainerCommand extends ContainerCommand {
             .append(' ');
       }
 
-      buf.append("/usr/bin/mvn test -Dsurefire.timeout=")
+      buf.append("/usr/bin/mvn test -pl ")
+          .append(moduleDir)
+          .append(" -Dsurefire.timeout=")
           .append(cfg.getAsTime(CFG_CONTAINERCOMMAND_SINGLERUNTIME, TimeUnit.SECONDS, CFG_CONTAINERCOMMAND_SINGLERUNTIME_DEFAULT));
 
       if (!tests.isEmpty()) {

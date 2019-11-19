@@ -111,7 +111,7 @@ public class HiveContainerCommandFactory extends MavenContainerCommandFactory {
   private ContainerCommand buildOneQFilesCmd(ContainerClient containerClient,
                                              Collection<String> qfiles,
                                              HiveModuleDirectory mDir) {
-    HiveContainerCommand mvn = new HiveContainerCommand(containerClient.getContainerBaseDir() + "/" + mDir.getDir(),
+    HiveContainerCommand mvn = new HiveContainerCommand(containerClient.getContainerBaseDir(), mDir.getDir(),
         containerNumber++);
     setEnvsAndProperties(mDir, mvn);
     mvn.addTest(mDir.getSingleTest());
