@@ -39,8 +39,4 @@ public class OzoneContainerCommandFactory extends MavenContainerCommandFactory {
     return Arrays.asList("unzip", "which");
   }
 
-  @Override
-  public List<String> getInitialBuildCommand() {
-    return Collections.singletonList("/usr/bin/mvn install -Dtest=nosuch");
-  }
 }
