@@ -101,7 +101,7 @@ public class MavenContainerCommandFactory extends ContainerCommandFactory {
       // This is the simple case.  Remove any skipped tests and set any environment variables
       // and we're good
       MavenContainerCommand mvn =
-          buildCommand(containerClient.getContainerBaseDir(), mDir.getDir(), containerNumber++);
+          buildCommand(containerClient.getContainerBaseDir() + "/" + mDir.getDir(), containerNumber++);
       setEnvsAndProperties(mDir, mvn);
       if (mDir.isSetSkippedTests()) mvn.excludeTests(mDir.getSkippedTests());
       cmds.add(mvn);
@@ -126,7 +126,7 @@ public class MavenContainerCommandFactory extends ContainerCommandFactory {
       if (mDir.isSetIsolatedTests()) {
         for (String test : mDir.getIsolatedTests()) {
           MavenContainerCommand mvn =
-              buildCommand(containerClient.getContainerBaseDir(), mDir.getDir(), containerNumber++);
+              buildCommand(containerClient.getContainerBaseDir() + "/" + mDir.getDir(), containerNumber++);
           setEnvsAndProperties(mDir, mvn);
           mvn.addTest(test);
           log.debug("Isolating test " + test + " in container " + (containerNumber - 1));
@@ -137,7 +137,7 @@ public class MavenContainerCommandFactory extends ContainerCommandFactory {
 
       while (!tests.isEmpty()) {
         MavenContainerCommand mvn =
-            buildCommand(containerClient.getContainerBaseDir(), mDir.getDir(), containerNumber++);
+            buildCommand(containerClient.getContainerBaseDir() + "/" + mDir.getDir(), containerNumber++);
         setEnvsAndProperties(mDir, mvn);
         for (int i = 0; i < testsPerContainer && !tests.isEmpty(); i++) {
           String single = tests.pop();
@@ -149,7 +149,7 @@ public class MavenContainerCommandFactory extends ContainerCommandFactory {
     } else if (mDir.isSetSingleTest()) {
       // Running a single test
       MavenContainerCommand mvn =
-          buildCommand(containerClient.getContainerBaseDir(), mDir.getDir(), containerNumber++);
+          buildCommand(containerClient.getContainerBaseDir() + "/" + mDir.getDir(), containerNumber++);
       mvn.addTest(mDir.getSingleTest());
       setEnvsAndProperties(mDir, mvn);
       cmds.add(mvn);
@@ -233,7 +233,7 @@ public class MavenContainerCommandFactory extends ContainerCommandFactory {
    * @param cmdNum command number for this command, used in logging and labeling containers.
    * @return a command for the container to run
    */
-  protected MavenContainerCommand buildCommand(String buildDir, String moduleDir, int cmdNum) {
-    return new MavenContainerCommand(buildDir, moduleDir, cmdNum);
+  protected MavenContainerCommand buildCommand(String buildDir, int cmdNum) {
+    return new MavenContainerCommand(buildDir, cmdNum);
   }
 }

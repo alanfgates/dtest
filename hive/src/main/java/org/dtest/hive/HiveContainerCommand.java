@@ -24,8 +24,8 @@ public class HiveContainerCommand extends MavenContainerCommand {
   private boolean isITest;
   private List<String> qfiles; // set of qfiles to run
 
-  public HiveContainerCommand(String baseDir, String moduleDir, int cmdNumber) {
-    super(baseDir, moduleDir, cmdNumber);
+  public HiveContainerCommand(String baseDir, int cmdNumber) {
+    super(baseDir, cmdNumber);
     qfiles = new ArrayList<>();
     isITest = false;
   }
@@ -42,14 +42,10 @@ public class HiveContainerCommand extends MavenContainerCommand {
 
   @Override
   protected MavenCommandSupplier getCommandSupplier() {
-    return new HiveMvnCommandSupplier(moduleDir);
+    return new HiveMvnCommandSupplier();
   }
 
   private class HiveMvnCommandSupplier extends MavenCommandSupplier {
-    private HiveMvnCommandSupplier(String moduleDir) {
-      super(moduleDir);
-    }
-
     @Override
     protected void addAdditionalArguments(StringBuilder buf) {
       if (!tests.isEmpty() && isITest) {

@@ -50,8 +50,8 @@ public class TestOzoneContainerCommandFactory {
     cmds.buildContainerCommands(new TestContainerClient(), buildInfo);
     log.dumpToLog();
     Assert.assertEquals(2, cmds.getCmds().size());
-    Assert.assertEquals("/bin/bash -c ( cd /tmp; /usr/bin/mvn test -pl hadoop-hdds -Dsurefire.timeout=300)", StringUtils.join(cmds.getCmds().get(0).shellCommand(), " "));
-    Assert.assertEquals("/bin/bash -c ( cd /tmp; /usr/bin/mvn test -pl hadoop-ozone -Dsurefire.timeout=300)", StringUtils.join(cmds.getCmds().get(1).shellCommand(), " "));
+    Assert.assertEquals("/bin/bash -c ( cd /tmp/hadoop-hdds; /usr/bin/mvn test -Dsurefire.timeout=300)", StringUtils.join(cmds.getCmds().get(0).shellCommand(), " "));
+    Assert.assertEquals("/bin/bash -c ( cd /tmp/hadoop-ozone; /usr/bin/mvn test -Dsurefire.timeout=300)", StringUtils.join(cmds.getCmds().get(1).shellCommand(), " "));
   }
 
   private static class TestContainerClient extends ContainerClient {
