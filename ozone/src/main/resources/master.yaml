@@ -8,37 +8,18 @@ projectDir: hadoop-ozone
 comment: Ozone master yaml file
 javaPackages:
 - org.apache.hadoop
-#additionalLogs:
-#- target/tmp/log/hive.log
 repo: https://github.com/apache/hadoop-ozone.git
 dirs:
-  - dir: hadoop-ozone/recon           # moved to the top because it takes a while, don't want it to start last
-  - dir: hadoop-ozone/tools           # moved to the top because it takes a while, don't want it to start last
+  - dir: hadoop-ozone         # Do first, as it has some long running tests
+    needsSplit: true
+    testsPerContainer: 5
     isolatedTests:
       - TestRandomKeyGenerator
-  - dir: hadoop-hdds/client
-  - dir: hadoop-hdds/common
-    needsSplit: true
-  - dir: hadoop-hdds/container-service
-  - dir: hadoop-hdds/framework
-  - dir: hadoop-hdds/server-scm
+      - TestMiniChaosOzoneCluster
+      - TestOzoneFileInterfaces
+      - TestOzoneFileSystem
+      - TestOzoneAtRestEncryption
+  - dir: hadoop-hdds
     needsSplit: true
     isolatedTests:
       - TestBlockManager
-  - dir: hadoop-ozone/client
-  - dir: hadoop-ozone/common
-  - dir: hadoop-ozone/insight
-  - dir: hadoop-ozone/integration-test
-    isolatedTests:
-      - TestMiniChaosOzoneCluster
-    needsSplit: true
-    testsPerContainer: 5              # tests are longer in here since they are integration tests
-  - dir: hadoop-ozone/ozone-manager
-    needsSplit: true
-  - dir: hadoop-ozone/ozonefs
-    needsSplit: true
-    testsPerContainer: 5              # tests are longer in here since they are integration tests
-    isolatedTests:
-      - TestOzoneFileInterfaces
-      - TestOzoneFileSystem
-  - dir: hadoop-ozone/s3gateway
