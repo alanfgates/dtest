@@ -279,7 +279,7 @@ public class DockerTest {
         StringBuilder statusMsg = new StringBuilder("Task ")
             .append(result.getCmd().containerSuffix())
             .append(' ');
-        log.debug("Result from running " + taskCmd.containerSuffix() + " his " + result.getAnalysisResult());
+        log.debug("Result from running " + taskCmd.containerSuffix() + ":  " + result.getAnalysisResult());
         switch (result.getAnalysisResult()) {
         case TIMED_OUT:
           statusMsg.append(" had TIMEOUTS");
