@@ -43,7 +43,7 @@ dirs:
       - TestContainerSmallFile                  # Passes when run individually but fails when run as part of the test
       - TestScmSafeMode
     needsSplit: true
-    testsPerContainer: 1              # tests are longer in here since they are integration tests
+    testsPerContainer: 5              # tests are longer in here since they are integration tests
   - dir: hadoop-ozone/ozone-manager
     needsSplit: true
     isolatedTests:
