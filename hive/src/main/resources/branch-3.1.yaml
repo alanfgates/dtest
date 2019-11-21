@@ -48,6 +48,8 @@ hiveDirs:
   - dir: hbase-handler
   - dir: hcatalog/core
     needsSplit: true
+    skippedTests:
+      - TestHCatPartitionPublish
   - dir: hcatalog/hcatalog-pig-adapter
     needsSplit: true
   - dir: hcatalog/server-extensions
