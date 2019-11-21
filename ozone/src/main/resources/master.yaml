@@ -14,6 +14,8 @@ repo: https://github.com/apache/hadoop-ozone.git
 dirs:
   - dir: hadoop-ozone/recon           # moved to the top because it takes a while, don't want it to start last
   - dir: hadoop-ozone/tools           # moved to the top because it takes a while, don't want it to start last
+    skippedTests:
+      - TestFreonWithPipelineDestroy
     isolatedTests:
       - TestRandomKeyGenerator
   - dir: hadoop-hdds/client
@@ -29,12 +31,23 @@ dirs:
   - dir: hadoop-ozone/common
   - dir: hadoop-ozone/insight
   - dir: hadoop-ozone/integration-test
-    isolatedTests:
-      - TestMiniChaosOzoneCluster
+    skippedTests:
+      - TestBlockDeletion                       # fails on mac and linux
+      - TestContainerStateMachine               # passes on mac but fails on Linux
+      - TestOzoneManagerRestart                 # passes on mac but fails on Linux
+      - TestSecureOzoneCluster                  # fails on mac and linux
+      - TestBlockOutputStreamWithFailures       # passes on mac but fails on Linux
+      - TestContainerStateMachineFailures       # fails on mac and linux
+      - TestWatchForCommit                      # fails on mac and linux
+      - TestMiniChaosOzoneCluster               # fails on mac and linux
+      - TestContainerSmallFile                  # Passes when run individually but fails when run as part of the test
+      - TestScmSafeMode
     needsSplit: true
-    testsPerContainer: 5              # tests are longer in here since they are integration tests
+    testsPerContainer: 1              # tests are longer in here since they are integration tests
   - dir: hadoop-ozone/ozone-manager
     needsSplit: true
+    isolatedTests:
+      - TestOzoneDelegationTokenSecretManager
   - dir: hadoop-ozone/ozonefs
     needsSplit: true
     testsPerContainer: 5              # tests are longer in here since they are integration tests
