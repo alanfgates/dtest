@@ -1,0 +1,107 @@
+[INFO] Scanning for projects...
+[INFO] ------------------------------------------------------------------------
+[INFO] Reactor Build Order:
+[INFO] 
+[INFO] Docker Test Utility                                                [pom]
+[INFO] dtest core interfaces and implementation                           [jar]
+[INFO] dtest hive implementation                                          [jar]
+[INFO] dtest ozone implementation                                         [jar]
+[INFO] 
+[INFO] --------------------------< org.dtest:dtest >---------------------------
+[INFO] Building Docker Test Utility 0.3.0-SNAPSHOT                        [1/4]
+[INFO] --------------------------------[ pom ]---------------------------------
+[INFO] 
+[INFO] --- maven-clean-plugin:2.5:clean (default-clean) @ dtest ---
+[INFO] Deleting /Users/gates/git/dtest/target
+[INFO] 
+[INFO] --- maven-failsafe-plugin:2.20.1:integration-test (default) @ dtest ---
+[INFO] No tests to run.
+[INFO] 
+[INFO] --- maven-failsafe-plugin:2.20.1:verify (default) @ dtest ---
+[INFO] 
+[INFO] --- maven-install-plugin:2.4:install (default-install) @ dtest ---
+[INFO] Installing /Users/gates/git/dtest/pom.xml to /Users/gates/.m2/repository/org/dtest/dtest/0.3.0-SNAPSHOT/dtest-0.3.0-SNAPSHOT.pom
+[INFO] 
+[INFO] ------------------------< org.dtest:dtest-core >------------------------
+[INFO] Building dtest core interfaces and implementation 0.3.0-SNAPSHOT   [2/4]
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- maven-clean-plugin:2.5:clean (default-clean) @ dtest-core ---
+[INFO] Deleting /Users/gates/git/dtest/core/target
+[INFO] 
+[INFO] --- maven-antrun-plugin:1.8:run (default) @ dtest-core ---
+[WARNING] Parameter tasks is deprecated, use target instead
+[INFO] Executing tasks
+
+main:
+[INFO] Executed tasks
+[INFO] 
+[INFO] --- build-helper-maven-plugin:3.0.0:add-source (add-source) @ dtest-core ---
+[INFO] Source directory: /Users/gates/git/dtest/core/target/generated-sources added.
+[INFO] 
+[INFO] --- maven-resources-plugin:2.6:resources (default-resources) @ dtest-core ---
+[INFO] Using 'UTF-8' encoding to copy filtered resources.
+[INFO] Copying 2 resources
+[INFO] 
+[INFO] --- maven-compiler-plugin:3.1:compile (default-compile) @ dtest-core ---
+[INFO] Changes detected - recompiling the module!
+[INFO] Compiling 33 source files to /Users/gates/git/dtest/core/target/classes
+[INFO] 
+[INFO] --- maven-resources-plugin:2.6:testResources (default-testResources) @ dtest-core ---
+[INFO] Using 'UTF-8' encoding to copy filtered resources.
+[INFO] Copying 43 resources
+[INFO] 
+[INFO] --- maven-compiler-plugin:3.1:testCompile (default-testCompile) @ dtest-core ---
+[INFO] Changes detected - recompiling the module!
+[INFO] Compiling 12 source files to /Users/gates/git/dtest/core/target/test-classes
+[INFO] 
+[INFO] --- maven-surefire-plugin:2.21.0:test (default-test) @ dtest-core ---
+[INFO] 
+[INFO] -------------------------------------------------------
+[INFO]  T E S T S
+[INFO] -------------------------------------------------------
+[INFO] Running org.dtest.core.docker.TestDockerContainerClient
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.862 s - in org.dtest.core.docker.TestDockerContainerClient
+[INFO] Running org.dtest.core.impl.TestUtils
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.117 s - in org.dtest.core.impl.TestUtils
+[INFO] Running org.dtest.core.mvn.TestMavenContainerCommandFactory
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.876 s - in org.dtest.core.mvn.TestMavenContainerCommandFactory
+[INFO] Running org.dtest.core.mvn.TestMavenResultAnalyzer
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.557 s - in org.dtest.core.mvn.TestMavenResultAnalyzer
+[INFO] Running org.dtest.core.mvn.TestModuleDirectory
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.062 s - in org.dtest.core.mvn.TestModuleDirectory
+[INFO] Running org.dtest.core.TestBuildInfo
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.696 s - in org.dtest.core.TestBuildInfo
+[INFO] Running org.dtest.core.TestConfig
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.054 s - in org.dtest.core.TestConfig
+[INFO] Running org.dtest.core.TestFake
+[INFO] Running org.dtest.core.TestFakeTwo
+[WARNING] Tests run: 2, Failures: 0, Errors: 0, Skipped: 1, Time elapsed: 0.08 s - in org.dtest.core.TestFakeTwo
+[INFO] 
+[INFO] Results:
+[INFO] 
+[WARNING] Tests run: 19, Failures: 0, Errors: 0, Skipped: 1
+[INFO] 
+[INFO] ------------------------------------------------------------------------
+[INFO] Reactor Summary for Docker Test Utility 0.3.0-SNAPSHOT:
+[INFO] 
+[INFO] Docker Test Utility ................................ SUCCESS [  0.910 s]
+[INFO] dtest core interfaces and implementation ........... FAILURE [ 27.763 s]
+[INFO] dtest hive implementation .......................... SKIPPED
+[INFO] dtest ozone implementation ......................... SKIPPED
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD FAILURE
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  29.069 s
+[INFO] Finished at: 2019-11-26T11:35:43-08:00
+[INFO] ------------------------------------------------------------------------
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-surefire-plugin:2.21.0:test (default-test) on project dtest-core: There was a timeout or other error in the fork -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException
+[ERROR] 
+[ERROR] After correcting the problems, you can resume the build with the command
+[ERROR]   mvn <goals> -rf :dtest-core

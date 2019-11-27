@@ -1,0 +1,22 @@
+2019-11-25 17:11:19,549  INFO [main] TestUtils: Entire logs from test:
+2019-11-25 17:11:19,551  INFO [main] TestUtils: DEBUG: Reading YAML file /Users/gates/git/dtest/core/target/test-classes/profile.yaml and interpreting using org.dtest.core.BuildYaml
+2019-11-25 17:11:19,552  INFO [main] TestUtils: INFO: Build dir for build is /Users/gates/git/dtest/core/target/1
+2019-11-25 17:11:19,552  INFO [main] TestUtils: DEBUG: MavenContainerCommandFactory fetching module directories
+2019-11-25 17:11:19,552  INFO [main] TestUtils: INFO: Using label profile
+2019-11-25 17:11:19,552  INFO [main] TestUtils: DEBUG: Adding test TestRetriesInRetryingHMSHandler to container 3
+2019-11-25 17:11:19,552  INFO [main] TestUtils: DEBUG: Adding test TestRetryingHMSHandler to container 3
+2019-11-25 17:11:19,552  INFO [main] TestUtils: DEBUG: Adding test TestSetUGIOnBothClientServer to container 3
+2019-11-25 17:11:19,552  INFO [main] TestUtils: DEBUG: Adding test TestSetUGIOnOnlyClient to container 3
+2019-11-25 17:11:19,552  INFO [main] TestUtils: DEBUG: Adding test TestSetUGIOnOnlyServer to container 3
+2019-11-25 17:11:19,552  INFO [main] TestUtils: DEBUG: Adding test TestStats to container 3
+2019-11-25 17:11:19,552  INFO [main] TestUtils: DEBUG: Adding test TestMetastoreSchemaTool to container 3
+2019-11-25 17:11:19,553  INFO [main] TestUtils: DEBUG: Adding test TestSchemaToolForMetastore to container 3
+2019-11-25 17:11:19,553  INFO [main] TestUtils: DEBUG: Adding test TestTxnHandlerNegative to container 3
+2019-11-25 17:11:19,553  INFO [main] TestUtils: DEBUG: Adding test TestTxnUtils to container 3
+2019-11-25 17:11:19,553  INFO [main] TestUtils: DEBUG: Adding test TestHdfsUtils to container 4
+2019-11-25 17:11:19,553  INFO [main] TestUtils: DEBUG: Adding test TestMetaStoreUtils to container 4
+2019-11-25 17:11:19,553  INFO [main] TestUtils: DEBUG: Isolating test TestCleaner2 in container 6
+2019-11-25 17:11:19,553  INFO [main] TestUtils: DEBUG: Adding test CompactorTest to container 7
+2019-11-25 17:11:19,553  INFO [main] TestUtils: DEBUG: Adding test TestCleaner to container 7
+2019-11-25 17:11:19,553  INFO [main] TestUtils: DEBUG: Adding test TestInitiator to container 7
+2019-11-25 17:11:19,553  INFO [main] TestUtils: DEBUG: Adding test TestWorker2 to container 7

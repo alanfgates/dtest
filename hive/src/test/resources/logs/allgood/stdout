@@ -1,0 +1,165 @@
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] --------------------< org.apache.hive:hive-common >---------------------
+[INFO] Building Hive Common 4.0.0-SNAPSHOT
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- maven-enforcer-plugin:1.3.1:enforce (enforce-no-snapshots) @ hive-common ---
+[INFO] 
+[INFO] --- maven-enforcer-plugin:1.3.1:enforce (enforce-banned-dependencies-licenses) @ hive-common ---
+[INFO] 
+[INFO] --- maven-enforcer-plugin:1.3.1:enforce (enforce-banned-dependencies-logging) @ hive-common ---
+[INFO] 
+[INFO] --- maven-antrun-plugin:1.7:run (generate-version-annotation) @ hive-common ---
+[INFO] Executing tasks
+
+main:
+[INFO] Executed tasks
+[INFO] 
+[INFO] --- build-helper-maven-plugin:1.8:add-source (add-source) @ hive-common ---
+[INFO] Source directory: /Users/gates/git/hive/common/src/gen added.
+[INFO] 
+[INFO] --- maven-remote-resources-plugin:1.5:process (process-resource-bundles) @ hive-common ---
+[INFO] 
+[INFO] --- maven-resources-plugin:2.7:resources (default-resources) @ hive-common ---
+[INFO] Using 'UTF-8' encoding to copy filtered resources.
+[INFO] Copying 2 resources
+[INFO] Copying 3 resources
+[INFO] 
+[INFO] --- maven-antrun-plugin:1.7:run (define-classpath) @ hive-common ---
+[INFO] Executing tasks
+
+main:
+[INFO] Executed tasks
+[INFO] 
+[INFO] --- maven-compiler-plugin:3.6.1:compile (default-compile) @ hive-common ---
+[INFO] Compiling 2 source files to /Users/gates/git/hive/common/target/classes
+[INFO] 
+[INFO] --- maven-resources-plugin:2.7:testResources (default-testResources) @ hive-common ---
+[INFO] Using 'UTF-8' encoding to copy filtered resources.
+[INFO] Copying 2 resources
+[INFO] Copying 3 resources
+[INFO] 
+[INFO] --- maven-antrun-plugin:1.7:run (setup-test-dirs) @ hive-common ---
+[INFO] Executing tasks
+
+main:
+   [delete] Deleting directory /Users/gates/git/hive/common/target/tmp
+   [delete] Deleting directory /Users/gates/git/hive/common/target/testconf
+   [delete] Deleting directory /Users/gates/git/hive/common/target/warehouse
+    [mkdir] Created dir: /Users/gates/git/hive/common/target/tmp
+    [mkdir] Created dir: /Users/gates/git/hive/common/target/warehouse
+    [mkdir] Created dir: /Users/gates/git/hive/common/target/testconf
+     [copy] Copying 19 files to /Users/gates/git/hive/common/target/testconf
+[INFO] Executed tasks
+[INFO] 
+[INFO] --- maven-compiler-plugin:3.6.1:testCompile (default-testCompile) @ hive-common ---
+[INFO] Compiling 2 source files to /Users/gates/git/hive/common/target/test-classes
+[INFO] /Users/gates/git/hive/common/src/test/org/apache/hadoop/hive/conf/TestHiveConf.java: /Users/gates/git/hive/common/src/test/org/apache/hadoop/hive/conf/TestHiveConf.java uses or overrides a deprecated API.
+[INFO] /Users/gates/git/hive/common/src/test/org/apache/hadoop/hive/conf/TestHiveConf.java: Recompile with -Xlint:deprecation for details.
+[INFO] 
+[INFO] --- maven-surefire-plugin:2.21.0:test (default-test) @ hive-common ---
+[INFO] 
+[INFO] -------------------------------------------------------
+[INFO]  T E S T S
+[INFO] -------------------------------------------------------
+[INFO] Running org.apache.hadoop.hive.common.format.datetime.TestHiveSqlDateTimeFormatter
+[INFO] Tests run: 11, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.318 s - in org.apache.hadoop.hive.common.format.datetime.TestHiveSqlDateTimeFormatter
+[INFO] Running org.apache.hadoop.hive.common.jsonexplain.TestOp
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.97 s - in org.apache.hadoop.hive.common.jsonexplain.TestOp
+[INFO] Running org.apache.hadoop.hive.common.jsonexplain.TestStage
+[INFO] Tests run: 9, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.71 s - in org.apache.hadoop.hive.common.jsonexplain.TestStage
+[INFO] Running org.apache.hadoop.hive.common.jsonexplain.TestVertex
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.714 s - in org.apache.hadoop.hive.common.jsonexplain.TestVertex
+[INFO] Running org.apache.hadoop.hive.common.jsonexplain.tez.TestTezJsonParser
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.73 s - in org.apache.hadoop.hive.common.jsonexplain.tez.TestTezJsonParser
+[INFO] Running org.apache.hadoop.hive.common.metrics.metrics2.TestCodahaleMetrics
+[INFO] Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 2.882 s - in org.apache.hadoop.hive.common.metrics.metrics2.TestCodahaleMetrics
+[INFO] Running org.apache.hadoop.hive.common.metrics.metrics2.TestCodahaleReportersConf
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 3.596 s - in org.apache.hadoop.hive.common.metrics.metrics2.TestCodahaleReportersConf
+[INFO] Running org.apache.hadoop.hive.common.metrics.metrics2.TestMetricVariableRatioGauge
+[INFO] Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.782 s - in org.apache.hadoop.hive.common.metrics.metrics2.TestMetricVariableRatioGauge
+[INFO] Running org.apache.hadoop.hive.common.metrics.TestLegacyMetrics
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.707 s - in org.apache.hadoop.hive.common.metrics.TestLegacyMetrics
+[INFO] Running org.apache.hadoop.hive.common.TestBlobStorageUtils
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.105 s - in org.apache.hadoop.hive.common.TestBlobStorageUtils
+[INFO] Running org.apache.hadoop.hive.common.TestFileUtils
+[INFO] Tests run: 12, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.909 s - in org.apache.hadoop.hive.common.TestFileUtils
+[INFO] Running org.apache.hadoop.hive.common.TestLogUtils
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.69 s - in org.apache.hadoop.hive.common.TestLogUtils
+[INFO] Running org.apache.hadoop.hive.common.TestTezJsonParser
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.73 s - in org.apache.hadoop.hive.common.TestTezJsonParser
+[INFO] Running org.apache.hadoop.hive.common.type.TestDecimal128
+[INFO] Tests run: 26, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 2.449 s - in org.apache.hadoop.hive.common.type.TestDecimal128
+[INFO] Running org.apache.hadoop.hive.common.type.TestHiveBaseChar
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.093 s - in org.apache.hadoop.hive.common.type.TestHiveBaseChar
+[INFO] Running org.apache.hadoop.hive.common.type.TestHiveChar
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.232 s - in org.apache.hadoop.hive.common.type.TestHiveChar
+[INFO] Running org.apache.hadoop.hive.common.type.TestHiveDecimalOrcSerializationUtils
+[INFO] Tests run: 8, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.378 s - in org.apache.hadoop.hive.common.type.TestHiveDecimalOrcSerializationUtils
+[INFO] Running org.apache.hadoop.hive.common.type.TestHiveIntervalDayTime
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.536 s - in org.apache.hadoop.hive.common.type.TestHiveIntervalDayTime
+[INFO] Running org.apache.hadoop.hive.common.type.TestHiveIntervalYearMonth
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.435 s - in org.apache.hadoop.hive.common.type.TestHiveIntervalYearMonth
+[INFO] Running org.apache.hadoop.hive.common.type.TestHiveVarchar
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.199 s - in org.apache.hadoop.hive.common.type.TestHiveVarchar
+[INFO] Running org.apache.hadoop.hive.common.type.TestSignedInt128
+[INFO] Tests run: 16, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.09 s - in org.apache.hadoop.hive.common.type.TestSignedInt128
+[INFO] Running org.apache.hadoop.hive.common.type.TestSqlMathUtil
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.072 s - in org.apache.hadoop.hive.common.type.TestSqlMathUtil
+[INFO] Running org.apache.hadoop.hive.common.type.TestTimestampTZ
+[INFO] Tests run: 8, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.721 s - in org.apache.hadoop.hive.common.type.TestTimestampTZ
+[INFO] Running org.apache.hadoop.hive.common.type.TestUnsignedInt128
+[INFO] Tests run: 19, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.091 s - in org.apache.hadoop.hive.common.type.TestUnsignedInt128
+[INFO] Running org.apache.hadoop.hive.conf.TestHiveAsyncLogging
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.425 s - in org.apache.hadoop.hive.conf.TestHiveAsyncLogging
+[INFO] Running org.apache.hadoop.hive.conf.TestHiveConf
+[INFO] Tests run: 9, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.62 s - in org.apache.hadoop.hive.conf.TestHiveConf
+[INFO] Running org.apache.hadoop.hive.conf.TestHiveConfRestrictList
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.383 s - in org.apache.hadoop.hive.conf.TestHiveConfRestrictList
+[INFO] Running org.apache.hadoop.hive.conf.TestHiveConfUtil
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.382 s - in org.apache.hadoop.hive.conf.TestHiveConfUtil
+[INFO] Running org.apache.hadoop.hive.conf.TestHiveLogging
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.403 s - in org.apache.hadoop.hive.conf.TestHiveLogging
+[INFO] Running org.apache.hadoop.hive.conf.TestSystemVariables
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.729 s - in org.apache.hadoop.hive.conf.TestSystemVariables
+[INFO] Running org.apache.hadoop.hive.conf.TestVariableSubstitution
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.285 s - in org.apache.hadoop.hive.conf.TestVariableSubstitution
+[INFO] Running org.apache.hive.common.util.TestACLConfigurationParser
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.755 s - in org.apache.hive.common.util.TestACLConfigurationParser
+[INFO] Running org.apache.hive.common.util.TestDateParser
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.085 s - in org.apache.hive.common.util.TestDateParser
+[INFO] Running org.apache.hive.common.util.TestFixedSizedObjectPool
+[INFO] Tests run: 8, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.913 s - in org.apache.hive.common.util.TestFixedSizedObjectPool
+[INFO] Running org.apache.hive.common.util.TestHiveStringUtils
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.101 s - in org.apache.hive.common.util.TestHiveStringUtils
+[INFO] Running org.apache.hive.common.util.TestRetryUtilities
+[INFO] Tests run: 8, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.738 s - in org.apache.hive.common.util.TestRetryUtilities
+[INFO] Running org.apache.hive.common.util.TestShutdownHookManager
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.72 s - in org.apache.hive.common.util.TestShutdownHookManager
+[INFO] Running org.apache.hive.common.util.TestTimestampParser
+[INFO] Tests run: 12, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.705 s - in org.apache.hive.common.util.TestTimestampParser
+[INFO] 
+[INFO] Results:
+[INFO] 
+[INFO] Tests run: 216, Failures: 0, Errors: 0, Skipped: 0
+[INFO] 
+[INFO] 
+[INFO] --- maven-jar-plugin:2.4:jar (default-jar) @ hive-common ---
+[INFO] Building jar: /Users/gates/git/hive/common/target/hive-common-4.0.0-SNAPSHOT.jar
+[INFO] 
+[INFO] --- maven-site-plugin:3.5.1:attach-descriptor (attach-descriptor) @ hive-common ---
+[INFO] 
+[INFO] --- maven-jar-plugin:2.4:test-jar (default) @ hive-common ---
+[INFO] Building jar: /Users/gates/git/hive/common/target/hive-common-4.0.0-SNAPSHOT-tests.jar
+[INFO] 
+[INFO] --- maven-install-plugin:2.4:install (default-install) @ hive-common ---
+[INFO] Installing /Users/gates/git/hive/common/target/hive-common-4.0.0-SNAPSHOT.jar to /Users/gates/.m2/repository/org/apache/hive/hive-common/4.0.0-SNAPSHOT/hive-common-4.0.0-SNAPSHOT.jar
+[INFO] Installing /Users/gates/git/hive/common/pom.xml to /Users/gates/.m2/repository/org/apache/hive/hive-common/4.0.0-SNAPSHOT/hive-common-4.0.0-SNAPSHOT.pom
+[INFO] Installing /Users/gates/git/hive/common/target/hive-common-4.0.0-SNAPSHOT-tests.jar to /Users/gates/.m2/repository/org/apache/hive/hive-common/4.0.0-SNAPSHOT/hive-common-4.0.0-SNAPSHOT-tests.jar
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  01:17 min
+[INFO] Finished at: 2019-11-26T17:11:14-08:00
+[INFO] ------------------------------------------------------------------------

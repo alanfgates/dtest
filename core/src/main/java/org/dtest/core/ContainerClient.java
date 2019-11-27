@@ -77,13 +77,15 @@ public abstract class ContainerClient extends Configurable {
   public abstract ContainerResult runContainer(ContainerCommand cmd) throws IOException;
 
   /**
-   * Picks up the list of logs from tests that failed or returned an error and copies them to a directory on the
-   * target machine.
+   * Picks up the list of reports for tests run in the container and copies them to the
+   * target machine.  Results will be added to the ContainerResult.
    * @param result results from running the container
-   * @param targetDir directory on the build machine to copy files to
-   * @throws IOException if the copy of the log files fails
+   * @param analyzer ResultAnalyzer that will be used to analyze these files
+   * @param reporter Reporter that will be used to return results to the user
+   * @param additionalLogs list of additional logs to fetch, these are project specific log files.
+   * @throws IOException if the copy fails
    */
-  public abstract void copyLogFiles(ContainerResult result, String targetDir)
+  public abstract void fetchTestReports(ContainerResult result, ResultAnalyzer analyzer, Reporter reporter, String[] additionalLogs)
       throws IOException;
 
   /**

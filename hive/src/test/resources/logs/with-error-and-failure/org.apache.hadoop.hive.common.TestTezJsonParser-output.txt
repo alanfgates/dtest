@@ -1,0 +1,187 @@
+DEBUG StatusLogger Using ShutdownCallbackRegistry class org.apache.logging.log4j.core.util.DefaultShutdownCallbackRegistry
+DEBUG StatusLogger Took 0.062965 seconds to load 205 plugins from sun.misc.Launcher$AppClassLoader@232204a1
+DEBUG StatusLogger PluginManager 'Converter' found 42 plugins
+DEBUG StatusLogger Starting OutputStreamManager SYSTEM_OUT.false.false-1
+DEBUG StatusLogger Starting LoggerContext[name=232204a1, org.apache.logging.log4j.core.LoggerContext@5606c0b]...
+DEBUG StatusLogger Reconfiguration started for context[name=232204a1] at URI null (org.apache.logging.log4j.core.LoggerContext@5606c0b) with optional ClassLoader: null
+DEBUG StatusLogger PluginManager 'ConfigurationFactory' found 4 plugins
+DEBUG StatusLogger Missing dependencies for Yaml support, ConfigurationFactory org.apache.logging.log4j.core.config.yaml.YamlConfigurationFactory is inactive
+DEBUG StatusLogger Using configurationFactory org.apache.logging.log4j.core.config.ConfigurationFactory$Factory@dd3b207
+DEBUG StatusLogger Initializing configuration org.apache.logging.log4j.core.config.properties.PropertiesConfiguration@4c40b76e
+DEBUG StatusLogger Installed 1 script engine
+DEBUG StatusLogger Oracle Nashorn version: 1.8.0_192, language: ECMAScript, threading: Not Thread Safe, compile: true, names: [nashorn, Nashorn, js, JS, JavaScript, javascript, ECMAScript, ecmascript], factory class: jdk.nashorn.api.scripting.NashornScriptEngineFactory
+INFO StatusLogger Scanning for classes in '/Users/gates/git/hive/common/target/classes/org/apache/hadoop/hive/ql/log' matching criteria annotated with @Plugin
+DEBUG StatusLogger Checking to see if class org.apache.hadoop.hive.ql.log.PerfLogger matches criteria annotated with @Plugin
+DEBUG StatusLogger Took 0.002698 seconds to load 0 plugins from package org.apache.hadoop.hive.ql.log
+DEBUG StatusLogger PluginManager 'Core' found 117 plugins
+DEBUG StatusLogger PluginManager 'Level' found 0 plugins
+DEBUG StatusLogger Building Plugin[name=property, class=org.apache.logging.log4j.core.config.Property].
+TRACE StatusLogger TypeConverterRegistry initializing.
+DEBUG StatusLogger PluginManager 'TypeConverter' found 26 plugins
+DEBUG StatusLogger createProperty(name="hive.log.file", value="hive.log")
+DEBUG StatusLogger Building Plugin[name=property, class=org.apache.logging.log4j.core.config.Property].
+DEBUG StatusLogger createProperty(name="hive.log.dir", value="/Users/gates/git/hive/common/target/tmp/log")
+DEBUG StatusLogger Building Plugin[name=property, class=org.apache.logging.log4j.core.config.Property].
+DEBUG StatusLogger createProperty(name="hive.root.logger", value="DRFA")
+DEBUG StatusLogger Building Plugin[name=property, class=org.apache.logging.log4j.core.config.Property].
+DEBUG StatusLogger createProperty(name="hive.log.level", value="DEBUG")
+DEBUG StatusLogger Building Plugin[name=property, class=org.apache.logging.log4j.core.config.Property].
+DEBUG StatusLogger createProperty(name="hive.test.console.log.level", value="INFO")
+DEBUG StatusLogger Building Plugin[name=properties, class=org.apache.logging.log4j.core.config.PropertiesPlugin].
+DEBUG StatusLogger configureSubstitutor(={hive.log.file=hive.log, hive.log.dir=/Users/gates/git/hive/common/target/tmp/log, hive.root.logger=DRFA, hive.log.level=DEBUG, hive.test.console.log.level=INFO}, Configuration(HiveLog4j2Test))
+DEBUG StatusLogger PluginManager 'Lookup' found 14 plugins
+DEBUG StatusLogger Building Plugin[name=logger, class=org.apache.logging.log4j.core.config.LoggerConfig].
+DEBUG StatusLogger createLogger(additivity="true", level="WARN", name="org.apache.hadoop.ipc", includeLocation="null", ={}, ={}, Configuration(HiveLog4j2Test), Filter=null)
+DEBUG StatusLogger Building Plugin[name=logger, class=org.apache.logging.log4j.core.config.LoggerConfig].
+DEBUG StatusLogger createLogger(additivity="true", level="INFO", name="org.apache.hadoop.security", includeLocation="null", ={}, ={}, Configuration(HiveLog4j2Test), Filter=null)
+DEBUG StatusLogger Building Plugin[name=logger, class=org.apache.logging.log4j.core.config.LoggerConfig].
+DEBUG StatusLogger createLogger(additivity="true", level="INFO", name="org.apache.hadoop.hdfs", includeLocation="null", ={}, ={}, Configuration(HiveLog4j2Test), Filter=null)
+DEBUG StatusLogger Building Plugin[name=logger, class=org.apache.logging.log4j.core.config.LoggerConfig].
+DEBUG StatusLogger createLogger(additivity="true", level="WARN", name="org.apache.hadoop.hdfs.server", includeLocation="null", ={}, ={}, Configuration(HiveLog4j2Test), Filter=null)
+DEBUG StatusLogger Building Plugin[name=logger, class=org.apache.logging.log4j.core.config.LoggerConfig].
+DEBUG StatusLogger createLogger(additivity="true", level="INFO", name="org.apache.hadoop.metrics2", includeLocation="null", ={}, ={}, Configuration(HiveLog4j2Test), Filter=null)
+DEBUG StatusLogger Building Plugin[name=logger, class=org.apache.logging.log4j.core.config.LoggerConfig].
+DEBUG StatusLogger createLogger(additivity="true", level="INFO", name="org.mortbay", includeLocation="null", ={}, ={}, Configuration(HiveLog4j2Test), Filter=null)
+DEBUG StatusLogger Building Plugin[name=logger, class=org.apache.logging.log4j.core.config.LoggerConfig].
+DEBUG StatusLogger createLogger(additivity="true", level="INFO", name="org.apache.hadoop.yarn", includeLocation="null", ={}, ={}, Configuration(HiveLog4j2Test), Filter=null)
+DEBUG StatusLogger Building Plugin[name=logger, class=org.apache.logging.log4j.core.config.LoggerConfig].
+DEBUG StatusLogger createLogger(additivity="true", level="WARN", name="org.apache.hadoop.yarn.server", includeLocation="null", ={}, ={}, Configuration(HiveLog4j2Test), Filter=null)
+DEBUG StatusLogger Building Plugin[name=logger, class=org.apache.logging.log4j.core.config.LoggerConfig].
+DEBUG StatusLogger createLogger(additivity="true", level="INFO", name="org.apache.tez", includeLocation="null", ={}, ={}, Configuration(HiveLog4j2Test), Filter=null)
+DEBUG StatusLogger Building Plugin[name=logger, class=org.apache.logging.log4j.core.config.LoggerConfig].
+DEBUG StatusLogger createLogger(additivity="true", level="ERROR", name="org.apache.hadoop.conf.Configuration", includeLocation="null", ={}, ={}, Configuration(HiveLog4j2Test), Filter=null)
+DEBUG StatusLogger Building Plugin[name=logger, class=org.apache.logging.log4j.core.config.LoggerConfig].
+DEBUG StatusLogger createLogger(additivity="true", level="INFO", name="org.apache.zookeeper", includeLocation="null", ={}, ={}, Configuration(HiveLog4j2Test), Filter=null)
+DEBUG StatusLogger Building Plugin[name=logger, class=org.apache.logging.log4j.core.config.LoggerConfig].
+DEBUG StatusLogger createLogger(additivity="true", level="WARN", name="org.apache.zookeeper.server.ServerCnxn", includeLocation="null", ={}, ={}, Configuration(HiveLog4j2Test), Filter=null)
+DEBUG StatusLogger Building Plugin[name=logger, class=org.apache.logging.log4j.core.config.LoggerConfig].
+DEBUG StatusLogger createLogger(additivity="true", level="WARN", name="org.apache.zookeeper.server.NIOServerCnxn", includeLocation="null", ={}, ={}, Configuration(HiveLog4j2Test), Filter=null)
+DEBUG StatusLogger Building Plugin[name=logger, class=org.apache.logging.log4j.core.config.LoggerConfig].
+DEBUG StatusLogger createLogger(additivity="true", level="WARN", name="org.apache.zookeeper.ClientCnxn", includeLocation="null", ={}, ={}, Configuration(HiveLog4j2Test), Filter=null)
+DEBUG StatusLogger Building Plugin[name=logger, class=org.apache.logging.log4j.core.config.LoggerConfig].
+DEBUG StatusLogger createLogger(additivity="true", level="WARN", name="org.apache.zookeeper.ClientCnxnSocket", includeLocation="null", ={}, ={}, Configuration(HiveLog4j2Test), Filter=null)
+DEBUG StatusLogger Building Plugin[name=logger, class=org.apache.logging.log4j.core.config.LoggerConfig].
+DEBUG StatusLogger createLogger(additivity="true", level="WARN", name="org.apache.zookeeper.ClientCnxnSocketNIO", includeLocation="null", ={}, ={}, Configuration(HiveLog4j2Test), Filter=null)
+DEBUG StatusLogger Building Plugin[name=logger, class=org.apache.logging.log4j.core.config.LoggerConfig].
+DEBUG StatusLogger createLogger(additivity="true", level="ERROR", name="DataNucleus", includeLocation="null", ={}, ={}, Configuration(HiveLog4j2Test), Filter=null)
+DEBUG StatusLogger Building Plugin[name=logger, class=org.apache.logging.log4j.core.config.LoggerConfig].
+DEBUG StatusLogger createLogger(additivity="true", level="ERROR", name="Datastore", includeLocation="null", ={}, ={}, Configuration(HiveLog4j2Test), Filter=null)
+DEBUG StatusLogger Building Plugin[name=logger, class=org.apache.logging.log4j.core.config.LoggerConfig].
+DEBUG StatusLogger createLogger(additivity="true", level="ERROR", name="JPOX", includeLocation="null", ={}, ={}, Configuration(HiveLog4j2Test), Filter=null)
+DEBUG StatusLogger Building Plugin[name=logger, class=org.apache.logging.log4j.core.config.LoggerConfig].
+DEBUG StatusLogger createLogger(additivity="true", level="INFO", name="org.apache.hadoop.hive.ql.exec.Operator", includeLocation="null", ={}, ={}, Configuration(HiveLog4j2Test), Filter=null)
+DEBUG StatusLogger Building Plugin[name=logger, class=org.apache.logging.log4j.core.config.LoggerConfig].
+DEBUG StatusLogger createLogger(additivity="true", level="INFO", name="org.apache.hadoop.hive.serde2.lazy", includeLocation="null", ={}, ={}, Configuration(HiveLog4j2Test), Filter=null)
+DEBUG StatusLogger Building Plugin[name=logger, class=org.apache.logging.log4j.core.config.LoggerConfig].
+DEBUG StatusLogger createLogger(additivity="true", level="INFO", name="org.apache.hadoop.hive.metastore.ObjectStore", includeLocation="null", ={}, ={}, Configuration(HiveLog4j2Test), Filter=null)
+DEBUG StatusLogger Building Plugin[name=logger, class=org.apache.logging.log4j.core.config.LoggerConfig].
+DEBUG StatusLogger createLogger(additivity="true", level="INFO", name="org.apache.calcite.plan.RelOptPlanner", includeLocation="null", ={}, ={}, Configuration(HiveLog4j2Test), Filter=null)
+DEBUG StatusLogger Building Plugin[name=logger, class=org.apache.logging.log4j.core.config.LoggerConfig].
+DEBUG StatusLogger createLogger(additivity="true", level="INFO", name="com.amazonaws", includeLocation="null", ={}, ={}, Configuration(HiveLog4j2Test), Filter=null)
+DEBUG StatusLogger Building Plugin[name=logger, class=org.apache.logging.log4j.core.config.LoggerConfig].
+DEBUG StatusLogger createLogger(additivity="true", level="INFO", name="org.apache.http", includeLocation="null", ={}, ={}, Configuration(HiveLog4j2Test), Filter=null)
+DEBUG StatusLogger Building Plugin[name=logger, class=org.apache.logging.log4j.core.config.LoggerConfig].
+DEBUG StatusLogger createLogger(additivity="true", level="WARN", name="org.apache.thrift", includeLocation="null", ={}, ={}, Configuration(HiveLog4j2Test), Filter=null)
+DEBUG StatusLogger Building Plugin[name=logger, class=org.apache.logging.log4j.core.config.LoggerConfig].
+DEBUG StatusLogger createLogger(additivity="true", level="WARN", name="org.eclipse.jetty", includeLocation="null", ={}, ={}, Configuration(HiveLog4j2Test), Filter=null)
+DEBUG StatusLogger Building Plugin[name=logger, class=org.apache.logging.log4j.core.config.LoggerConfig].
+DEBUG StatusLogger createLogger(additivity="true", level="WARN", name="BlockStateChange", includeLocation="null", ={}, ={}, Configuration(HiveLog4j2Test), Filter=null)
+DEBUG StatusLogger Building Plugin[name=AppenderRef, class=org.apache.logging.log4j.core.config.AppenderRef].
+DEBUG StatusLogger createAppenderRef(ref="console", level="INFO", Filter=null)
+DEBUG StatusLogger Building Plugin[name=AppenderRef, class=org.apache.logging.log4j.core.config.AppenderRef].
+DEBUG StatusLogger createAppenderRef(ref="DRFA", level="null", Filter=null)
+DEBUG StatusLogger Building Plugin[name=root, class=org.apache.logging.log4j.core.config.LoggerConfig$RootLogger].
+DEBUG StatusLogger createLogger(additivity="null", level="DEBUG", includeLocation="null", ={console, DRFA}, ={}, Configuration(HiveLog4j2Test), Filter=null)
+DEBUG StatusLogger Building Plugin[name=loggers, class=org.apache.logging.log4j.core.config.LoggersPlugin].
+DEBUG StatusLogger createLoggers(={org.apache.hadoop.ipc, org.apache.hadoop.security, org.apache.hadoop.hdfs, org.apache.hadoop.hdfs.server, org.apache.hadoop.metrics2, org.mortbay, org.apache.hadoop.yarn, org.apache.hadoop.yarn.server, org.apache.tez, org.apache.hadoop.conf.Configuration, org.apache.zookeeper, org.apache.zookeeper.server.ServerCnxn, org.apache.zookeeper.server.NIOServerCnxn, org.apache.zookeeper.ClientCnxn, org.apache.zookeeper.ClientCnxnSocket, org.apache.zookeeper.ClientCnxnSocketNIO, DataNucleus, Datastore, JPOX, org.apache.hadoop.hive.ql.exec.Operator, org.apache.hadoop.hive.serde2.lazy, org.apache.hadoop.hive.metastore.ObjectStore, org.apache.calcite.plan.RelOptPlanner, com.amazonaws, org.apache.http, org.apache.thrift, org.eclipse.jetty, BlockStateChange, root})
+DEBUG StatusLogger Building Plugin[name=layout, class=org.apache.logging.log4j.core.layout.PatternLayout].
+DEBUG StatusLogger PatternLayout$Builder(pattern="%d{ISO8601} %5p [%t] %c{2}: %m%n", PatternSelector=null, Configuration(HiveLog4j2Test), Replace=null, charset="null", alwaysWriteExceptions="null", disableAnsi="null", noConsoleNoAnsi="null", header="null", footer="null")
+DEBUG StatusLogger PluginManager 'Converter' found 42 plugins
+DEBUG StatusLogger Building Plugin[name=appender, class=org.apache.logging.log4j.core.appender.ConsoleAppender].
+DEBUG StatusLogger ConsoleAppender$Builder(target="SYSTEM_ERR", follow="null", direct="null", bufferedIo="null", bufferSize="null", immediateFlush="null", ignoreExceptions="null", PatternLayout(%d{ISO8601} %5p [%t] %c{2}: %m%n), name="console", Configuration(HiveLog4j2Test), Filter=null)
+DEBUG StatusLogger Starting OutputStreamManager SYSTEM_ERR.false.false
+DEBUG StatusLogger Building Plugin[name=layout, class=org.apache.logging.log4j.core.layout.PatternLayout].
+DEBUG StatusLogger PatternLayout$Builder(pattern="%d{ISO8601} %5p [%t] %c{2}: %m%n", PatternSelector=null, Configuration(HiveLog4j2Test), Replace=null, charset="null", alwaysWriteExceptions="null", disableAnsi="null", noConsoleNoAnsi="null", header="null", footer="null")
+DEBUG StatusLogger Building Plugin[name=TimeBasedTriggeringPolicy, class=org.apache.logging.log4j.core.appender.rolling.TimeBasedTriggeringPolicy].
+DEBUG StatusLogger TimeBasedTriggeringPolicy$Builder(interval="1", modulate="true", maxRandomDelay="null")
+DEBUG StatusLogger Building Plugin[name=Policies, class=org.apache.logging.log4j.core.appender.rolling.CompositeTriggeringPolicy].
+DEBUG StatusLogger createPolicy(={TimeBasedTriggeringPolicy(nextRolloverMillis=0, interval=1, modulate=true)})
+DEBUG StatusLogger Building Plugin[name=DefaultRolloverStrategy, class=org.apache.logging.log4j.core.appender.rolling.DefaultRolloverStrategy].
+DEBUG StatusLogger DefaultRolloverStrategy$Builder(max="30", min="null", fileIndex="null", compressionLevel="null", ={}, stopCustomActionsOnError="null", tempCompressedFilePattern="null", Configuration(HiveLog4j2Test))
+DEBUG StatusLogger Building Plugin[name=appender, class=org.apache.logging.log4j.core.appender.RollingRandomAccessFileAppender].
+DEBUG StatusLogger RollingRandomAccessFileAppender$Builder(fileName="/Users/gates/git/hive/common/target/tmp/log/hive.log", filePattern="/Users/gates/git/hive/common/target/tmp/log/hive.log.%d{yyyy-MM-dd}", append="null", Policies(CompositeTriggeringPolicy(policies=[TimeBasedTriggeringPolicy(nextRolloverMillis=0, interval=1, modulate=true)])), DefaultRolloverStrategy(DefaultRolloverStrategy(min=1, max=30, useMax=true)), advertise="null", advertiseURI="null", filePermissions="null", fileOwner="null", fileGroup="null", bufferedIo="null", bufferSize="null", immediateFlush="null", ignoreExceptions="null", PatternLayout(%d{ISO8601} %5p [%t] %c{2}: %m%n), name="DRFA", Configuration(HiveLog4j2Test), Filter=null)
+TRACE StatusLogger RandomAccessFile /Users/gates/git/hive/common/target/tmp/log/hive.log seek to 74826
+DEBUG StatusLogger Starting RollingRandomAccessFileManager /Users/gates/git/hive/common/target/tmp/log/hive.log
+DEBUG StatusLogger PluginManager 'FileConverter' found 2 plugins
+DEBUG StatusLogger Setting prev file time to 2019-11-26T17:07:34.000-0800
+DEBUG StatusLogger Initializing triggering policy CompositeTriggeringPolicy(policies=[TimeBasedTriggeringPolicy(nextRolloverMillis=0, interval=1, modulate=true)])
+TRACE StatusLogger PatternProcessor.getNextTime returning 2019/11/27-00:00:00.000, nextFileTime=2019/11/26-00:00:00.000, prevFileTime=1969/12/31-16:00:00.000, current=2019/11/26-17:07:36.323, freq=DAILY
+TRACE StatusLogger PatternProcessor.getNextTime returning 2019/11/27-00:00:00.000, nextFileTime=2019/11/26-00:00:00.000, prevFileTime=2019/11/26-00:00:00.000, current=2019/11/26-17:07:36.324, freq=DAILY
+DEBUG StatusLogger Building Plugin[name=appenders, class=org.apache.logging.log4j.core.config.AppendersPlugin].
+DEBUG StatusLogger createAppenders(={console, DRFA})
+DEBUG StatusLogger Configuration org.apache.logging.log4j.core.config.properties.PropertiesConfiguration@4c40b76e initialized
+DEBUG StatusLogger Starting configuration org.apache.logging.log4j.core.config.properties.PropertiesConfiguration@4c40b76e
+DEBUG StatusLogger Started configuration org.apache.logging.log4j.core.config.properties.PropertiesConfiguration@4c40b76e OK.
+TRACE StatusLogger Stopping org.apache.logging.log4j.core.config.DefaultConfiguration@5025a98f...
+TRACE StatusLogger DefaultConfiguration notified 1 ReliabilityStrategies that config will be stopped.
+TRACE StatusLogger DefaultConfiguration stopping root LoggerConfig.
+TRACE StatusLogger DefaultConfiguration notifying ReliabilityStrategies that appenders will be stopped.
+TRACE StatusLogger DefaultConfiguration stopping remaining Appenders.
+DEBUG StatusLogger Shutting down OutputStreamManager SYSTEM_OUT.false.false-1
+DEBUG StatusLogger Shut down OutputStreamManager SYSTEM_OUT.false.false-1, all resources released: true
+DEBUG StatusLogger Appender DefaultConsole-1 stopped with status true
+TRACE StatusLogger DefaultConfiguration stopped 1 remaining Appenders.
+TRACE StatusLogger DefaultConfiguration cleaning Appenders from 1 LoggerConfigs.
+DEBUG StatusLogger Stopped org.apache.logging.log4j.core.config.DefaultConfiguration@5025a98f OK
+TRACE StatusLogger Reregistering MBeans after reconfigure. Selector=org.apache.logging.log4j.core.selector.ClassLoaderContextSelector@7db12bb6
+TRACE StatusLogger Reregistering context (1/1): '232204a1' org.apache.logging.log4j.core.LoggerContext@5606c0b
+TRACE StatusLogger Unregistering but no MBeans found matching 'org.apache.logging.log4j2:type=232204a1'
+TRACE StatusLogger Unregistering but no MBeans found matching 'org.apache.logging.log4j2:type=232204a1,component=StatusLogger'
+TRACE StatusLogger Unregistering but no MBeans found matching 'org.apache.logging.log4j2:type=232204a1,component=ContextSelector'
+TRACE StatusLogger Unregistering but no MBeans found matching 'org.apache.logging.log4j2:type=232204a1,component=Loggers,name=*'
+TRACE StatusLogger Unregistering but no MBeans found matching 'org.apache.logging.log4j2:type=232204a1,component=Appenders,name=*'
+TRACE StatusLogger Unregistering but no MBeans found matching 'org.apache.logging.log4j2:type=232204a1,component=AsyncAppenders,name=*'
+TRACE StatusLogger Unregistering but no MBeans found matching 'org.apache.logging.log4j2:type=232204a1,component=AsyncLoggerRingBuffer'
+TRACE StatusLogger Unregistering but no MBeans found matching 'org.apache.logging.log4j2:type=232204a1,component=Loggers,name=*,subtype=RingBuffer'
+DEBUG StatusLogger Registering MBean org.apache.logging.log4j2:type=232204a1
+DEBUG StatusLogger Registering MBean org.apache.logging.log4j2:type=232204a1,component=StatusLogger
+DEBUG StatusLogger Registering MBean org.apache.logging.log4j2:type=232204a1,component=ContextSelector
+DEBUG StatusLogger Registering MBean org.apache.logging.log4j2:type=232204a1,component=Loggers,name=
+DEBUG StatusLogger Registering MBean org.apache.logging.log4j2:type=232204a1,component=Loggers,name=org.apache.tez
+DEBUG StatusLogger Registering MBean org.apache.logging.log4j2:type=232204a1,component=Loggers,name=com.amazonaws
+DEBUG StatusLogger Registering MBean org.apache.logging.log4j2:type=232204a1,component=Loggers,name=org.apache.thrift
+DEBUG StatusLogger Registering MBean org.apache.logging.log4j2:type=232204a1,component=Loggers,name=org.eclipse.jetty
+DEBUG StatusLogger Registering MBean org.apache.logging.log4j2:type=232204a1,component=Loggers,name=BlockStateChange
+DEBUG StatusLogger Registering MBean org.apache.logging.log4j2:type=232204a1,component=Loggers,name=org.apache.hadoop.metrics2
+DEBUG StatusLogger Registering MBean org.apache.logging.log4j2:type=232204a1,component=Loggers,name=org.apache.zookeeper.ClientCnxn
+DEBUG StatusLogger Registering MBean org.apache.logging.log4j2:type=232204a1,component=Loggers,name=org.apache.zookeeper
+DEBUG StatusLogger Registering MBean org.apache.logging.log4j2:type=232204a1,component=Loggers,name=org.apache.hadoop.security
+DEBUG StatusLogger Registering MBean org.apache.logging.log4j2:type=232204a1,component=Loggers,name=JPOX
+DEBUG StatusLogger Registering MBean org.apache.logging.log4j2:type=232204a1,component=Loggers,name=org.apache.hadoop.yarn.server
+DEBUG StatusLogger Registering MBean org.apache.logging.log4j2:type=232204a1,component=Loggers,name=org.apache.hadoop.conf.Configuration
+DEBUG StatusLogger Registering MBean org.apache.logging.log4j2:type=232204a1,component=Loggers,name=org.apache.hadoop.yarn
+DEBUG StatusLogger Registering MBean org.apache.logging.log4j2:type=232204a1,component=Loggers,name=org.apache.zookeeper.ClientCnxnSocketNIO
+DEBUG StatusLogger Registering MBean org.apache.logging.log4j2:type=232204a1,component=Loggers,name=org.apache.zookeeper.server.ServerCnxn
+DEBUG StatusLogger Registering MBean org.apache.logging.log4j2:type=232204a1,component=Loggers,name=org.apache.hadoop.hdfs
+DEBUG StatusLogger Registering MBean org.apache.logging.log4j2:type=232204a1,component=Loggers,name=org.apache.hadoop.hdfs.server
+DEBUG StatusLogger Registering MBean org.apache.logging.log4j2:type=232204a1,component=Loggers,name=org.apache.hadoop.hive.serde2.lazy
+DEBUG StatusLogger Registering MBean org.apache.logging.log4j2:type=232204a1,component=Loggers,name=org.apache.zookeeper.ClientCnxnSocket
+DEBUG StatusLogger Registering MBean org.apache.logging.log4j2:type=232204a1,component=Loggers,name=org.mortbay
+DEBUG StatusLogger Registering MBean org.apache.logging.log4j2:type=232204a1,component=Loggers,name=org.apache.http
+DEBUG StatusLogger Registering MBean org.apache.logging.log4j2:type=232204a1,component=Loggers,name=org.apache.hadoop.hive.ql.exec.Operator
+DEBUG StatusLogger Registering MBean org.apache.logging.log4j2:type=232204a1,component=Loggers,name=DataNucleus
+DEBUG StatusLogger Registering MBean org.apache.logging.log4j2:type=232204a1,component=Loggers,name=Datastore
+DEBUG StatusLogger Registering MBean org.apache.logging.log4j2:type=232204a1,component=Loggers,name=org.apache.hadoop.hive.metastore.ObjectStore
+DEBUG StatusLogger Registering MBean org.apache.logging.log4j2:type=232204a1,component=Loggers,name=org.apache.hadoop.ipc
+DEBUG StatusLogger Registering MBean org.apache.logging.log4j2:type=232204a1,component=Loggers,name=org.apache.zookeeper.server.NIOServerCnxn
+DEBUG StatusLogger Registering MBean org.apache.logging.log4j2:type=232204a1,component=Loggers,name=org.apache.calcite.plan.RelOptPlanner
+DEBUG StatusLogger Registering MBean org.apache.logging.log4j2:type=232204a1,component=Appenders,name=console
+DEBUG StatusLogger Registering MBean org.apache.logging.log4j2:type=232204a1,component=Appenders,name=DRFA
+TRACE StatusLogger Using default SystemClock for timestamps.
+TRACE StatusLogger Using DummyNanoClock for nanosecond timestamps.
+DEBUG StatusLogger Reconfiguration complete for context[name=232204a1] at URI /Users/gates/git/hive/common/target/testconf/hive-log4j2.properties (org.apache.logging.log4j.core.LoggerContext@5606c0b) with optional ClassLoader: null
+DEBUG StatusLogger Shutdown hook enabled. Registering a new one.
+DEBUG StatusLogger LoggerContext[name=232204a1, org.apache.logging.log4j.core.LoggerContext@5606c0b] started OK.
+2019-11-26T17:07:36,392  INFO [main] tez.TezJsonParser: JsonParser is parsing:{"STAGE DEPENDENCIES":{"Stage-1":{"ROOT STAGE":"TRUE"},"Stage-0":{"DEPENDENT STAGES":"Stage-1"}},"STAGE PLANS":{"Stage-1":{"Tez":{"Edges:":{"Map 1":{"parent":"Map 5","type":"BROADCAST_EDGE"},"Map 6":{"parent":"Map 8","type":"BROADCAST_EDGE"},"Map 9":{"parent":"Map 10","type":"BROADCAST_EDGE"},"Reducer 2":[{"parent":"Map 1","type":"SIMPLE_EDGE"},{"parent":"Reducer 7","type":"SIMPLE_EDGE"}],"Reducer 3":{"parent":"Reducer 2","type":"SIMPLE_EDGE"},"Reducer 4":{"parent":"Reducer 3","type":"SIMPLE_EDGE"},"Reducer 7":[{"parent":"Map 11","type":"BROADCAST_EDGE"},{"parent":"Map 12","type":"BROADCAST_EDGE"},{"parent":"Map 6","type":"SIMPLE_EDGE"},{"parent":"Map 9","type":"SIMPLE_EDGE"}]},"Vertices:":{"Map 1":{"Map Operator Tree:":[{"TableScan":{"Output:":["cs_sold_date_sk","cs_bill_customer_sk","cs_item_sk","cs_net_profit"],"":"default@catalog_sales,catalog_sales,Tbl:COMPLETE,Col:NONE","Statistics:":"rows=1441548 width=204","OperatorId:":"TS_0","children":{"Filter Operator":{"predicate:":"(cs_bill_customer_sk is not null and cs_item_sk is not null and cs_sold_date_sk is not null)","Statistics:":"rows=1441548 width=204","OperatorId:":"FIL_85","children":{"Select Operator":{"Output:":["_col0","_col1","_col2","_col3"],"Statistics:":"rows=1441548 width=204","OperatorId:":"SEL_2","children":{"Map Join Operator":{"condition map:":[{"":"{\"type\":\"Inner\",\"left\":0,\"right\":1}"}],"input vertices:":{"1":"Map 5"},"keys:":{"0":"_col0","1":"_col0"},"Output:":["_col1","_col2","_col3"],"Statistics:":"rows=1585702 width=204","HybridGraceHashJoin:":"true","OperatorId:":"MAPJOIN_93","children":{"Reduce Output Operator":{"outputname:":"Reducer 2","PartitionCols:":"_col1, _col2","Statistics:":"rows=1585702 width=204","OperatorId:":"RS_44"}}}}}}}}}}],"tag:":"0"},"Map 10":{"Map Operator Tree:":[{"TableScan":{"Output:":["d_date_sk","d_year","d_moy"],"":"default@date_dim,d2,Tbl:COMPLETE,Col:NONE","Statistics:":"rows=73049 width=140","OperatorId:":"TS_15","children":{"Filter Operator":{"predicate:":"(d_moy BETWEEN 4 AND 10 and (d_year = 1998) and d_date_sk is not null)","Statistics:":"rows=4058 width=140","OperatorId:":"FIL_90","children":{"Select Operator":{"Output:":["_col0"],"Statistics:":"rows=4058 width=140","OperatorId:":"SEL_17","children":{"Reduce Output Operator":{"outputname:":"Map 9","PartitionCols:":"_col0","Statistics:":"rows=4058 width=140","OperatorId:":"RS_19"}}}}}}}}],"tag:":"0"},"Map 11":{"Map Operator Tree:":[{"TableScan":{"Output:":["i_item_sk","i_item_id","i_item_desc"],"":"default@item,item,Tbl:COMPLETE,Col:NONE","Statistics:":"rows=18000 width=279","OperatorId:":"TS_22","children":{"Filter Operator":{"predicate:":"i_item_sk is not null","Statistics:":"rows=18000 width=279","OperatorId:":"FIL_91","children":{"Select Operator":{"Output:":["_col0","_col1","_col2"],"Statistics:":"rows=18000 width=279","OperatorId:":"SEL_24","children":{"Reduce Output Operator":{"outputname:":"Reducer 7","PartitionCols:":"_col0","Statistics:":"rows=18000 width=279","OperatorId:":"RS_35"}}}}}}}}],"tag:":"0"},"Map 12":{"Map Operator Tree:":[{"TableScan":{"Output:":["s_store_sk","s_store_id","s_store_name"],"":"default@store,store,Tbl:COMPLETE,Col:NONE","Statistics:":"rows=12 width=261","OperatorId:":"TS_25","children":{"Filter Operator":{"predicate:":"s_store_sk is not null","Statistics:":"rows=12 width=261","OperatorId:":"FIL_92","children":{"Select Operator":{"Output:":["_col0","_col1","_col2"],"Statistics:":"rows=12 width=261","OperatorId:":"SEL_27","children":{"Reduce Output Operator":{"outputname:":"Reducer 7","PartitionCols:":"_col0","Statistics:":"rows=12 width=261","OperatorId:":"RS_38"}}}}}}}}],"tag:":"0"},"Map 5":{"Map Operator Tree:":[{"TableScan":{"Output:":["d_date_sk","d_year","d_moy"],"":"default@date_dim,d3,Tbl:COMPLETE,Col:NONE","Statistics:":"rows=73049 width=140","OperatorId:":"TS_3","children":{"Filter Operator":{"predicate:":"(d_moy BETWEEN 4 AND 10 and (d_year = 1998) and d_date_sk is not null)","Statistics:":"rows=4058 width=140","OperatorId:":"FIL_86","children":{"Select Operator":{"Output:":["_col0"],"Statistics:":"rows=4058 width=140","OperatorId:":"SEL_5","children":{"Reduce Output Operator":{"outputname:":"Map 1","PartitionCols:":"_col0","Statistics:":"rows=4058 width=140","OperatorId:":"RS_42"}}}}}}}}],"tag:":"0"},"Map 6":{"Map Operator Tree:":[{"TableScan":{"Output:":["ss_sold_date_sk","ss_item_sk","ss_customer_sk","ss_store_sk","ss_ticket_number","ss_net_profit"],"":"default@store_sales,store_sales,Tbl:COMPLETE,Col:NONE","Statistics:":"rows=2880404 width=133","OperatorId:":"TS_6","children":{"Filter Operator":{"predicate:":"(ss_item_sk is not null and ss_customer_sk is not null and ss_ticket_number is not null and ss_sold_date_sk is not null and ss_store_sk is not null)","Statistics:":"rows=2880404 width=133","OperatorId:":"FIL_87","children":{"Select Operator":{"Output:":["_col0","_col1","_col2","_col3","_col4","_col5"],"Statistics:":"rows=2880404 width=133","OperatorId:":"SEL_8","children":{"Map Join Operator":{"condition map:":[{"":"{\"type\":\"Inner\",\"left\":0,\"right\":1}"}],"input vertices:":{"1":"Map 8"},"keys:":{"0":"_col0","1":"_col0"},"Output:":["_col1","_col2","_col3","_col4","_col5"],"Statistics:":"rows=3168444 width=133","HybridGraceHashJoin:":"true","OperatorId:":"MAPJOIN_94","children":{"Reduce Output Operator":{"outputname:":"Reducer 7","PartitionCols:":"_col1, _col2, _col4","Statistics:":"rows=3168444 width=133","OperatorId:":"RS_31"}}}}}}}}}}],"tag:":"0"},"Map 8":{"Map Operator Tree:":[{"TableScan":{"Output:":["d_date_sk","d_year","d_moy"],"":"default@date_dim,d1,Tbl:COMPLETE,Col:NONE","Statistics:":"rows=73049 width=140","OperatorId:":"TS_9","children":{"Filter Operator":{"predicate:":"((d_moy = 4) and (d_year = 1998) and d_date_sk is not null)","Statistics:":"rows=18262 width=140","OperatorId:":"FIL_88","children":{"Select Operator":{"Output:":["_col0"],"Statistics:":"rows=18262 width=140","OperatorId:":"SEL_11","children":{"Reduce Output Operator":{"outputname:":"Map 6","PartitionCols:":"_col0","Statistics:":"rows=18262 width=140","OperatorId:":"RS_29"}}}}}}}}],"tag:":"0"},"Map 9":{"Map Operator Tree:":[{"TableScan":{"Output:":["sr_returned_date_sk","sr_item_sk","sr_customer_sk","sr_ticket_number","sr_net_loss"],"":"default@store_returns,store_returns,Tbl:COMPLETE,Col:NONE","Statistics:":"rows=287514 width=112","OperatorId:":"TS_12","children":{"Filter Operator":{"predicate:":"(sr_item_sk is not null and sr_customer_sk is not null and sr_ticket_number is not null and sr_returned_date_sk is not null)","Statistics:":"rows=287514 width=112","OperatorId:":"FIL_89","children":{"Select Operator":{"Output:":["_col0","_col1","_col2","_col3","_col4"],"Statistics:":"rows=287514 width=112","OperatorId:":"SEL_14","children":{"Map Join Operator":{"condition map:":[{"":"{\"type\":\"Inner\",\"left\":0,\"right\":1}"}],"input vertices:":{"1":"Map 10"},"keys:":{"0":"_col0","1":"_col0"},"Output:":["_col1","_col2","_col3","_col4"],"Statistics:":"rows=316265 width=112","HybridGraceHashJoin:":"true","OperatorId:":"MAPJOIN_95","children":{"Reduce Output Operator":{"outputname:":"Reducer 7","PartitionCols:":"_col1, _col2, _col3","Statistics:":"rows=316265 width=112","OperatorId:":"RS_32"}}}}}}}}}}],"tag:":"0"},"Reducer 2":{"Reduce Operator Tree:":{"Merge Join Operator":{"condition map:":[{"":"{\"type\":\"Inner\",\"left\":0,\"right\":1}"}],"keys:":{"0":"_col1, _col2","1":"_col17, _col16"},"Output:":["_col3","_col8","_col9","_col11","_col12","_col18","_col26"],"Statistics:":"rows=4638916 width=133","OperatorId:":"MERGEJOIN_99","children":{"Group By Operator":{"aggregations:":["sum(_col18)","sum(_col26)","sum(_col3)"],"keys:":"_col11, _col12, _col8, _col9","Output:":["_col0","_col1","_col2","_col3","_col4","_col5","_col6"],"Statistics:":"rows=4638916 width=133","OperatorId:":"GBY_48","children":{"Reduce Output Operator":{"outputname:":"Reducer 3","PartitionCols:":"_col0, _col1, _col2, _col3","Statistics:":"rows=4638916 width=133","OperatorId:":"RS_49"}}}}}},"tag:":"0","tagToInput:":{"0":"Map 1","1":"Reducer 7"}},"Reducer 3":{"Reduce Operator Tree:":{"Group By Operator":{"aggregations:":["sum(VALUE._col0)","sum(VALUE._col1)","sum(VALUE._col2)"],"keys:":"KEY._col0, KEY._col1, KEY._col2, KEY._col3","Output:":["_col0","_col1","_col2","_col3","_col4","_col5","_col6"],"Statistics:":"rows=2319458 width=133","OperatorId:":"GBY_50","children":{"Reduce Output Operator":{"outputname:":"Reducer 4","Statistics:":"rows=2319458 width=133","OperatorId:":"RS_52"}}}},"tag:":"0","tagToInput:":{"0":"Reducer 2"}},"Reducer 4":{"Reduce Operator Tree:":{"Select Operator":{"Output:":["_col0","_col1","_col2","_col3","_col4","_col5","_col6"],"Statistics:":"rows=2319458 width=133","OperatorId:":"SEL_53","children":{"Limit":{"Number of rows:":"100","Statistics:":"rows=100 width=133","OperatorId:":"LIM_54","children":{"File Output Operator":{"Statistics:":"rows=100 width=133","OperatorId:":"FS_55"}}}}}},"tag:":"0","tagToInput:":{"0":"Reducer 3"}},"Reducer 7":{"Reduce Operator Tree:":{"Merge Join Operator":{"condition map:":[{"":"{\"type\":\"Inner\",\"left\":0,\"right\":1}"}],"keys:":{"0":"_col1, _col2, _col4","1":"_col1, _col2, _col3"},"Output:":["_col1","_col3","_col5","_col10","_col11","_col13"],"Statistics:":"rows=3485288 width=133","OperatorId:":"MERGEJOIN_96","children":{"Map Join Operator":{"condition map:":[{"":"{\"type\":\"Inner\",\"left\":0,\"right\":1}"}],"input vertices:":{"1":"Map 11"},"keys:":{"0":"_col1","1":"_col0"},"Output:":["_col3","_col5","_col10","_col11","_col13","_col18","_col19"],"Statistics:":"rows=3833816 width=133","HybridGraceHashJoin:":"true","OperatorId:":"MAPJOIN_97","children":{"Map Join Operator":{"condition map:":[{"":"{\"type\":\"Inner\",\"left\":0,\"right\":1}"}],"input vertices:":{"1":"Map 12"},"keys:":{"0":"_col3","1":"_col0"},"Output:":["_col5","_col10","_col11","_col13","_col18","_col19","_col21","_col22"],"Statistics:":"rows=4217197 width=133","HybridGraceHashJoin:":"true","OperatorId:":"MAPJOIN_98","children":{"Select Operator":{"Output:":["_col1","_col2","_col4","_col5","_col11","_col16","_col17","_col19"],"Statistics:":"rows=4217197 width=133","OperatorId:":"SEL_40","children":{"Reduce Output Operator":{"outputname:":"Reducer 2","PartitionCols:":"_col17, _col16","Statistics:":"rows=4217197 width=133","OperatorId:":"RS_45"}}}}}}}}}},"tag:":"0","tagToInput:":{"0":"Map 6","1":"Map 9"}}}}},"Stage-0":{"Fetch Operator":{"limit:":"100"}}},"cboInfo":"Plan optimized by CBO."}
+DEBUG StatusLogger AsyncLogger.ThreadNameStrategy=UNCACHED (user specified null, default is UNCACHED)
+TRACE StatusLogger Using default SystemClock for timestamps.

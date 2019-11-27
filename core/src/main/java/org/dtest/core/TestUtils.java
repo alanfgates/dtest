@@ -15,15 +15,20 @@
  */
 package org.dtest.core;
 
+import org.dtest.core.git.GitSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.StringReader;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 
 /**
@@ -63,6 +68,15 @@ public class TestUtils {
     return new File(System.getProperty("java.io.tmpdir"), "test-classes");
   }
 
+  public static File createBuildDir() throws IOException {
+    File buildDir = new File(System.getProperty("java.io.tmpdir"), "build-dir" + System.currentTimeMillis());
+    if (!buildDir.mkdir() && !buildDir.isDirectory()) {
+      throw new IOException("Failed to create temporary directory " + buildDir.getAbsolutePath());
+    }
+    buildDir.deleteOnExit();
+    return buildDir;
+  }
+
   /**
    * Convience method to read the Yaml file for tests.  This will read the Yaml file from test/resources, and thus
    * will return different results than {@link #getYaml()} below.
@@ -85,6 +99,45 @@ public class TestUtils {
    */
   public static BuildYaml buildYaml(Config cfg, DTestLogger log, String profile) throws IOException {
     return BuildYaml.readYaml(getConfDir(), cfg, log, "repo", profile, null);
+  }
+
+  public static void assertFile(String expected, File file) throws IOException {
+    if (!file.exists()) throw new AssertionError("Expected file " + file.getName() + " to exist");
+    StringBuilder buf = new StringBuilder();
+    BufferedReader reader = new BufferedReader(new FileReader(file));
+    reader.lines().forEach(s -> buf.append(s).append('\n'));
+    reader.close();
+    String actual = buf.toString();
+    if (!expected.equals(actual)) {
+      StringBuilder errorMsg = new StringBuilder("Files differ\n");
+      BufferedReader expectedReader = new BufferedReader(new StringReader(expected));
+      BufferedReader actualReader = new BufferedReader(new StringReader(actual));
+      int lineNum = 0;
+      while (true) {
+        lineNum++;
+        String expectedLine = expectedReader.readLine();
+        String actualLine = actualReader.readLine();
+        if (expectedLine == null && actualLine == null) break;
+        if (expectedLine == null) {
+          errorMsg.append("has unexpected line: ")
+              .append(actualLine)
+              .append("\n");
+        } else if (actualLine == null) {
+          errorMsg.append("expected to fine line: ")
+              .append(expectedLine)
+              .append("\n");
+        } else if (!actualLine.equals(expectedLine)){
+          errorMsg.append("files differ at line ")
+              .append(lineNum)
+              .append(" expected: ")
+              .append(expectedLine)
+              .append(" actual: ")
+              .append(actualLine)
+              .append("\n");
+        }
+      }
+      throw new AssertionError(errorMsg.toString());
+    }
   }
 
   /**
@@ -216,6 +269,7 @@ public class TestUtils {
     StringBuilder log = new StringBuilder();
     String line;
     while ((line = reader.readLine()) != null) log.append(line).append("\n");
+    reader.close();
     return log.toString();
   }
 
@@ -249,6 +303,172 @@ public class TestUtils {
     return test;
   }
 
+  /**
+   * This ContainerClient won't actually run anything.  You must provide it with the result and files you wish it
+   * to return.
+   */
+  public static class MockContainerClient extends ContainerClient {
+    protected final String containerName;
+    private final String stdout;
+    private final int rc;
+    private final Map<String, String> testReports;
+    private final File baseDir;
 
+    /**
+     *
+     * @param containerName name of the container, doesn't really matter
+     * @param cannedDir canned directory to get logs from, should exist in core/src/test/resources/logs
+     * @param buildDir build directory for this test
+     * @param rc return code from the container
+     * @throws IOException if files can't properly be copied around
+     */
+    public MockContainerClient(String containerName, String cannedDir, File buildDir, int rc) throws IOException {
+      baseDir = buildDir;
+      this.containerName = containerName;
+      this.rc = rc;
+      testReports = new HashMap<>();
+      if (cannedDir != null) {
+        File logDir = new File(System.getProperty("dtest.testonly.conf.dir") + File.separator + "logs" + File.separator + cannedDir);
+        assert logDir.isDirectory() : "Expected directory " + logDir.getAbsolutePath() + " to exist.";
+        this.stdout = readLogFile(new File(logDir, "stdout").getAbsolutePath());
+        File[] files = logDir.listFiles();
+        assert files != null : "Expected some files";
+        for (File file : files) {
+          testReports.put(file.getName(), readLogFile(file.getAbsolutePath()));
+        }
+      } else {
+        stdout = "";
+      }
+
+    }
+
+    @Override
+    public String getContainerBaseDir() {
+      return baseDir.getAbsolutePath();
+    }
+
+    @Override
+    public void buildImage(ContainerCommandFactory cmdFactory) throws IOException {
+
+    }
+
+    @Override
+    public ContainerResult runContainer(ContainerCommand cmd) {
+      return new ContainerResult(cmd, containerName, rc, stdout);
+    }
+
+    @Override
+    public void fetchTestReports(ContainerResult result, ResultAnalyzer analyzer, Reporter reporter, String[] additionalLogs) throws IOException {
+      result.setReports(new TestReports(log, result.getContainerName(), reporter.getLogDirForContainer(result)));
+      for (Map.Entry<String, String> e : testReports.entrySet()) {
+        FileWriter writer = new FileWriter(new File(result.getReports().getDir(), e.getKey()));
+        writer.write(e.getValue());
+        writer.close();
+      }
+      if (additionalLogs != null) {
+        for (String additionalLog : additionalLogs) {
+          result.getReports().addAdditionalLog(additionalLog);
+        }
+      }
+    }
+
+    @Override
+    public void removeContainer(ContainerResult result) {
+
+    }
+
+    @Override
+    public void removeImage() {
+
+    }
+  }
+
+  public static class MockReporter extends Reporter {
+    private final File logDirForContainer;
+
+    public MockReporter(File logDirForContainer) {
+      this.logDirForContainer = logDirForContainer;
+    }
+
+    @Override
+    public File getLogDirForContainer(ContainerResult result) {
+      return logDirForContainer;
+    }
+
+    @Override
+    public void addFailedTests(ContainerClient docker, ContainerResult result) {
+
+    }
+
+    @Override
+    public void publish() {
+
+    }
+  }
+
+  public static class MockContainerCommandFactory extends ContainerCommandFactory {
+    private final List<ContainerCommand> passedInCommands;
+
+    public MockContainerCommandFactory(List<ContainerCommand> passedInCommands) {
+      this.passedInCommands = passedInCommands;
+    }
+
+    @Override
+    public void buildContainerCommands(ContainerClient containerClient, BuildInfo buildInfo) throws IOException {
+      cmds.addAll(passedInCommands);
+    }
+
+    @Override
+    public List<String> getInitialBuildCommand() {
+      return null;
+    }
+
+    @Override
+    public List<String> getRequiredPackages() {
+      return null;
+    }
+  }
+
+  public static class MockContainerCommand extends ContainerCommand {
+    private final String name;
+    private final String dir;
+    private final String[] shellCommand;
+
+    public MockContainerCommand(String name, String dir, String... shellCommand) {
+      this.name = name;
+      this.dir = dir;
+      this.shellCommand = shellCommand;
+    }
+
+    @Override
+    public String containerSuffix() {
+      return name;
+    }
+
+    @Override
+    public String[] shellCommand() {
+      return shellCommand;
+    }
+
+    @Override
+    public String containerDirectory() {
+      return dir;
+    }
+  }
+
+
+  public static class MockBuildInfo extends BuildInfo {
+    File fakeBuildDir;
+
+    MockBuildInfo(File buildDir) {
+      super(new BuildYaml(), new GitSource(), false, buildDir.getAbsolutePath());
+      fakeBuildDir = buildDir;
+    }
+
+    @Override
+    public File getBuildDir() {
+      return fakeBuildDir;
+    }
+  }
 
 }

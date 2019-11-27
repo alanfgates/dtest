@@ -15,16 +15,15 @@
  */
 package org.dtest.core;
 
-import org.apache.commons.lang3.StringUtils;
 import org.dtest.core.mvn.MavenResultAnalyzer;
-import org.dtest.core.mvn.TestMavenResultAnalyzer;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import javax.print.Doc;
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
 
@@ -33,13 +32,14 @@ public class TestDockerTest {
   private static int succeeded;
   private static List<String> failures;
   private static List<String> errors;
-  private static String logToReturn;
+  private static File buildDir;
 
-  public static class SuccessfulClient extends ContainerClient {
+  public static class SuccessfulClient extends TestUtils.MockContainerClient {
+    static final String CONTAINER_NAME = "successful";
+    static final int CONTAINER_RC = 0;
 
-    @Override
-    public String getContainerBaseDir() {
-      return null;
+    public SuccessfulClient() throws IOException {
+      super(CONTAINER_NAME, "allgood", buildDir, CONTAINER_RC);
     }
 
     @Override
@@ -47,33 +47,14 @@ public class TestDockerTest {
       buildInfo.getBuildDir();
       imageBuilt = true;
     }
-
-    @Override
-    public ContainerResult runContainer(ContainerCommand cmd) {
-      String logs = "Ran: " + StringUtils.join(cmd.shellCommand(), " ") + logToReturn;
-      return new ContainerResult(cmd, 0, logs);
-    }
-
-    @Override
-    public void copyLogFiles(ContainerResult result, String targetDir) {
-
-    }
-
-    @Override
-    public void removeContainer(ContainerResult result) {
-
-    }
-
-    @Override
-    public void removeImage() {
-
-    }
   }
 
-  public static class TimingOutClient extends ContainerClient {
-    @Override
-    public String getContainerBaseDir() {
-      return null;
+  public static class TimingOutClient extends TestUtils.MockContainerClient {
+    static final String CONTAINER_NAME = "timing-out";
+    static final int CONTAINER_RC = 0;
+
+    public TimingOutClient() throws IOException {
+      super(CONTAINER_NAME, "timeout", buildDir, CONTAINER_RC);
     }
 
     @Override
@@ -81,71 +62,29 @@ public class TestDockerTest {
       buildInfo.getBuildDir();
       imageBuilt = true;
     }
-
-    @Override
-    public ContainerResult runContainer(ContainerCommand cmd) {
-      String logs = "Ran: " + StringUtils.join(cmd.shellCommand(), " ") +
-          TestMavenResultAnalyzer.LOG_TIMED_OUT;
-      return new ContainerResult(cmd, 0, logs);
-    }
-
-    @Override
-    public void copyLogFiles(ContainerResult result, String targetDir) {
-
-    }
-
-    @Override
-    public void removeContainer(ContainerResult result) {
-
-    }
-
-    @Override
-    public void removeImage() {
-
-    }
   }
 
-  public static class FailingClient extends ContainerClient {
-    @Override
-    public String getContainerBaseDir() {
-      return null;
+  public static class ClientWithFailures extends TestUtils.MockContainerClient {
+    static final String CONTAINER_NAME = "has-issues";
+    static final int CONTAINER_RC = 0;
+
+    public ClientWithFailures() throws IOException {
+      super(CONTAINER_NAME, "with-error-and-failure", buildDir, CONTAINER_RC);
     }
+
 
     @Override
     public void buildImage(ContainerCommandFactory cmdFactory) throws IOException {
       buildInfo.getBuildDir();
       imageBuilt = true;
     }
-
-    @Override
-    public ContainerResult runContainer(ContainerCommand cmd) throws
-        IOException {
-      String logs = "Ran: " + StringUtils.join(cmd.shellCommand(), " ") +
-          TestMavenResultAnalyzer.LOG_SUCCESSFUL_RUN_FAILED_TESTS;
-      throw new IOException("Help me!");
-    }
-
-    @Override
-    public void copyLogFiles(ContainerResult result, String targetDir) {
-
-    }
-
-    @Override
-    public void removeContainer(ContainerResult result) {
-
-    }
-
-    @Override
-    public void removeImage() {
-
-    }
   }
 
 
-  public static class HelloWorldCommandList extends ContainerCommandFactory {
-    @Override
-    public void buildContainerCommands(ContainerClient containerClient, BuildInfo label) {
-      ContainerCommand cmd = new ContainerCommand() {
+  public static class HelloWorldCommandList extends TestUtils.MockContainerCommandFactory {
+
+    public HelloWorldCommandList() {
+      super(Collections.singletonList(new ContainerCommand() {
         @Override
         public String containerSuffix() {
           return "friendly";
@@ -158,83 +97,77 @@ public class TestDockerTest {
 
         @Override
         public String containerDirectory() {
-          return "/tmp";
+          return buildDir.getAbsolutePath();
         }
-      };
-      cmd.setConfig(cfg).setLog(log);
-      cmds.add(cmd);
-    }
-
-    @Override
-    public List<String> getInitialBuildCommand() {
-      return null;
-    }
-
-    @Override
-    public List<String> getRequiredPackages() {
-      return null;
+      }));
     }
   }
 
   public static class SpyingResultAnalyzer extends ResultAnalyzer {
-    final MavenResultAnalyzer contained;
+    final MavenResultAnalyzer wrapped;
 
     public SpyingResultAnalyzer() {
-      contained = new MavenResultAnalyzer();
+      wrapped = new MavenResultAnalyzer();
     }
 
 
     @Override
     public Configurable setConfig(Config cfg) {
       super.setConfig(cfg);
-      contained.setConfig(cfg);
+      wrapped.setConfig(cfg);
       return this;
     }
 
     @Override
     public Configurable setLog(DTestLogger log) {
       super.setLog(log);
-      contained.setLog(log);
+      wrapped.setLog(log);
       return this;
     }
 
     @Override
-    public void analyzeLog(ContainerResult result, BuildYaml yaml) throws IOException {
-      contained.analyzeLog(result, yaml);
+    public void analyzeLog(ContainerResult containerResult) throws IOException {
+      wrapped.analyzeLog(containerResult);
+    }
+
+    @Override
+    public String getTestResultsDir() {
+      return wrapped.getTestResultsDir();
     }
 
     @Override
     public int getSucceeded() {
-      succeeded = contained.getSucceeded();
+      succeeded = wrapped.getSucceeded();
       return succeeded;
     }
 
     @Override
     public List<String> getFailed() {
-      failures = contained.getFailed();
+      failures = wrapped.getFailed();
       return failures;
     }
 
     @Override
     public List<String> getErrors() {
-      errors = contained.getErrors();
+      errors = wrapped.getErrors();
       return errors;
     }
 
     @Override
     public BuildState getBuildState() {
       // Return the wrapped build state rather than our own
-      log.debug("Going to return build state of " + contained.getBuildState().getState());
-      return contained.getBuildState();
+      log.debug("Going to return build state of " + wrapped.getBuildState().getState());
+      return wrapped.getBuildState();
     }
   }
 
   @Before
-  public void setup() {
+  public void setup() throws IOException {
     imageBuilt = false;
     succeeded = 0;
     failures = new ArrayList<>();
     errors = new ArrayList<>();
+    buildDir = TestUtils.createBuildDir();
   }
 
   @Test
@@ -247,41 +180,17 @@ public class TestDockerTest {
           ResultAnalyzer.CFG_RESULTANALYZER_IMPL, SpyingResultAnalyzer.class.getName(),
           BuildInfo.CFG_BUILDINFO_BASEDIR, TestUtils.getConfDir().getAbsolutePath(),
           BuildInfo.CFG_BUILDINFO_LABEL, "firsttry");
-      logToReturn = TestMavenResultAnalyzer.LOG_SUCCESSFUL_RUN_ALL_SUCCEEDED;
       DockerTest test = TestUtils.getAndPrepDockerTest(props, log);
       BuildState state = test.runBuild();
       Assert.assertEquals(BuildState.State.SUCCEEDED, state.getState());
       Assert.assertTrue(imageBuilt);
       Assert.assertEquals(0, errors.size());
       Assert.assertEquals(0, failures.size());
-      Assert.assertEquals(19, succeeded);
+      Assert.assertEquals(17, succeeded);
       Assert.assertTrue(log.toString().contains("SUCCEEDED, the build ran to completion and all tests passed"));
     } finally {
       log.dumpToLog();
     }
-  }
-
-  @Test
-  public void successfulRunSomeTestsFail() throws IOException {
-    TestUtils.TestLogger log = new TestUtils.TestLogger();
-    Properties props = TestUtils.buildProperties(
-        ContainerClient.CFG_CONTAINERCLIENT_IMPL, SuccessfulClient.class.getName(),
-        ContainerCommandFactory.CFG_CONTAINERCOMMANDLIST_IMPL, HelloWorldCommandList.class.getName(),
-        ResultAnalyzer.CFG_RESULTANALYZER_IMPL, SpyingResultAnalyzer.class.getName(),
-        BuildInfo.CFG_BUILDINFO_BASEDIR, System.getProperty("java.io.tmpdir"),
-        BuildInfo.CFG_BUILDINFO_LABEL, "firsttry");
-    logToReturn = TestMavenResultAnalyzer.LOG_SUCCESSFUL_RUN_FAILED_TESTS;
-    DockerTest test = TestUtils.getAndPrepDockerTest(props, log);
-    BuildState state = test.runBuild();
-    log.dumpToLog();
-    Assert.assertEquals(BuildState.State.HAD_FAILURES_OR_ERRORS, state.getState());
-    Assert.assertTrue(imageBuilt);
-    Assert.assertEquals(1, errors.size());
-    Assert.assertEquals("TestAcidOnTez.testGetSplitsLocks", errors.get(0));
-    Assert.assertEquals(1, failures.size());
-    Assert.assertEquals("TestActivePassiveHA.testManualFailover", failures.get(0));
-    Assert.assertEquals(32, succeeded);
-    Assert.assertTrue(log.toString().contains("HAD FAILURES OR ERRORS"));
   }
 
   @Test
@@ -302,10 +211,10 @@ public class TestDockerTest {
   }
 
   @Test
-  public void failedRun() throws IOException {
+  public void runWithFailures() throws IOException {
     TestUtils.TestLogger log = new TestUtils.TestLogger();
     Properties props = TestUtils.buildProperties(
-        ContainerClient.CFG_CONTAINERCLIENT_IMPL, FailingClient.class.getName(),
+        ContainerClient.CFG_CONTAINERCLIENT_IMPL, ClientWithFailures.class.getName(),
         ContainerCommandFactory.CFG_CONTAINERCOMMANDLIST_IMPL, HelloWorldCommandList.class.getName(),
         ResultAnalyzer.CFG_RESULTANALYZER_IMPL, SpyingResultAnalyzer.class.getName(),
         BuildInfo.CFG_BUILDINFO_BASEDIR, System.getProperty("java.io.tmpdir"),
@@ -313,9 +222,12 @@ public class TestDockerTest {
     DockerTest test = TestUtils.getAndPrepDockerTest(props, log);
     BuildState state = test.runBuild();
     log.dumpToLog();
-    Assert.assertEquals(BuildState.State.FAILED, state.getState());
+    Assert.assertEquals(BuildState.State.HAD_FAILURES_OR_ERRORS, state.getState());
     Assert.assertTrue(imageBuilt);
-    Assert.assertTrue(log.toString().contains("FAILED, the build did not run to completion"));
+    Assert.assertEquals(1, errors.size());
+    Assert.assertEquals(1, failures.size());
+    Assert.assertEquals(17, succeeded);
+    Assert.assertTrue(log.toString().contains("HAD FAILURES OR ERRORS, the build ran to completion but some tests failed or had errors"));
   }
 
   @Test

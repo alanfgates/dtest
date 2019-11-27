@@ -1,0 +1,87 @@
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] ------------------------< org.dtest:dtest-core >------------------------
+[INFO] Building dtest core interfaces and implementation 0.3.0-SNAPSHOT
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- maven-antrun-plugin:1.8:run (default) @ dtest-core ---
+[WARNING] Parameter tasks is deprecated, use target instead
+[INFO] Executing tasks
+
+main:
+[INFO] Executed tasks
+[INFO] 
+[INFO] --- build-helper-maven-plugin:3.0.0:add-source (add-source) @ dtest-core ---
+[INFO] Source directory: /Users/gates/git/dtest/core/target/generated-sources added.
+[INFO] 
+[INFO] --- maven-resources-plugin:2.6:resources (default-resources) @ dtest-core ---
+[INFO] Using 'UTF-8' encoding to copy filtered resources.
+[INFO] Copying 2 resources
+[INFO] 
+[INFO] --- maven-compiler-plugin:3.1:compile (default-compile) @ dtest-core ---
+[INFO] Changes detected - recompiling the module!
+[INFO] Compiling 33 source files to /Users/gates/git/dtest/core/target/classes
+[INFO] 
+[INFO] --- maven-resources-plugin:2.6:testResources (default-testResources) @ dtest-core ---
+[INFO] Using 'UTF-8' encoding to copy filtered resources.
+[INFO] Copying 6 resources
+[INFO] 
+[INFO] --- maven-compiler-plugin:3.1:testCompile (default-testCompile) @ dtest-core ---
+[INFO] Nothing to compile - all classes are up to date
+[INFO] 
+[INFO] --- maven-surefire-plugin:2.21.0:test (default-test) @ dtest-core ---
+[INFO] 
+[INFO] -------------------------------------------------------
+[INFO]  T E S T S
+[INFO] -------------------------------------------------------
+[INFO] Running org.dtest.core.docker.TestDockerContainerClient
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.666 s - in org.dtest.core.docker.TestDockerContainerClient
+[INFO] Running org.dtest.core.impl.TestUtils
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.052 s - in org.dtest.core.impl.TestUtils
+[INFO] Running org.dtest.core.mvn.TestMavenContainerCommandFactory
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.592 s - in org.dtest.core.mvn.TestMavenContainerCommandFactory
+[INFO] Running org.dtest.core.mvn.TestModuleDirectory
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.057 s - in org.dtest.core.mvn.TestModuleDirectory
+[INFO] Running org.dtest.core.TestBuildInfo
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.584 s - in org.dtest.core.TestBuildInfo
+[INFO] Running org.dtest.core.TestConfig
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.06 s - in org.dtest.core.TestConfig
+[INFO] Running org.dtest.core.TestFake
+[ERROR] Tests run: 2, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 0.075 s <<< FAILURE! - in org.dtest.core.TestFake
+[ERROR] fail(org.dtest.core.TestFake)  Time elapsed: 0.011 s  <<< FAILURE!
+java.lang.AssertionError: expected:<1> but was:<0>
+	at org.dtest.core.TestFake.fail(TestFake.java:36)
+
+[INFO] Running org.dtest.core.TestFakeTwo
+[ERROR] Tests run: 2, Failures: 0, Errors: 1, Skipped: 0, Time elapsed: 0.056 s <<< FAILURE! - in org.dtest.core.TestFakeTwo
+[ERROR] errorTwo(org.dtest.core.TestFakeTwo)  Time elapsed: 0.007 s  <<< ERROR!
+java.lang.ArrayIndexOutOfBoundsException: 5
+	at org.dtest.core.TestFakeTwo.errorTwo(TestFakeTwo.java:33)
+
+[INFO] 
+[INFO] Results:
+[INFO] 
+[ERROR] Failures: 
+[ERROR]   TestFake.fail:36 expected:<1> but was:<0>
+[ERROR] Errors: 
+[ERROR]   TestFakeTwo.errorTwo:33 ArrayIndexOutOfBounds 5
+[INFO] 
+[ERROR] Tests run: 19, Failures: 1, Errors: 1, Skipped: 0
+[INFO] 
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD FAILURE
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  10.007 s
+[INFO] Finished at: 2019-11-25T17:08:39-08:00
+[INFO] ------------------------------------------------------------------------
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-surefire-plugin:2.21.0:test (default-test) on project dtest-core: There are test failures.
+[ERROR] 
+[ERROR] Please refer to /Users/gates/git/dtest/core/target/surefire-reports for the individual test results.
+[ERROR] Please refer to dump files (if any exist) [date]-jvmRun[N].dump, [date].dumpstream and [date]-jvmRun[N].dumpstream.
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException

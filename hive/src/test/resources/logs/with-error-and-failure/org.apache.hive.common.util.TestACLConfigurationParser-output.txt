@@ -1,0 +1,187 @@
+DEBUG StatusLogger Using ShutdownCallbackRegistry class org.apache.logging.log4j.core.util.DefaultShutdownCallbackRegistry
+DEBUG StatusLogger Took 0.049087 seconds to load 205 plugins from sun.misc.Launcher$AppClassLoader@232204a1
+DEBUG StatusLogger PluginManager 'Converter' found 42 plugins
+DEBUG StatusLogger Starting OutputStreamManager SYSTEM_OUT.false.false-1
+DEBUG StatusLogger Starting LoggerContext[name=232204a1, org.apache.logging.log4j.core.LoggerContext@210695f5]...
+DEBUG StatusLogger Reconfiguration started for context[name=232204a1] at URI null (org.apache.logging.log4j.core.LoggerContext@210695f5) with optional ClassLoader: null
+DEBUG StatusLogger PluginManager 'ConfigurationFactory' found 4 plugins
+DEBUG StatusLogger Missing dependencies for Yaml support, ConfigurationFactory org.apache.logging.log4j.core.config.yaml.YamlConfigurationFactory is inactive
+DEBUG StatusLogger Using configurationFactory org.apache.logging.log4j.core.config.ConfigurationFactory$Factory@7619231f
+DEBUG StatusLogger Initializing configuration org.apache.logging.log4j.core.config.properties.PropertiesConfiguration@43c6a11f
+DEBUG StatusLogger Installed 1 script engine
+DEBUG StatusLogger Oracle Nashorn version: 1.8.0_192, language: ECMAScript, threading: Not Thread Safe, compile: true, names: [nashorn, Nashorn, js, JS, JavaScript, javascript, ECMAScript, ecmascript], factory class: jdk.nashorn.api.scripting.NashornScriptEngineFactory
+INFO StatusLogger Scanning for classes in '/Users/gates/git/hive/common/target/classes/org/apache/hadoop/hive/ql/log' matching criteria annotated with @Plugin
+DEBUG StatusLogger Checking to see if class org.apache.hadoop.hive.ql.log.PerfLogger matches criteria annotated with @Plugin
+DEBUG StatusLogger Took 0.002199 seconds to load 0 plugins from package org.apache.hadoop.hive.ql.log
+DEBUG StatusLogger PluginManager 'Core' found 117 plugins
+DEBUG StatusLogger PluginManager 'Level' found 0 plugins
+DEBUG StatusLogger Building Plugin[name=property, class=org.apache.logging.log4j.core.config.Property].
+TRACE StatusLogger TypeConverterRegistry initializing.
+DEBUG StatusLogger PluginManager 'TypeConverter' found 26 plugins
+DEBUG StatusLogger createProperty(name="hive.log.file", value="hive.log")
+DEBUG StatusLogger Building Plugin[name=property, class=org.apache.logging.log4j.core.config.Property].
+DEBUG StatusLogger createProperty(name="hive.log.dir", value="/Users/gates/git/hive/common/target/tmp/log")
+DEBUG StatusLogger Building Plugin[name=property, class=org.apache.logging.log4j.core.config.Property].
+DEBUG StatusLogger createProperty(name="hive.root.logger", value="DRFA")
+DEBUG StatusLogger Building Plugin[name=property, class=org.apache.logging.log4j.core.config.Property].
+DEBUG StatusLogger createProperty(name="hive.log.level", value="DEBUG")
+DEBUG StatusLogger Building Plugin[name=property, class=org.apache.logging.log4j.core.config.Property].
+DEBUG StatusLogger createProperty(name="hive.test.console.log.level", value="INFO")
+DEBUG StatusLogger Building Plugin[name=properties, class=org.apache.logging.log4j.core.config.PropertiesPlugin].
+DEBUG StatusLogger configureSubstitutor(={hive.log.file=hive.log, hive.log.dir=/Users/gates/git/hive/common/target/tmp/log, hive.root.logger=DRFA, hive.log.level=DEBUG, hive.test.console.log.level=INFO}, Configuration(HiveLog4j2Test))
+DEBUG StatusLogger PluginManager 'Lookup' found 14 plugins
+DEBUG StatusLogger Building Plugin[name=logger, class=org.apache.logging.log4j.core.config.LoggerConfig].
+DEBUG StatusLogger createLogger(additivity="true", level="WARN", name="org.apache.hadoop.ipc", includeLocation="null", ={}, ={}, Configuration(HiveLog4j2Test), Filter=null)
+DEBUG StatusLogger Building Plugin[name=logger, class=org.apache.logging.log4j.core.config.LoggerConfig].
+DEBUG StatusLogger createLogger(additivity="true", level="INFO", name="org.apache.hadoop.security", includeLocation="null", ={}, ={}, Configuration(HiveLog4j2Test), Filter=null)
+DEBUG StatusLogger Building Plugin[name=logger, class=org.apache.logging.log4j.core.config.LoggerConfig].
+DEBUG StatusLogger createLogger(additivity="true", level="INFO", name="org.apache.hadoop.hdfs", includeLocation="null", ={}, ={}, Configuration(HiveLog4j2Test), Filter=null)
+DEBUG StatusLogger Building Plugin[name=logger, class=org.apache.logging.log4j.core.config.LoggerConfig].
+DEBUG StatusLogger createLogger(additivity="true", level="WARN", name="org.apache.hadoop.hdfs.server", includeLocation="null", ={}, ={}, Configuration(HiveLog4j2Test), Filter=null)
+DEBUG StatusLogger Building Plugin[name=logger, class=org.apache.logging.log4j.core.config.LoggerConfig].
+DEBUG StatusLogger createLogger(additivity="true", level="INFO", name="org.apache.hadoop.metrics2", includeLocation="null", ={}, ={}, Configuration(HiveLog4j2Test), Filter=null)
+DEBUG StatusLogger Building Plugin[name=logger, class=org.apache.logging.log4j.core.config.LoggerConfig].
+DEBUG StatusLogger createLogger(additivity="true", level="INFO", name="org.mortbay", includeLocation="null", ={}, ={}, Configuration(HiveLog4j2Test), Filter=null)
+DEBUG StatusLogger Building Plugin[name=logger, class=org.apache.logging.log4j.core.config.LoggerConfig].
+DEBUG StatusLogger createLogger(additivity="true", level="INFO", name="org.apache.hadoop.yarn", includeLocation="null", ={}, ={}, Configuration(HiveLog4j2Test), Filter=null)
+DEBUG StatusLogger Building Plugin[name=logger, class=org.apache.logging.log4j.core.config.LoggerConfig].
+DEBUG StatusLogger createLogger(additivity="true", level="WARN", name="org.apache.hadoop.yarn.server", includeLocation="null", ={}, ={}, Configuration(HiveLog4j2Test), Filter=null)
+DEBUG StatusLogger Building Plugin[name=logger, class=org.apache.logging.log4j.core.config.LoggerConfig].
+DEBUG StatusLogger createLogger(additivity="true", level="INFO", name="org.apache.tez", includeLocation="null", ={}, ={}, Configuration(HiveLog4j2Test), Filter=null)
+DEBUG StatusLogger Building Plugin[name=logger, class=org.apache.logging.log4j.core.config.LoggerConfig].
+DEBUG StatusLogger createLogger(additivity="true", level="ERROR", name="org.apache.hadoop.conf.Configuration", includeLocation="null", ={}, ={}, Configuration(HiveLog4j2Test), Filter=null)
+DEBUG StatusLogger Building Plugin[name=logger, class=org.apache.logging.log4j.core.config.LoggerConfig].
+DEBUG StatusLogger createLogger(additivity="true", level="INFO", name="org.apache.zookeeper", includeLocation="null", ={}, ={}, Configuration(HiveLog4j2Test), Filter=null)
+DEBUG StatusLogger Building Plugin[name=logger, class=org.apache.logging.log4j.core.config.LoggerConfig].
+DEBUG StatusLogger createLogger(additivity="true", level="WARN", name="org.apache.zookeeper.server.ServerCnxn", includeLocation="null", ={}, ={}, Configuration(HiveLog4j2Test), Filter=null)
+DEBUG StatusLogger Building Plugin[name=logger, class=org.apache.logging.log4j.core.config.LoggerConfig].
+DEBUG StatusLogger createLogger(additivity="true", level="WARN", name="org.apache.zookeeper.server.NIOServerCnxn", includeLocation="null", ={}, ={}, Configuration(HiveLog4j2Test), Filter=null)
+DEBUG StatusLogger Building Plugin[name=logger, class=org.apache.logging.log4j.core.config.LoggerConfig].
+DEBUG StatusLogger createLogger(additivity="true", level="WARN", name="org.apache.zookeeper.ClientCnxn", includeLocation="null", ={}, ={}, Configuration(HiveLog4j2Test), Filter=null)
+DEBUG StatusLogger Building Plugin[name=logger, class=org.apache.logging.log4j.core.config.LoggerConfig].
+DEBUG StatusLogger createLogger(additivity="true", level="WARN", name="org.apache.zookeeper.ClientCnxnSocket", includeLocation="null", ={}, ={}, Configuration(HiveLog4j2Test), Filter=null)
+DEBUG StatusLogger Building Plugin[name=logger, class=org.apache.logging.log4j.core.config.LoggerConfig].
+DEBUG StatusLogger createLogger(additivity="true", level="WARN", name="org.apache.zookeeper.ClientCnxnSocketNIO", includeLocation="null", ={}, ={}, Configuration(HiveLog4j2Test), Filter=null)
+DEBUG StatusLogger Building Plugin[name=logger, class=org.apache.logging.log4j.core.config.LoggerConfig].
+DEBUG StatusLogger createLogger(additivity="true", level="ERROR", name="DataNucleus", includeLocation="null", ={}, ={}, Configuration(HiveLog4j2Test), Filter=null)
+DEBUG StatusLogger Building Plugin[name=logger, class=org.apache.logging.log4j.core.config.LoggerConfig].
+DEBUG StatusLogger createLogger(additivity="true", level="ERROR", name="Datastore", includeLocation="null", ={}, ={}, Configuration(HiveLog4j2Test), Filter=null)
+DEBUG StatusLogger Building Plugin[name=logger, class=org.apache.logging.log4j.core.config.LoggerConfig].
+DEBUG StatusLogger createLogger(additivity="true", level="ERROR", name="JPOX", includeLocation="null", ={}, ={}, Configuration(HiveLog4j2Test), Filter=null)
+DEBUG StatusLogger Building Plugin[name=logger, class=org.apache.logging.log4j.core.config.LoggerConfig].
+DEBUG StatusLogger createLogger(additivity="true", level="INFO", name="org.apache.hadoop.hive.ql.exec.Operator", includeLocation="null", ={}, ={}, Configuration(HiveLog4j2Test), Filter=null)
+DEBUG StatusLogger Building Plugin[name=logger, class=org.apache.logging.log4j.core.config.LoggerConfig].
+DEBUG StatusLogger createLogger(additivity="true", level="INFO", name="org.apache.hadoop.hive.serde2.lazy", includeLocation="null", ={}, ={}, Configuration(HiveLog4j2Test), Filter=null)
+DEBUG StatusLogger Building Plugin[name=logger, class=org.apache.logging.log4j.core.config.LoggerConfig].
+DEBUG StatusLogger createLogger(additivity="true", level="INFO", name="org.apache.hadoop.hive.metastore.ObjectStore", includeLocation="null", ={}, ={}, Configuration(HiveLog4j2Test), Filter=null)
+DEBUG StatusLogger Building Plugin[name=logger, class=org.apache.logging.log4j.core.config.LoggerConfig].
+DEBUG StatusLogger createLogger(additivity="true", level="INFO", name="org.apache.calcite.plan.RelOptPlanner", includeLocation="null", ={}, ={}, Configuration(HiveLog4j2Test), Filter=null)
+DEBUG StatusLogger Building Plugin[name=logger, class=org.apache.logging.log4j.core.config.LoggerConfig].
+DEBUG StatusLogger createLogger(additivity="true", level="INFO", name="com.amazonaws", includeLocation="null", ={}, ={}, Configuration(HiveLog4j2Test), Filter=null)
+DEBUG StatusLogger Building Plugin[name=logger, class=org.apache.logging.log4j.core.config.LoggerConfig].
+DEBUG StatusLogger createLogger(additivity="true", level="INFO", name="org.apache.http", includeLocation="null", ={}, ={}, Configuration(HiveLog4j2Test), Filter=null)
+DEBUG StatusLogger Building Plugin[name=logger, class=org.apache.logging.log4j.core.config.LoggerConfig].
+DEBUG StatusLogger createLogger(additivity="true", level="WARN", name="org.apache.thrift", includeLocation="null", ={}, ={}, Configuration(HiveLog4j2Test), Filter=null)
+DEBUG StatusLogger Building Plugin[name=logger, class=org.apache.logging.log4j.core.config.LoggerConfig].
+DEBUG StatusLogger createLogger(additivity="true", level="WARN", name="org.eclipse.jetty", includeLocation="null", ={}, ={}, Configuration(HiveLog4j2Test), Filter=null)
+DEBUG StatusLogger Building Plugin[name=logger, class=org.apache.logging.log4j.core.config.LoggerConfig].
+DEBUG StatusLogger createLogger(additivity="true", level="WARN", name="BlockStateChange", includeLocation="null", ={}, ={}, Configuration(HiveLog4j2Test), Filter=null)
+DEBUG StatusLogger Building Plugin[name=AppenderRef, class=org.apache.logging.log4j.core.config.AppenderRef].
+DEBUG StatusLogger createAppenderRef(ref="console", level="INFO", Filter=null)
+DEBUG StatusLogger Building Plugin[name=AppenderRef, class=org.apache.logging.log4j.core.config.AppenderRef].
+DEBUG StatusLogger createAppenderRef(ref="DRFA", level="null", Filter=null)
+DEBUG StatusLogger Building Plugin[name=root, class=org.apache.logging.log4j.core.config.LoggerConfig$RootLogger].
+DEBUG StatusLogger createLogger(additivity="null", level="DEBUG", includeLocation="null", ={console, DRFA}, ={}, Configuration(HiveLog4j2Test), Filter=null)
+DEBUG StatusLogger Building Plugin[name=loggers, class=org.apache.logging.log4j.core.config.LoggersPlugin].
+DEBUG StatusLogger createLoggers(={org.apache.hadoop.ipc, org.apache.hadoop.security, org.apache.hadoop.hdfs, org.apache.hadoop.hdfs.server, org.apache.hadoop.metrics2, org.mortbay, org.apache.hadoop.yarn, org.apache.hadoop.yarn.server, org.apache.tez, org.apache.hadoop.conf.Configuration, org.apache.zookeeper, org.apache.zookeeper.server.ServerCnxn, org.apache.zookeeper.server.NIOServerCnxn, org.apache.zookeeper.ClientCnxn, org.apache.zookeeper.ClientCnxnSocket, org.apache.zookeeper.ClientCnxnSocketNIO, DataNucleus, Datastore, JPOX, org.apache.hadoop.hive.ql.exec.Operator, org.apache.hadoop.hive.serde2.lazy, org.apache.hadoop.hive.metastore.ObjectStore, org.apache.calcite.plan.RelOptPlanner, com.amazonaws, org.apache.http, org.apache.thrift, org.eclipse.jetty, BlockStateChange, root})
+DEBUG StatusLogger Building Plugin[name=layout, class=org.apache.logging.log4j.core.layout.PatternLayout].
+DEBUG StatusLogger PatternLayout$Builder(pattern="%d{ISO8601} %5p [%t] %c{2}: %m%n", PatternSelector=null, Configuration(HiveLog4j2Test), Replace=null, charset="null", alwaysWriteExceptions="null", disableAnsi="null", noConsoleNoAnsi="null", header="null", footer="null")
+DEBUG StatusLogger PluginManager 'Converter' found 42 plugins
+DEBUG StatusLogger Building Plugin[name=appender, class=org.apache.logging.log4j.core.appender.ConsoleAppender].
+DEBUG StatusLogger ConsoleAppender$Builder(target="SYSTEM_ERR", follow="null", direct="null", bufferedIo="null", bufferSize="null", immediateFlush="null", ignoreExceptions="null", PatternLayout(%d{ISO8601} %5p [%t] %c{2}: %m%n), name="console", Configuration(HiveLog4j2Test), Filter=null)
+DEBUG StatusLogger Starting OutputStreamManager SYSTEM_ERR.false.false
+DEBUG StatusLogger Building Plugin[name=layout, class=org.apache.logging.log4j.core.layout.PatternLayout].
+DEBUG StatusLogger PatternLayout$Builder(pattern="%d{ISO8601} %5p [%t] %c{2}: %m%n", PatternSelector=null, Configuration(HiveLog4j2Test), Replace=null, charset="null", alwaysWriteExceptions="null", disableAnsi="null", noConsoleNoAnsi="null", header="null", footer="null")
+DEBUG StatusLogger Building Plugin[name=TimeBasedTriggeringPolicy, class=org.apache.logging.log4j.core.appender.rolling.TimeBasedTriggeringPolicy].
+DEBUG StatusLogger TimeBasedTriggeringPolicy$Builder(interval="1", modulate="true", maxRandomDelay="null")
+DEBUG StatusLogger Building Plugin[name=Policies, class=org.apache.logging.log4j.core.appender.rolling.CompositeTriggeringPolicy].
+DEBUG StatusLogger createPolicy(={TimeBasedTriggeringPolicy(nextRolloverMillis=0, interval=1, modulate=true)})
+DEBUG StatusLogger Building Plugin[name=DefaultRolloverStrategy, class=org.apache.logging.log4j.core.appender.rolling.DefaultRolloverStrategy].
+DEBUG StatusLogger DefaultRolloverStrategy$Builder(max="30", min="null", fileIndex="null", compressionLevel="null", ={}, stopCustomActionsOnError="null", tempCompressedFilePattern="null", Configuration(HiveLog4j2Test))
+DEBUG StatusLogger Building Plugin[name=appender, class=org.apache.logging.log4j.core.appender.RollingRandomAccessFileAppender].
+DEBUG StatusLogger RollingRandomAccessFileAppender$Builder(fileName="/Users/gates/git/hive/common/target/tmp/log/hive.log", filePattern="/Users/gates/git/hive/common/target/tmp/log/hive.log.%d{yyyy-MM-dd}", append="null", Policies(CompositeTriggeringPolicy(policies=[TimeBasedTriggeringPolicy(nextRolloverMillis=0, interval=1, modulate=true)])), DefaultRolloverStrategy(DefaultRolloverStrategy(min=1, max=30, useMax=true)), advertise="null", advertiseURI="null", filePermissions="null", fileOwner="null", fileGroup="null", bufferedIo="null", bufferSize="null", immediateFlush="null", ignoreExceptions="null", PatternLayout(%d{ISO8601} %5p [%t] %c{2}: %m%n), name="DRFA", Configuration(HiveLog4j2Test), Filter=null)
+TRACE StatusLogger RandomAccessFile /Users/gates/git/hive/common/target/tmp/log/hive.log seek to 148079
+DEBUG StatusLogger Starting RollingRandomAccessFileManager /Users/gates/git/hive/common/target/tmp/log/hive.log
+DEBUG StatusLogger PluginManager 'FileConverter' found 2 plugins
+DEBUG StatusLogger Setting prev file time to 2019-11-26T17:08:03.000-0800
+DEBUG StatusLogger Initializing triggering policy CompositeTriggeringPolicy(policies=[TimeBasedTriggeringPolicy(nextRolloverMillis=0, interval=1, modulate=true)])
+TRACE StatusLogger PatternProcessor.getNextTime returning 2019/11/27-00:00:00.000, nextFileTime=2019/11/26-00:00:00.000, prevFileTime=1969/12/31-16:00:00.000, current=2019/11/26-17:08:04.749, freq=DAILY
+TRACE StatusLogger PatternProcessor.getNextTime returning 2019/11/27-00:00:00.000, nextFileTime=2019/11/26-00:00:00.000, prevFileTime=2019/11/26-00:00:00.000, current=2019/11/26-17:08:04.750, freq=DAILY
+DEBUG StatusLogger Building Plugin[name=appenders, class=org.apache.logging.log4j.core.config.AppendersPlugin].
+DEBUG StatusLogger createAppenders(={console, DRFA})
+DEBUG StatusLogger Configuration org.apache.logging.log4j.core.config.properties.PropertiesConfiguration@43c6a11f initialized
+DEBUG StatusLogger Starting configuration org.apache.logging.log4j.core.config.properties.PropertiesConfiguration@43c6a11f
+DEBUG StatusLogger Started configuration org.apache.logging.log4j.core.config.properties.PropertiesConfiguration@43c6a11f OK.
+TRACE StatusLogger Stopping org.apache.logging.log4j.core.config.DefaultConfiguration@4d37f43f...
+TRACE StatusLogger DefaultConfiguration notified 1 ReliabilityStrategies that config will be stopped.
+TRACE StatusLogger DefaultConfiguration stopping root LoggerConfig.
+TRACE StatusLogger DefaultConfiguration notifying ReliabilityStrategies that appenders will be stopped.
+TRACE StatusLogger DefaultConfiguration stopping remaining Appenders.
+DEBUG StatusLogger Shutting down OutputStreamManager SYSTEM_OUT.false.false-1
+DEBUG StatusLogger Shut down OutputStreamManager SYSTEM_OUT.false.false-1, all resources released: true
+DEBUG StatusLogger Appender DefaultConsole-1 stopped with status true
+TRACE StatusLogger DefaultConfiguration stopped 1 remaining Appenders.
+TRACE StatusLogger DefaultConfiguration cleaning Appenders from 1 LoggerConfigs.
+DEBUG StatusLogger Stopped org.apache.logging.log4j.core.config.DefaultConfiguration@4d37f43f OK
+TRACE StatusLogger Reregistering MBeans after reconfigure. Selector=org.apache.logging.log4j.core.selector.ClassLoaderContextSelector@b6c0549
+TRACE StatusLogger Reregistering context (1/1): '232204a1' org.apache.logging.log4j.core.LoggerContext@210695f5
+TRACE StatusLogger Unregistering but no MBeans found matching 'org.apache.logging.log4j2:type=232204a1'
+TRACE StatusLogger Unregistering but no MBeans found matching 'org.apache.logging.log4j2:type=232204a1,component=StatusLogger'
+TRACE StatusLogger Unregistering but no MBeans found matching 'org.apache.logging.log4j2:type=232204a1,component=ContextSelector'
+TRACE StatusLogger Unregistering but no MBeans found matching 'org.apache.logging.log4j2:type=232204a1,component=Loggers,name=*'
+TRACE StatusLogger Unregistering but no MBeans found matching 'org.apache.logging.log4j2:type=232204a1,component=Appenders,name=*'
+TRACE StatusLogger Unregistering but no MBeans found matching 'org.apache.logging.log4j2:type=232204a1,component=AsyncAppenders,name=*'
+TRACE StatusLogger Unregistering but no MBeans found matching 'org.apache.logging.log4j2:type=232204a1,component=AsyncLoggerRingBuffer'
+TRACE StatusLogger Unregistering but no MBeans found matching 'org.apache.logging.log4j2:type=232204a1,component=Loggers,name=*,subtype=RingBuffer'
+DEBUG StatusLogger Registering MBean org.apache.logging.log4j2:type=232204a1
+DEBUG StatusLogger Registering MBean org.apache.logging.log4j2:type=232204a1,component=StatusLogger
+DEBUG StatusLogger Registering MBean org.apache.logging.log4j2:type=232204a1,component=ContextSelector
+DEBUG StatusLogger Registering MBean org.apache.logging.log4j2:type=232204a1,component=Loggers,name=
+DEBUG StatusLogger Registering MBean org.apache.logging.log4j2:type=232204a1,component=Loggers,name=org.apache.tez
+DEBUG StatusLogger Registering MBean org.apache.logging.log4j2:type=232204a1,component=Loggers,name=com.amazonaws
+DEBUG StatusLogger Registering MBean org.apache.logging.log4j2:type=232204a1,component=Loggers,name=org.apache.thrift
+DEBUG StatusLogger Registering MBean org.apache.logging.log4j2:type=232204a1,component=Loggers,name=org.eclipse.jetty
+DEBUG StatusLogger Registering MBean org.apache.logging.log4j2:type=232204a1,component=Loggers,name=BlockStateChange
+DEBUG StatusLogger Registering MBean org.apache.logging.log4j2:type=232204a1,component=Loggers,name=org.apache.hadoop.metrics2
+DEBUG StatusLogger Registering MBean org.apache.logging.log4j2:type=232204a1,component=Loggers,name=org.apache.zookeeper.ClientCnxn
+DEBUG StatusLogger Registering MBean org.apache.logging.log4j2:type=232204a1,component=Loggers,name=org.apache.zookeeper
+DEBUG StatusLogger Registering MBean org.apache.logging.log4j2:type=232204a1,component=Loggers,name=org.apache.hadoop.security
+DEBUG StatusLogger Registering MBean org.apache.logging.log4j2:type=232204a1,component=Loggers,name=JPOX
+DEBUG StatusLogger Registering MBean org.apache.logging.log4j2:type=232204a1,component=Loggers,name=org.apache.hadoop.yarn.server
+DEBUG StatusLogger Registering MBean org.apache.logging.log4j2:type=232204a1,component=Loggers,name=org.apache.hadoop.conf.Configuration
+DEBUG StatusLogger Registering MBean org.apache.logging.log4j2:type=232204a1,component=Loggers,name=org.apache.hadoop.yarn
+DEBUG StatusLogger Registering MBean org.apache.logging.log4j2:type=232204a1,component=Loggers,name=org.apache.zookeeper.ClientCnxnSocketNIO
+DEBUG StatusLogger Registering MBean org.apache.logging.log4j2:type=232204a1,component=Loggers,name=org.apache.zookeeper.server.ServerCnxn
+DEBUG StatusLogger Registering MBean org.apache.logging.log4j2:type=232204a1,component=Loggers,name=org.apache.hadoop.hdfs
+DEBUG StatusLogger Registering MBean org.apache.logging.log4j2:type=232204a1,component=Loggers,name=org.apache.hadoop.hdfs.server
+DEBUG StatusLogger Registering MBean org.apache.logging.log4j2:type=232204a1,component=Loggers,name=org.apache.hadoop.hive.serde2.lazy
+DEBUG StatusLogger Registering MBean org.apache.logging.log4j2:type=232204a1,component=Loggers,name=org.apache.zookeeper.ClientCnxnSocket
+DEBUG StatusLogger Registering MBean org.apache.logging.log4j2:type=232204a1,component=Loggers,name=org.mortbay
+DEBUG StatusLogger Registering MBean org.apache.logging.log4j2:type=232204a1,component=Loggers,name=org.apache.http
+DEBUG StatusLogger Registering MBean org.apache.logging.log4j2:type=232204a1,component=Loggers,name=org.apache.hadoop.hive.ql.exec.Operator
+DEBUG StatusLogger Registering MBean org.apache.logging.log4j2:type=232204a1,component=Loggers,name=DataNucleus
+DEBUG StatusLogger Registering MBean org.apache.logging.log4j2:type=232204a1,component=Loggers,name=Datastore
+DEBUG StatusLogger Registering MBean org.apache.logging.log4j2:type=232204a1,component=Loggers,name=org.apache.hadoop.hive.metastore.ObjectStore
+DEBUG StatusLogger Registering MBean org.apache.logging.log4j2:type=232204a1,component=Loggers,name=org.apache.hadoop.ipc
+DEBUG StatusLogger Registering MBean org.apache.logging.log4j2:type=232204a1,component=Loggers,name=org.apache.zookeeper.server.NIOServerCnxn
+DEBUG StatusLogger Registering MBean org.apache.logging.log4j2:type=232204a1,component=Loggers,name=org.apache.calcite.plan.RelOptPlanner
+DEBUG StatusLogger Registering MBean org.apache.logging.log4j2:type=232204a1,component=Appenders,name=console
+DEBUG StatusLogger Registering MBean org.apache.logging.log4j2:type=232204a1,component=Appenders,name=DRFA
+TRACE StatusLogger Using default SystemClock for timestamps.
+TRACE StatusLogger Using DummyNanoClock for nanosecond timestamps.
+DEBUG StatusLogger Reconfiguration complete for context[name=232204a1] at URI /Users/gates/git/hive/common/target/testconf/hive-log4j2.properties (org.apache.logging.log4j.core.LoggerContext@210695f5) with optional ClassLoader: null
+DEBUG StatusLogger Shutdown hook enabled. Registering a new one.
+DEBUG StatusLogger LoggerContext[name=232204a1, org.apache.logging.log4j.core.LoggerContext@210695f5] started OK.
+2019-11-26T17:08:04,872  WARN [Thread-0] util.ACLConfigurationParser: Invalid configuration specified for ACL_INVALID1, ignoring configured ACLs, value=u1, u2, u3
+DEBUG StatusLogger AsyncLogger.ThreadNameStrategy=UNCACHED (user specified null, default is UNCACHED)
+TRACE StatusLogger Using default SystemClock for timestamps.

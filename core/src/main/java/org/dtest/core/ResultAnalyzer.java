@@ -18,6 +18,7 @@ package org.dtest.core;
 import org.dtest.core.impl.Utils;
 import org.dtest.core.mvn.MavenResultAnalyzer;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
@@ -46,10 +47,15 @@ public abstract class ResultAnalyzer extends Configurable {
    * be thread safe.
    * @param containerResult the result from the container run.  Information in the result will be
    *                       appended by this method.
-   * @param yaml Build information from the yaml file.
    * @throws IOException if it fails to find the information it needs when analyzing the log.
    */
-  public abstract void analyzeLog(ContainerResult containerResult, BuildYaml yaml) throws IOException;
+  public abstract void analyzeLog(ContainerResult containerResult) throws IOException;
+
+  /**
+   * Get the directory where we expect to find test result files.
+   * @return directory name.
+   */
+  public abstract String getTestResultsDir();
 
   /**
    * Get aggregate count of succeeded tests.

@@ -17,6 +17,7 @@ package org.dtest.core;
 
 import org.dtest.core.impl.Utils;
 
+import java.io.File;
 import java.io.IOException;
 
 /**
@@ -72,6 +73,14 @@ public abstract class Reporter extends Configurable {
     this.buildInfo = buildInfo;
     return this;
   }
+
+  /**
+   * Get directory where logs from a given container should be moved for the report.  The directory should exist
+   * after calling this method.
+   * @param result result from running the container whose logs we are getting a directory for
+   * @return directory
+   */
+  public abstract File getLogDirForContainer(ContainerResult result) throws IOException;
 
   /**
    * Add a section to the report for failed tests.  Can be called multiple times.  Implementations should be

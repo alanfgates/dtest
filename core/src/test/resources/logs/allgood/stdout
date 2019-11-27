@@ -1,0 +1,64 @@
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] ------------------------< org.dtest:dtest-core >------------------------
+[INFO] Building dtest core interfaces and implementation 0.3.0-SNAPSHOT
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- maven-antrun-plugin:1.8:run (default) @ dtest-core ---
+[WARNING] Parameter tasks is deprecated, use target instead
+[INFO] Executing tasks
+
+main:
+[INFO] Executed tasks
+[INFO] 
+[INFO] --- build-helper-maven-plugin:3.0.0:add-source (add-source) @ dtest-core ---
+[INFO] Source directory: /Users/gates/git/dtest/core/target/generated-sources added.
+[INFO] 
+[INFO] --- maven-resources-plugin:2.6:resources (default-resources) @ dtest-core ---
+[INFO] Using 'UTF-8' encoding to copy filtered resources.
+[INFO] Copying 2 resources
+[INFO] 
+[INFO] --- maven-compiler-plugin:3.1:compile (default-compile) @ dtest-core ---
+[INFO] Changes detected - recompiling the module!
+[INFO] Compiling 33 source files to /Users/gates/git/dtest/core/target/classes
+[INFO] 
+[INFO] --- maven-resources-plugin:2.6:testResources (default-testResources) @ dtest-core ---
+[INFO] Using 'UTF-8' encoding to copy filtered resources.
+[INFO] Copying 4 resources
+[INFO] 
+[INFO] --- maven-compiler-plugin:3.1:testCompile (default-testCompile) @ dtest-core ---
+[INFO] Changes detected - recompiling the module!
+[INFO] Compiling 12 source files to /Users/gates/git/dtest/core/target/test-classes
+[INFO] 
+[INFO] --- maven-surefire-plugin:2.21.0:test (default-test) @ dtest-core ---
+[INFO] 
+[INFO] -------------------------------------------------------
+[INFO]  T E S T S
+[INFO] -------------------------------------------------------
+[INFO] Running org.dtest.core.docker.TestDockerContainerClient
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.734 s - in org.dtest.core.docker.TestDockerContainerClient
+[INFO] Running org.dtest.core.impl.TestUtils
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.046 s - in org.dtest.core.impl.TestUtils
+[INFO] Running org.dtest.core.mvn.TestMavenContainerCommandFactory
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.6 s - in org.dtest.core.mvn.TestMavenContainerCommandFactory
+[INFO] Running org.dtest.core.mvn.TestModuleDirectory
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.063 s - in org.dtest.core.mvn.TestModuleDirectory
+[INFO] Running org.dtest.core.TestBuildInfo
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.708 s - in org.dtest.core.TestBuildInfo
+[INFO] Running org.dtest.core.TestConfig
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.056 s - in org.dtest.core.TestConfig
+[INFO] Running org.dtest.core.TestFake
+[WARNING] Tests run: 2, Failures: 0, Errors: 0, Skipped: 1, Time elapsed: 0.064 s - in org.dtest.core.TestFake
+[INFO] Running org.dtest.core.TestFakeTwo
+[WARNING] Tests run: 2, Failures: 0, Errors: 0, Skipped: 1, Time elapsed: 0.061 s - in org.dtest.core.TestFakeTwo
+[INFO] 
+[INFO] Results:
+[INFO] 
+[WARNING] Tests run: 19, Failures: 0, Errors: 0, Skipped: 2
+[INFO] 
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  10.272 s
+[INFO] Finished at: 2019-11-25T17:07:40-08:00
+[INFO] ------------------------------------------------------------------------

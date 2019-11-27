@@ -23,32 +23,41 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class HtmlReporter extends Reporter {
   private Map<String, String> logLinks; // HTML links to the logs, need to be
+  private File logDir;
 
   public HtmlReporter() {
     this.logLinks = new ConcurrentHashMap<>();
   }
 
   @Override
-  public void addFailedTests(ContainerClient docker, ContainerResult result) throws IOException {
-    if (result.getLogFilesToFetch() != null && !result.getLogFilesToFetch().isEmpty()) {
-      File logDir = new File(buildInfo.getBuildDir(), result.getCmd().containerSuffix());
+  public File getLogDirForContainer(ContainerResult result) throws IOException {
+    if (logDir == null) {
+      logDir = new File(buildInfo.getBuildDir(), result.getCmd().containerSuffix());
       log.info("Creating directory " + logDir.getAbsolutePath() + " for logs from container "
           + result.getCmd().containerSuffix());
       logDir.mkdir();
-      docker.copyLogFiles(result, logDir.getAbsolutePath());
-      for (String testName : result.getLogFilesToFetch().keySet()) {
+    }
+    return logDir;
+  }
+
+  @Override
+  public void addFailedTests(ContainerClient docker, ContainerResult result) throws IOException {
+    Map<String, Set<File>> reportsFromFailedTests = result.getReports().getKeptFiles();
+    if (!reportsFromFailedTests.isEmpty()) {
+      for (String testName : reportsFromFailedTests.keySet()) {
         // If it's a timeout we need to rename it because every timeout from every container
         // has the same testName.  See MavenResultAnalyzer.TIMED_OUT_KEY for why.
         String key = testName.equals(MavenResultAnalyzer.TIMED_OUT_KEY) ?
             result.getCmd().containerSuffix() + " timed out" : testName;
         logLinks.put(key, result.getCmd().containerSuffix());
       }
+      // The logs will already have been moved in by DockerTest
       // grab the part of the dtest.log relevant to this test and store it here as well
       boolean copiedDTest = true;
       try {
@@ -74,9 +83,8 @@ public class HtmlReporter extends Reporter {
       writer.write("<body>\n");
       writer.write("<h1>Log Files</h1>\n");
       writer.write("<ul>\n");
-      for (List<String> files : result.getLogFilesToFetch().values()) {
-        for (String file : files) {
-          File f = new File(file);
+      for (Set<File> files : reportsFromFailedTests.values()) {
+        for (File f : files) {
           writer.write("<li><a href=\"" + f.getName() + "\">" + f.getName() + "</a></li>\n");
         }
       }

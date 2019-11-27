@@ -15,161 +15,104 @@
  */
 package org.dtest.core.mvn;
 
-import com.google.common.annotations.VisibleForTesting;
 import org.dtest.core.BuildState;
-import org.dtest.core.ContainerCommand;
+import org.dtest.core.Config;
+import org.dtest.core.ContainerClient;
 import org.dtest.core.ContainerResult;
+import org.dtest.core.Reporter;
 import org.dtest.core.TestUtils;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.io.File;
 import java.io.IOException;
-import java.util.Collection;
-import java.util.Iterator;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
-import java.util.SortedSet;
-import java.util.TreeSet;
 
 public class TestMavenResultAnalyzer {
-  private static class SimpleContainerCommand extends ContainerCommand {
-    private final String name;
-    private final String dir;
-
-    SimpleContainerCommand(String name, String dir) {
-      this.name = name;
-      this.dir = dir;
-    }
-
-    @Override
-    public String containerSuffix() {
-      return name;
-    }
-
-    @Override
-    public String[] shellCommand() {
-      return new String[0];
-    }
-
-    @Override
-    public String containerDirectory() {
-      return dir;
-    }
-  }
 
   @Test
   public void unitTestLog() throws IOException {
+    File buildDir = TestUtils.createBuildDir();
+    String containerName = "maven-result-analyzer-unit-testlog";
     TestUtils.TestLogger log = new TestUtils.TestLogger();
+    Config cfg = TestUtils.buildCfg();
     MavenResultAnalyzer analyzer = new MavenResultAnalyzer();
-    analyzer.setLog(log);
-    ContainerResult cr = new ContainerResult(new SimpleContainerCommand("hive-dtest-1_unittests-hive-unit",
-        "/Users/gates/git/hive/itests/hive-unit") , 0, LOG_SUCCESSFUL_RUN_FAILED_TESTS);
-    analyzer.analyzeLog(cr, TestUtils.getYaml());
+    Reporter reporter = new TestUtils.MockReporter(buildDir);
+    ContainerClient client = new TestUtils.MockContainerClient(containerName, "with-error-and-failure", buildDir, 0);
+    client.setLog(log);
+    client.setConfig(cfg);
+    ContainerResult cr = client.runContainer(new TestUtils.MockContainerCommand(containerName, buildDir.getAbsolutePath(), "/bin/bash"));
+    client.fetchTestReports(cr, analyzer, reporter, new String[] {"additional.log"});
+    analyzer.analyzeLog(cr);
+
     Assert.assertEquals(1, analyzer.getErrors().size());
-    Assert.assertEquals("TestAcidOnTez.testGetSplitsLocks", analyzer.getErrors().get(0));
+    Assert.assertEquals("TestFakeTwo.errorTwo", analyzer.getErrors().get(0));
     Assert.assertEquals(1, analyzer.getFailed().size());
-    Assert.assertEquals("TestActivePassiveHA.testManualFailover", analyzer.getFailed().get(0));
-    Assert.assertEquals(32, analyzer.getSucceeded());
+    Assert.assertEquals("TestFake.fail", analyzer.getFailed().get(0));
+    Assert.assertEquals(17, analyzer.getSucceeded());
     Assert.assertEquals(BuildState.State.HAD_FAILURES_OR_ERRORS, analyzer.getBuildState().getState());
-    Assert.assertEquals(2, cr.getLogFilesToFetch().size());
-    Assert.assertTrue(cr.getLogFilesToFetch().containsKey("TestAcidOnTez"));
-    Assert.assertTrue(cr.getLogFilesToFetch().containsKey("TestActivePassiveHA"));
-    Collection<List<String>> allLogFiles = cr.getLogFilesToFetch().values();
-    SortedSet<String> orderedLogFiles = new TreeSet<>();
-    for (List<String> logFiles : allLogFiles) orderedLogFiles.addAll(logFiles);
-    Iterator iter = orderedLogFiles.iterator();
-    Assert.assertEquals("/Users/gates/git/hive/itests/hive-unit/target/surefire-reports/org.dtest.TestAcidOnTez-output.txt", iter.next());
-    Assert.assertEquals("/Users/gates/git/hive/itests/hive-unit/target/surefire-reports/org.dtest.TestAcidOnTez.txt", iter.next());
-    Assert.assertEquals("/Users/gates/git/hive/itests/hive-unit/target/surefire-reports/org.dtest.TestActivePassiveHA-output.txt", iter.next());
-    Assert.assertEquals("/Users/gates/git/hive/itests/hive-unit/target/surefire-reports/org.dtest.TestActivePassiveHA.txt", iter.next());
+    Assert.assertEquals(2, cr.getReports().getKeptFiles().size());
+    Assert.assertTrue(cr.getReports().getKeptFiles().containsKey("TestFakeTwo"));
+    Assert.assertTrue(cr.getReports().getKeptFiles().containsKey("TestFake"));
+    Assert.assertEquals(2, cr.getReports().getKeptFiles().get("TestFakeTwo").size());
+    List<File> files = new ArrayList<>(cr.getReports().getKeptFiles().get("TestFakeTwo"));
+    Collections.sort(files);
+    Assert.assertEquals("additional.log", files.get(0).getName());
+    Assert.assertEquals("org.dtest.core.TestFakeTwo.txt", files.get(1).getName());
+    Assert.assertEquals(2, cr.getReports().getKeptFiles().get("TestFake").size());
+    files = new ArrayList<>(cr.getReports().getKeptFiles().get("TestFake"));
+    Collections.sort(files);
+    Assert.assertEquals("additional.log", files.get(0).getName());
+    Assert.assertEquals("org.dtest.core.TestFake.txt", files.get(1).getName());
     log.dumpToLog();
   }
 
   @Test
   public void successfulLog() throws IOException {
+    File buildDir = TestUtils.createBuildDir();
+    String containerName = "maven-result-analyzer-unit-testlog-good";
     TestUtils.TestLogger log = new TestUtils.TestLogger();
+    Config cfg = TestUtils.buildCfg();
     MavenResultAnalyzer analyzer = new MavenResultAnalyzer();
-    analyzer.setLog(log);
-    ContainerResult cr = new ContainerResult(new SimpleContainerCommand("hive-dtest-1_unittests-hive-unit",
-        "/Users/gates/git/hive/itests/hive-unit") , 0, LOG_SUCCESSFUL_RUN_ALL_SUCCEEDED);
-    analyzer.analyzeLog(cr, TestUtils.getYaml());
+    Reporter reporter = new TestUtils.MockReporter(buildDir);
+    ContainerClient client = new TestUtils.MockContainerClient(containerName, "allgood", buildDir, 0);
+    client.setLog(log);
+    client.setConfig(cfg);
+    ContainerResult cr = client.runContainer(new TestUtils.MockContainerCommand(containerName, buildDir.getAbsolutePath(), "/bin/bash"));
+    client.fetchTestReports(cr, analyzer, reporter, null);
+    analyzer.analyzeLog(cr);
+
     Assert.assertEquals(0, analyzer.getErrors().size());
     Assert.assertEquals(0, analyzer.getFailed().size());
-    Assert.assertEquals(19, analyzer.getSucceeded());
+    Assert.assertEquals(17, analyzer.getSucceeded());
     Assert.assertEquals(BuildState.State.SUCCEEDED, analyzer.getBuildState().getState());
-    Assert.assertEquals(0, cr.getLogFilesToFetch().size());
+    Assert.assertEquals(0, cr.getReports().getKeptFiles().size());
     log.dumpToLog();
-
   }
 
   @Test
   public void timeoutLog() throws IOException {
+    File buildDir = TestUtils.createBuildDir();
+    String containerName = "maven-result-analyzer-unit-testlog-timeout";
+    TestUtils.TestLogger log = new TestUtils.TestLogger();
+    Config cfg = TestUtils.buildCfg();
     MavenResultAnalyzer analyzer = new MavenResultAnalyzer();
-    analyzer.analyzeLog(new ContainerResult(new SimpleContainerCommand("bla", "bla"), 0, LOG_TIMED_OUT), TestUtils.getYaml());
+    Reporter reporter = new TestUtils.MockReporter(buildDir);
+    ContainerClient client = new TestUtils.MockContainerClient(containerName, "timeout", buildDir, 0);
+    client.setLog(log);
+    client.setConfig(cfg);
+    ContainerResult cr = client.runContainer(new TestUtils.MockContainerCommand(containerName, buildDir.getAbsolutePath(), "/bin/bash"));
+    client.fetchTestReports(cr, analyzer, reporter, null);
+    analyzer.analyzeLog(cr);
+
+    Assert.assertEquals(0, analyzer.getErrors().size());
+    Assert.assertEquals(0, analyzer.getFailed().size());
+    Assert.assertEquals(18, analyzer.getSucceeded());
     Assert.assertEquals(BuildState.State.HAD_TIMEOUTS, analyzer.getBuildState().getState());
+    Assert.assertEquals(0, cr.getReports().getKeptFiles().size());
+    log.dumpToLog();
   }
 
-  @VisibleForTesting
-  public static final String LOG_SUCCESSFUL_RUN_FAILED_TESTS =
-      "[INFO] ------------------------------------------------------------------------\n" +
-          "[INFO] Building Hive Integration - Unit Tests 3.0.0-SNAPSHOT\n" +
-          "[INFO] ------------------------------------------------------------------------\n" +
-          "[WARNING] The POM for net.minidev:json-smart:jar:2.3-SNAPSHOT is missing, no dependency information available\n" +
-          "[WARNING] The POM for org.glassfish:javax.el:jar:3.0.1-b06-SNAPSHOT is missing, no dependency information available\n" +
-          "[WARNING] The POM for org.glassfish:javax.el:jar:3.0.1-b07-SNAPSHOT is missing, no dependency information available\n" +
-          "[WARNING] The POM for org.glassfish:javax.el:jar:3.0.1-b08-SNAPSHOT is missing, no dependency information available\n" +
-          "[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 27.497 s - in org.dtest.TestCleanerWithReplication\n" +
-          "[INFO] Running org.dtest.TestCompactor\n" +
-          "[INFO] Tests run: 15, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 207.35 s - in org.dtest.TestCompactor\n" +
-          "[ERROR] Tests run: 11, Failures: 0, Errors: 1, Skipped: 1, Time elapsed: 328.082 s <<< FAILURE! - in org.dtest.TestAcidOnTez\n" +
-          "[ERROR] testGetSplitsLocks(org.dtest.TestAcidOnTez)  Time elapsed: 21.572 s  <<< ERROR!\n" +
-          "java.io.IOException: org.dtest.HiveException: java.io.IOException: java.lang.NullPointerException\n" +
-          "at org.dtest.FetchTask.fetch(FetchTask.java:161)\n" +
-          "at org.dtest.Driver.getResults(Driver.java:2424)\n" +
-          "at org.dtest.ReExecDriver.getResults(ReExecDriver.java:215)\n" +
-          "at org.dtest.TestAcidOnTez.runStatementOnDriver(TestAcidOnTez.java:879)\n" +
-          "[ERROR] Tests run: 4, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 30.526 s <<< FAILURE! - in org.dtest.TestActivePassiveHA\n" +
-          "[ERROR] testManualFailover(org.dtest.TestActivePassiveHA)  Time elapsed: 1.665 s  <<< FAILURE!\n" +
-          "java.lang.AssertionError: expected:<true> but was:<false>\n" +
-          "at org.junit.Assert.fail(Assert.java:88)\n" +
-          "at org.junit.Assert.failNotEquals(Assert.java:743)\n" +
-          "at org.junit.Assert.assertEquals(Assert.java:118)\n" +
-          "at org.junit.Assert.assertEquals(Assert.java:144)\n" +
-          "[INFO] Results:\n" +
-          "[INFO]\n" +
-          "[INFO] Tests run: 12, Failures: 0, Errors: 0, Skipped: 0\n";
-
-  public static final String LOG_SUCCESSFUL_RUN_ALL_SUCCEEDED =
-      "[INFO] ------------------------------------------------------------------------\n" +
-          "[INFO] Building Hive Integration - Unit Tests 3.0.0-SNAPSHOT\n" +
-          "[INFO] ------------------------------------------------------------------------\n" +
-          "[WARNING] The POM for net.minidev:json-smart:jar:2.3-SNAPSHOT is missing, no dependency information available\n" +
-          "[WARNING] The POM for org.glassfish:javax.el:jar:3.0.1-b06-SNAPSHOT is missing, no dependency information available\n" +
-          "[WARNING] The POM for org.glassfish:javax.el:jar:3.0.1-b07-SNAPSHOT is missing, no dependency information available\n" +
-          "[WARNING] The POM for org.glassfish:javax.el:jar:3.0.1-b08-SNAPSHOT is missing, no dependency information available\n" +
-          "[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 27.497 s - in org.dtest.TestCleanerWithReplication\n" +
-          "[INFO] Running org.dtest.TestCompactor\n" +
-          "[INFO] Tests run: 15, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 207.35 s - in org.dtest.TestCompactor\n" +
-          "[INFO] Results:\n" +
-          "[INFO]\n" +
-          "[INFO] Tests run: 12, Failures: 0, Errors: 0, Skipped: 0\n";
-
-  @VisibleForTesting
-  public static final String LOG_TIMED_OUT =
-      "[INFO] -------------------------------------------------------\n" +
-          "[INFO]  T E S T S \n" +
-          "[INFO] -------------------------------------------------------\n" +
-          "[INFO] Running org.dtest.TestAddPartitions \n" +
-          "[INFO]\n" +
-          "[INFO] Results:\n" +
-          "[INFO]\n" +
-          "[INFO] Tests run: 0, Failures: 0, Errors: 0, Skipped: 0\n" +
-          "[INFO]\n" +
-          "[INFO] ------------------------------------------------------------------------\n" +
-          "[INFO] BUILD FAILURE\n" +
-          "[INFO] ------------------------------------------------------------------------\n" +
-          "[INFO] Total time: 21.911 s\n" +
-          "[INFO] Finished at: 2018-04-03T14:12:45-07:00\n" +
-          "[INFO] Final Memory: 54M/849M\n" +
-          "[INFO] ------------------------------------------------------------------------\n" +
-          "[ERROR] Failed to execute goal org.apache.maven.plugins:maven-surefire-plugin:2.20.1:test (default-test) on project hive-standalone-metastore: There was a timeout or other error in the fork -> [Help 1]";
 }

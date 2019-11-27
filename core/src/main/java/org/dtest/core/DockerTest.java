@@ -275,7 +275,8 @@ public class DockerTest {
       log.debug("Going to run task " + taskCmd.containerSuffix());
       tasks.add(executor.submit(() -> {
         ContainerResult result = docker.runContainer(taskCmd);
-        analyzer.analyzeLog(result, buildInfo.getYaml());
+        docker.fetchTestReports(result, analyzer, reporter, buildInfo.getYaml().getAdditionalLogs());
+        analyzer.analyzeLog(result);
         StringBuilder statusMsg = new StringBuilder("Task ")
             .append(result.getCmd().containerSuffix())
             .append(' ');

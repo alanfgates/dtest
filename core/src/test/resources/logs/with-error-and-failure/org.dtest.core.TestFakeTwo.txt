@@ -1,0 +1,8 @@
+-------------------------------------------------------------------------------
+Test set: org.dtest.core.TestFakeTwo
+-------------------------------------------------------------------------------
+Tests run: 2, Failures: 0, Errors: 1, Skipped: 0, Time elapsed: 0.056 s <<< FAILURE! - in org.dtest.core.TestFakeTwo
+errorTwo(org.dtest.core.TestFakeTwo)  Time elapsed: 0.007 s  <<< ERROR!
+java.lang.ArrayIndexOutOfBoundsException: 5
+	at org.dtest.core.TestFakeTwo.errorTwo(TestFakeTwo.java:33)
+

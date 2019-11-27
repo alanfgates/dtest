@@ -1,0 +1,7 @@
+2019-11-26 11:35:20,011  INFO [main] TestUtils: Entire logs from test:
+2019-11-26 11:35:20,017  INFO [main] TestUtils: Entire logs from test:
+2019-11-26 11:35:20,018  INFO [main] TestUtils: Entire logs from test:
+2019-11-26 11:35:21,203  INFO [main] TestUtils: Entire logs from test:
+2019-11-26 11:35:21,204  INFO [main] TestUtils: DEBUG: Reading YAML file /Users/gates/git/dtest/core/target/test-classes/profile.yaml and interpreting using org.dtest.core.BuildYaml
+2019-11-26 11:35:21,205  INFO [main] TestUtils: INFO: Using label needsomething
+2019-11-26 11:35:21,205  INFO [main] TestUtils: INFO: Build dir for build is /Users/gates/git/dtest/core/target/1

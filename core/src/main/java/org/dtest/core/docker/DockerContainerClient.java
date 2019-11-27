@@ -20,6 +20,9 @@ import org.dtest.core.ContainerClient;
 import org.dtest.core.ContainerCommand;
 import org.dtest.core.ContainerCommandFactory;
 import org.dtest.core.ContainerResult;
+import org.dtest.core.Reporter;
+import org.dtest.core.TestReports;
+import org.dtest.core.ResultAnalyzer;
 import org.dtest.core.impl.ProcessResults;
 import org.dtest.core.impl.Utils;
 
@@ -82,33 +85,33 @@ public class DockerContainerClient extends ContainerClient {
     ProcessResults res = Utils.runProcess(cmd.containerSuffix(),
         cfg.getAsTime(CFG_CONTAINERCLIENT_CONTAINERRUNTIME, TimeUnit.SECONDS,
             CFG_CONTAINERCLIENT_CONTAINERRUNTIME_DEFAULT), log, runCmd.toArray(new String[0]));
-    return new ContainerResult(cmd, res.rc, res.stdout);
+    return new ContainerResult(cmd, containerName, res.rc, res.stdout);
   }
 
   @Override
-  public void copyLogFiles(ContainerResult result, String targetDir)
-      throws IOException {
-    String containerName = Utils.buildContainerName(buildInfo.getLabel(), result.getCmd().containerSuffix());
-    for (List<String> files : result.getLogFilesToFetch().values()) {
-      for (String file : files) {
-        ProcessResults res = Utils.runProcess("copying-files-for-" + containerName, 60, log,
-            getDockerExec(), "cp", containerName + ":" + file, targetDir);
-        // Don't throw if we fail to copy a file.  It's possible not every system generates every possible type of
-        // output file.
-      }
+  public void fetchTestReports(ContainerResult result, ResultAnalyzer analyzer, Reporter reporter, String[] additionalLogs) throws IOException {
+    result.setReports(new TestReports(log, result.getContainerName(), reporter.getLogDirForContainer(result)));
+    Utils.runProcess("copying-files-for-" + result.getContainerName(), 60, log,
+        getDockerExec(), "cp",
+        result.getContainerName() + ":" + result.getCmd().containerDirectory() + File.separator + analyzer.getTestResultsDir() +
+            File.separator + ".",
+        result.getReports().getDir().getAbsolutePath());
+    for (String additionalLog : additionalLogs) {
+      Utils.runProcess("copying-additional-logs-for-" + result.getContainerName(), 60, log, getDockerExec(),
+          "cp", result.getContainerName() + ":" + result.getCmd().containerDirectory() + File.separator + additionalLog);
+      result.getReports().addAdditionalLog(additionalLog);
     }
   }
 
   @Override
   public void removeContainer(ContainerResult result) throws IOException {
-    String containerName = Utils.buildContainerName(buildInfo.getLabel(), result.getCmd().containerSuffix());
     if (buildInfo.shouldCleanupAfter()) {
-      ProcessResults res = Utils.runProcess("cleanup", 300, log, getDockerExec(), "rm", containerName);
+      ProcessResults res = Utils.runProcess("cleanup", 300, log, getDockerExec(), "rm", result.getContainerName());
       if (res.rc != 0) {
         log.warn("Failed to cleanup containers: " + res.stderr);
       }
     } else {
-      log.info("Skipping cleanup of container " + containerName + " since no-cleanup is set");
+      log.info("Skipping cleanup of container " + result.getContainerName() + " since no-cleanup is set");
     }
   }
 

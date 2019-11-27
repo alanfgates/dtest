@@ -31,8 +31,6 @@ hiveDirs:
   - dir: llap-server
     env:
       USER: dtestuser
-    skippedTests:
-      - TestBuddyAllocator
   - dir: llap-tez
     env:
       USER: dtestuser
@@ -42,15 +40,11 @@ hiveDirs:
       test.groups: '""'
   - dir: druid-handler
   - dir: service
-    skippedTests:
-      - TestSessionManagerMetrics
   - dir: spark-client
   - dir: streaming
   - dir: hbase-handler
   - dir: hcatalog/core
     needsSplit: true
-    skippedTests:
-      - TestHCatPartitionPublish
   - dir: hcatalog/hcatalog-pig-adapter
     needsSplit: true
   - dir: hcatalog/server-extensions
@@ -79,11 +73,8 @@ hiveDirs:
       - TestStatsReplicationScenariosACIDNoAutogather
       - TestStatsReplicationScenariosMMNoAutogather
     skippedTests:
-      - TestReplicationScenarios          # verified 6/13/19
       - TestSparkSessionTimeout           # verified 6/13/19
       - TestSparkStatistics               # verified 6/13/19
-      - TestSmallTableCacheEviction       # verified 6/13/19
-      - TestJdbcWithMiniHS2ErasureCoding  # verified 6/13/19
     properties:
       skipSparkTests: null
   - dir: itests/hive-unit-hadoop2
@@ -92,8 +83,6 @@ hiveDirs:
   - dir: itests/test-serde
     properties:
       skipSparkTests: null
-    skippedTests:
-      - TestSerDe
   - dir: itests/util
     properties:
       skipSparkTests: null

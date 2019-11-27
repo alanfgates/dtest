@@ -16,15 +16,19 @@
 package org.dtest.core.mvn;
 
 import org.dtest.core.BuildState;
-import org.dtest.core.BuildYaml;
 import org.dtest.core.ContainerResult;
 import org.dtest.core.ResultAnalyzer;
+import org.xml.sax.Attributes;
+import org.xml.sax.SAXException;
+import org.xml.sax.helpers.DefaultHandler;
 
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.parsers.SAXParser;
+import javax.xml.parsers.SAXParserFactory;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Deque;
 import java.util.List;
 import java.util.Vector;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -44,20 +48,9 @@ public class MavenResultAnalyzer extends ResultAnalyzer {
    */
   public static final String TIMED_OUT_KEY = "Timed out";
 
-  /**
-   * A list of patterns to use to look for errors.  The first pattern that matches will be used, so order matter here.
-   */
-  protected final Deque<Pattern> unitTestErrorPatterns;
-
-  /**
-   * A list of patterns to use to look for failures.  The first pattern that matches will be used, so order matters here.
-   */
-  protected final Deque<Pattern> unitTestFailurePatterns;
-
   private AtomicInteger succeeded;
   private List<String> failed;
   private List<String> errors;
-  private final Pattern testCountLine;
   private final Pattern timeout;
   private BuildState lastContainerState;
 
@@ -66,13 +59,7 @@ public class MavenResultAnalyzer extends ResultAnalyzer {
     succeeded = new AtomicInteger(0);
     failed = new Vector<>();
     errors = new Vector<>();
-    testCountLine =
-        Pattern.compile(".*Tests run: ([0-9]+), Failures: ([0-9]+), Errors: ([0-9]+).*Time elapsed:.*");
     timeout = Pattern.compile(".*Failed to execute goal .* There was a timeout or other error in the fork.*");
-    unitTestErrorPatterns = new ArrayDeque<>();
-    unitTestErrorPatterns.add(Pattern.compile("(?:\\[ERROR\\] )?([A-Za-z0-9_]+)\\([a-zA-Z_0-9.]+\\.(Test[A-Za-z0-9_]+)\\)\\s+Time elapsed: [0-9.]+ (?:sec|s)\\s+<<< ERROR!"));
-    unitTestFailurePatterns = new ArrayDeque<>();
-    unitTestFailurePatterns.add(Pattern.compile("(?:\\[ERROR\\] )?([A-Za-z0-9_]+)\\([a-zA-Z_0-9.]+\\.(Test[A-Za-z0-9_]+)\\)\\s+Time elapsed: [0-9.]+ (?:sec|s)\\s+<<< FAILURE!"));
   }
 
   @Override
@@ -93,14 +80,14 @@ public class MavenResultAnalyzer extends ResultAnalyzer {
   }
 
   @Override
-  public void analyzeLog(ContainerResult result, BuildYaml yaml) throws IOException {
+  public void analyzeLog(ContainerResult result) throws IOException {
     lastContainerState = new BuildState();
     String[] lines = result.getStdout().split("\n");
     for (String line : lines) {
       assert line != null;
-      count(line, testCountLine);
-      analyzeLogLine(result, line, yaml);
+      lookForTimeouts(result, line);
     }
+    examineReports(result);
     try {
       if (lastContainerState.getState() == BuildState.State.HAD_TIMEOUTS) {
         result.setAnalysisResult(ContainerResult.ContainerStatus.TIMED_OUT);
@@ -116,76 +103,101 @@ public class MavenResultAnalyzer extends ResultAnalyzer {
     }
   }
 
-  private void analyzeLogLine(ContainerResult result, String line, BuildYaml yaml) throws IOException {
+  @Override
+  public String getTestResultsDir() {
+    return "target" + File.separator + "surefire-reports";
+  }
+
+  protected String determineTestCaseName(String caseName) {
+    return caseName;
+  }
+
+  protected String testNameForLogs(String testName, String caseName) {
+    return testName;
+  }
+
+  private void lookForTimeouts(ContainerResult result, String line) throws IOException {
     // Look for timeouts
     Matcher m = timeout.matcher(line);
     if (m.matches()) {
       lastContainerState.sawTimeouts();
-      findAdditionalLogs(result, TIMED_OUT_KEY, yaml);
-    } else {
-      findErrorsAndFailures(result, line, yaml);
+      result.getReports().keepAdditionalLogs(MavenResultAnalyzer.TIMED_OUT_KEY);
     }
-    // We need to examine each line for errors because one test with multiple failures will report each one on a separate line
   }
 
-  private int count(String line, Pattern pattern) {
-    Matcher m = pattern.matcher(line);
-    int failures = 0, errors = 0;
-    if (m.matches()) {
-      int total = Integer.parseInt(m.group(1));
-      failures = Integer.parseInt(m.group(2));
-      errors = Integer.parseInt(m.group(3));
-      succeeded.addAndGet(total - failures - errors);
+  private void examineReports(ContainerResult result) throws IOException {
+    // find all the xml files
+    File[] xmlFiles = result.getReports().getDir().listFiles((dir, name) -> name.endsWith(".xml"));
+    if (xmlFiles == null) {
+      log.warn("Unable to find any xml files for container " + result.getContainerName() + " not sure if this is ok or not.");
+      return;
     }
-    return failures + errors;
-  }
 
-  private void findErrorsAndFailures(ContainerResult result, String line, BuildYaml yaml) throws IOException {
-    for (Pattern error : unitTestErrorPatterns) {
-      Matcher errorLine = error.matcher(line);
-      if (errorLine.matches()) {
-        log.debug("Saw an error at line " + line);
-        String testName = errorLine.group(2) + "." + errorLine.group(1);
-        errors.add(testName);
-        findLogFiles(result, line, errorLine.group(2), yaml);
-        lastContainerState.sawTestFailureOrError();
-        break; // If we found an error, don't keep looking or we may double count
+    try {
+      SAXParserFactory factory = SAXParserFactory.newInstance();
+      for (File xmlFile : xmlFiles) {
+        SAXParser parser = factory.newSAXParser();
+        Handler handler = new Handler();
+        parser.parse(xmlFile, handler);
+        succeeded.addAndGet(handler.report.numRun - handler.report.errors - handler.report.failures - handler.report.skipped);
+        for (TestCase tc : handler.report.cases) {
+          if (tc.result != TestResult.SUCCESS) {
+            String testName = handler.report.name.substring(handler.report.name.lastIndexOf('.') + 1);
+            lastContainerState.sawTestFailureOrError();
+            if (tc.result == TestResult.FAILURE) failed.add(testName + "." + determineTestCaseName(tc.name));
+            else if (tc.result == TestResult.ERROR) errors.add(testName + "." + determineTestCaseName(tc.name));
+            else throw new RuntimeException("Unexpected enum value");
+            File[] toFetch = result.getReports().getDir().listFiles(
+                (dir, name) -> name.contains(handler.report.name + ".txt") || name.contains(handler.report.name + "-output.txt"));
+            if (toFetch == null) log.warn("Unable to find any logfile for testcase " + testNameForLogs(testName, tc.name));
+            else for (File fetchie : toFetch) result.getReports().keep(fetchie, testNameForLogs(testName, tc.name));
+
+          }
+        }
       }
-    }
-    for (Pattern failure : unitTestFailurePatterns) {
-      Matcher failureLine = failure.matcher(line);
-      if (failureLine.matches()) {
-        log.debug("Saw a failure at line " + line);
-        String testName = failureLine.group(2) + "." + failureLine.group(1);
-        failed.add(testName);
-        findLogFiles(result, line, failureLine.group(2), yaml);
-        lastContainerState.sawTestFailureOrError();
-        break; // If we found a failure, don't keep looking or we may double count
-      }
+    } catch (SAXException| ParserConfigurationException e) {
+      throw new IOException(e);
     }
   }
 
-  private void findLogFiles(ContainerResult result, String line, String testName, BuildYaml yaml) throws IOException {
-    log.debug("Adding log files for container " + result.getCmd().containerSuffix());
-    // Make sure we found at least some log files
-    boolean foundOne = false;
-    for (String pkg : yaml.getJavaPackages()) {
-      Pattern p = Pattern.compile(".*(" + pkg + "[a-zA-Z0-9.\\-]*" + testName + ").*");
-      Matcher m = p.matcher(line);
-      if (m.matches()) {
-        foundOne = true;
-        // Don't use File.separator here as we are running these in the container, which is guaranteed to be Linux based.
-        result.addLogFileToFetch(testName, result.getCmd().containerDirectory() + "/target/surefire-reports/" + m.group(1) + ".txt");
-        result.addLogFileToFetch(testName, result.getCmd().containerDirectory() + "/target/surefire-reports/" + m.group(1) + "-output.txt");
-      }
-    }
-    if (!foundOne) throw new IOException("Unable to find logfile for test " + testName + " from line <" + line + ">");
-    findAdditionalLogs(result, testName, yaml);
+  private static class Report {
+    String name;
+    List<TestCase> cases = new ArrayList<>();
+    int numRun, errors, failures, skipped;
   }
 
-  private void findAdditionalLogs(ContainerResult result, String testName, BuildYaml yaml) {
-    for (String log : yaml.getAdditionalLogs()) {
-      result.addLogFileToFetch(testName, result.getCmd().containerDirectory() + File.separator + log);
+  private enum TestResult { SUCCESS, ERROR, FAILURE }
+
+  private static class TestCase {
+    TestResult result;
+    String name;
+  }
+
+  private static class Handler extends DefaultHandler {
+    Report report = new Report();
+    TestCase currentTestCase = null;
+
+    @Override
+    public void startElement(String uri, String localName, String qName, Attributes attributes) {
+      if ("testsuite".equals(qName)) {
+        report.name = attributes.getValue("name");
+        report.numRun = Integer.parseInt(attributes.getValue("tests"));
+        report.errors = Integer.parseInt(attributes.getValue("errors"));
+        report.failures = Integer.parseInt(attributes.getValue("failures"));
+        report.skipped = Integer.parseInt(attributes.getValue("skipped"));
+      } else if ("testcase".equals(qName)) {
+        TestCase tc = new TestCase();
+        tc.name = attributes.getValue("name");
+        report.cases.add(tc);
+        currentTestCase = tc;
+        currentTestCase.result = TestResult.SUCCESS;
+      } else if ("failure".equals(qName)) {
+        assert currentTestCase != null;
+        currentTestCase.result = TestResult.FAILURE;
+      } else if ("error".equals(qName)) {
+        assert currentTestCase != null;
+        currentTestCase.result = TestResult.ERROR;
+      }
     }
   }
 }

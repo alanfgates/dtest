@@ -28,6 +28,7 @@ import org.dtest.core.git.GitSource;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Properties;
 import java.util.Set;
@@ -46,44 +47,12 @@ public class TestOzoneContainerCommandFactory {
     cmds.setConfig(cfg).setLog(log);
     BuildInfo buildInfo = new BuildInfo(TestUtils.buildYaml(cfg, log, "ozonetest"), new GitSource(), true, "1");
     buildInfo.setConfig(cfg).setLog(log);
-    buildInfo.getBuildDir();
-    cmds.buildContainerCommands(new TestContainerClient(), buildInfo);
+    File buildDir = TestUtils.createBuildDir();
+    cmds.buildContainerCommands(new TestUtils.MockContainerClient("ozone", null, buildDir, 0), buildInfo);
     log.dumpToLog();
     Assert.assertEquals(2, cmds.getCmds().size());
-    Assert.assertEquals("/bin/bash -c ( cd /tmp/hadoop-hdds; /usr/bin/mvn test -Dsurefire.timeout=300)", StringUtils.join(cmds.getCmds().get(0).shellCommand(), " "));
-    Assert.assertEquals("/bin/bash -c ( cd /tmp/hadoop-ozone; /usr/bin/mvn test -Dsurefire.timeout=300)", StringUtils.join(cmds.getCmds().get(1).shellCommand(), " "));
-  }
-
-  private static class TestContainerClient extends ContainerClient {
-    @Override
-    public String getContainerBaseDir() {
-      return "/tmp";
-    }
-
-    @Override
-    public ContainerResult runContainer(ContainerCommand cmd) {
-      return null;
-    }
-
-    @Override
-    public void buildImage(ContainerCommandFactory cmdFactory) {
-
-    }
-
-    @Override
-    public void copyLogFiles(ContainerResult result, String targetDir) {
-
-    }
-
-    @Override
-    public void removeContainer(ContainerResult result) {
-
-    }
-
-    @Override
-    public void removeImage() {
-
-    }
+    Assert.assertEquals("/bin/bash -c ( cd " + buildDir + "/hadoop-hdds; /usr/bin/mvn test -Dsurefire.timeout=300)", StringUtils.join(cmds.getCmds().get(0).shellCommand(), " "));
+    Assert.assertEquals("/bin/bash -c ( cd " + buildDir + "/hadoop-ozone; /usr/bin/mvn test -Dsurefire.timeout=300)", StringUtils.join(cmds.getCmds().get(1).shellCommand(), " "));
   }
 
 }

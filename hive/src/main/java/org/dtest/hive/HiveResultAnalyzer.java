@@ -17,18 +17,30 @@ package org.dtest.hive;
 
 import org.dtest.core.mvn.MavenResultAnalyzer;
 
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class HiveResultAnalyzer extends MavenResultAnalyzer {
 
-  public HiveResultAnalyzer() {
-    // There is a '.' in the Failure pattern and not the Error pattern because if the qfile name contains a . (which it
-    // shouldn't) then the error message will have a '.', but this causes a FAILURE and not an ERROR.
-    unitTestFailurePatterns.addFirst(
-        Pattern.compile("(?:\\[ERROR\\] )?testCliDriver\\[([A-Za-z0-9_.]+)\\].*\\.(Test[A-Za-z0-9_]+).*FAILURE!"));
-    unitTestErrorPatterns.addFirst(
-        Pattern.compile("(?:\\[ERROR\\] )?testCliDriver\\[([A-Za-z0-9_]+)\\].*\\.(Test[A-Za-z0-9_]+).*ERROR!"));
+  private static final Pattern qFileNameFinder = Pattern.compile("testCliDriver\\[([A-Za-z0-9_]+)\\]");
+
+  @Override
+  protected String determineTestCaseName(String caseName) {
+    Matcher m = qFileNameFinder.matcher(caseName);
+    if (m.matches()) {
+      return m.group(1);
+    } else {
+      return caseName;
+    }
   }
 
-
+  @Override
+  protected String testNameForLogs(String testName, String caseName) {
+    Matcher m = qFileNameFinder.matcher(caseName);
+    if (m.matches()) {
+      return testName + "." + m.group(1);
+    } else {
+      return testName;
+    }
+  }
 }

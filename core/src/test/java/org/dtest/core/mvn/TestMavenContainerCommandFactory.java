@@ -22,17 +22,21 @@ import org.dtest.core.ContainerClient;
 import org.dtest.core.ContainerCommand;
 import org.dtest.core.ContainerCommandFactory;
 import org.dtest.core.ContainerResult;
+import org.dtest.core.Reporter;
+import org.dtest.core.ResultAnalyzer;
 import org.dtest.core.TestUtils;
 import org.dtest.core.git.GitSource;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.io.File;
 import java.io.IOException;
 
 public class TestMavenContainerCommandFactory {
 
   @Test
   public void buildCommands() throws IOException {
+    File buildDir = TestUtils.createBuildDir();
     Config cfg = TestUtils.buildCfg(BuildInfo.CFG_BUILDINFO_LABEL, "profile",
                                     BuildInfo.CFG_BUILDINFO_BASEDIR, System.getProperty("java.io.tmpdir"));
     TestUtils.TestLogger log = new TestUtils.TestLogger();
@@ -42,43 +46,22 @@ public class TestMavenContainerCommandFactory {
     BuildInfo buildInfo = new BuildInfo(TestUtils.buildYaml(cfg, log), new GitSource(), true, "1");
     buildInfo.setConfig(cfg).setLog(log);
     buildInfo.getBuildDir();
-    cmds.buildContainerCommands(new TestContainerClient(), buildInfo);
+    cmds.buildContainerCommands(new TestContainerClient("test-maven-container-command-factory", "allgood", buildDir, 0), buildInfo);
     Assert.assertEquals(7, cmds.getCmds().size());
-    Assert.assertEquals("/bin/bash -c ( cd /tmp/beeline; /usr/bin/mvn test -Dsurefire.timeout=300)", StringUtils.join(cmds.getCmds().get(0).shellCommand(), " "));
-    Assert.assertEquals("/bin/bash -c ( cd /tmp/cli; /usr/bin/mvn test -Dsurefire.timeout=300 -Dtest.excludes.additional=**/TestCliDriverMethods)", StringUtils.join(cmds.getCmds().get(1).shellCommand(), " "));
-    Assert.assertEquals("/bin/bash -c ( cd /tmp/standalone-metastore; /usr/bin/mvn test -Dsurefire.timeout=300 -Dtest=TestRetriesInRetryingHMSHandler,TestRetryingHMSHandler,TestSetUGIOnBothClientServer,TestSetUGIOnOnlyClient,TestSetUGIOnOnlyServer,TestStats,TestMetastoreSchemaTool,TestSchemaToolForMetastore,TestTxnHandlerNegative,TestTxnUtils -Dtest.groups=\"\")", StringUtils.join(cmds.getCmds().get(2).shellCommand(), " "));
-    Assert.assertEquals("/bin/bash -c ( cd /tmp/standalone-metastore; /usr/bin/mvn test -Dsurefire.timeout=300 -Dtest=TestHdfsUtils,TestMetaStoreUtils -Dtest.groups=\"\")", StringUtils.join(cmds.getCmds().get(3).shellCommand(), " "));
-    Assert.assertEquals("/bin/bash -c ( cd /tmp/ql; /usr/bin/mvn test -Dsurefire.timeout=300 -Dtest=TestCleaner2)", StringUtils.join(cmds.getCmds().get(4).shellCommand(), " "));
-    Assert.assertEquals("/bin/bash -c ( cd /tmp/ql; /usr/bin/mvn test -Dsurefire.timeout=300 -Dtest=CompactorTest,TestCleaner,TestInitiator,TestWorker2)", StringUtils.join(cmds.getCmds().get(5).shellCommand(), " "));
-    Assert.assertEquals("/bin/bash -c ( cd /tmp/itests/qtest; /usr/bin/mvn test -Dsurefire.timeout=300 -Dtest=TestContribCliDriver -DskipSparkTests)", StringUtils.join(cmds.getCmds().get(6).shellCommand(), " "));
+    Assert.assertEquals("/bin/bash -c ( cd " + buildDir + "/beeline; /usr/bin/mvn test -Dsurefire.timeout=300)", StringUtils.join(cmds.getCmds().get(0).shellCommand(), " "));
+    Assert.assertEquals("/bin/bash -c ( cd " + buildDir + "/cli; /usr/bin/mvn test -Dsurefire.timeout=300 -Dtest.excludes.additional=**/TestCliDriverMethods)", StringUtils.join(cmds.getCmds().get(1).shellCommand(), " "));
+    Assert.assertEquals("/bin/bash -c ( cd " + buildDir + "/standalone-metastore; /usr/bin/mvn test -Dsurefire.timeout=300 -Dtest=TestRetriesInRetryingHMSHandler,TestRetryingHMSHandler,TestSetUGIOnBothClientServer,TestSetUGIOnOnlyClient,TestSetUGIOnOnlyServer,TestStats,TestMetastoreSchemaTool,TestSchemaToolForMetastore,TestTxnHandlerNegative,TestTxnUtils -Dtest.groups=\"\")", StringUtils.join(cmds.getCmds().get(2).shellCommand(), " "));
+    Assert.assertEquals("/bin/bash -c ( cd " + buildDir + "/standalone-metastore; /usr/bin/mvn test -Dsurefire.timeout=300 -Dtest=TestHdfsUtils,TestMetaStoreUtils -Dtest.groups=\"\")", StringUtils.join(cmds.getCmds().get(3).shellCommand(), " "));
+    Assert.assertEquals("/bin/bash -c ( cd " + buildDir + "/ql; /usr/bin/mvn test -Dsurefire.timeout=300 -Dtest=TestCleaner2)", StringUtils.join(cmds.getCmds().get(4).shellCommand(), " "));
+    Assert.assertEquals("/bin/bash -c ( cd " + buildDir + "/ql; /usr/bin/mvn test -Dsurefire.timeout=300 -Dtest=CompactorTest,TestCleaner,TestInitiator,TestWorker2)", StringUtils.join(cmds.getCmds().get(5).shellCommand(), " "));
+    Assert.assertEquals("/bin/bash -c ( cd " + buildDir + "/itests/qtest; /usr/bin/mvn test -Dsurefire.timeout=300 -Dtest=TestContribCliDriver -DskipSparkTests)", StringUtils.join(cmds.getCmds().get(6).shellCommand(), " "));
     log.dumpToLog();
   }
 
-  private static class TestContainerClient extends ContainerClient {
+  private static class TestContainerClient extends TestUtils.MockContainerClient {
 
-    @Override
-    public void buildImage(ContainerCommandFactory cmdFactory) {
-
-    }
-
-    @Override
-    public void copyLogFiles(ContainerResult result, String targetDir) {
-
-    }
-
-    @Override
-    public void removeContainer(ContainerResult result) {
-
-    }
-
-    @Override
-    public void removeImage() {
-
-    }
-
-    @Override
-    public String getContainerBaseDir() {
-      return "/tmp";
+    public TestContainerClient(String containerName, String cannedDir, File buildDir, int rc) throws IOException {
+      super(containerName, cannedDir, buildDir, rc);
     }
 
     @Override
@@ -86,7 +69,7 @@ public class TestMavenContainerCommandFactory {
       // Doing our own mocking here
       String shellCmd = StringUtils.join(cmd.shellCommand(), " ");
       if (shellCmd.contains("standalone-metastore") && shellCmd.contains("find")) {
-        return new ContainerResult(cmd, 0, "standalone-metastore/src/test/java//org/apache/hadoop/hive/metastore/TestRetriesInRetryingHMSHandler.java\n" +
+        return new ContainerResult(cmd, "unnamed", 0, "standalone-metastore/src/test/java//org/apache/hadoop/hive/metastore/TestRetriesInRetryingHMSHandler.java\n" +
             "standalone-metastore/src/test/java//org/apache/hadoop/hive/metastore/TestRetryingHMSHandler.java\n" +
             "standalone-metastore/src/test/java//org/apache/hadoop/hive/metastore/TestSetUGIOnBothClientServer.java\n" +
             "standalone-metastore/src/test/java//org/apache/hadoop/hive/metastore/TestSetUGIOnOnlyClient.java\n" +
@@ -99,7 +82,7 @@ public class TestMavenContainerCommandFactory {
             "standalone-metastore/src/test/java//org/apache/hadoop/hive/metastore/utils/TestHdfsUtils.java\n" +
             "standalone-metastore/src/test/java//org/apache/hadoop/hive/metastore/utils/TestMetaStoreUtils.java\n");
       } else if (shellCmd.contains("ql") && shellCmd.contains("find") && !shellCmd.contains("clientpositive")) {
-        return new ContainerResult(cmd, 0, "ql/src/test/org/apache/hadoop/hive/ql/txn//compactor/CompactorTest.java\n" +
+        return new ContainerResult(cmd, "unnamed", 0, "ql/src/test/org/apache/hadoop/hive/ql/txn//compactor/CompactorTest.java\n" +
             "ql/src/test/org/apache/hadoop/hive/ql/txn//compactor/TestCleaner.java\n" +
             "ql/src/test/org/apache/hadoop/hive/ql/txn//compactor/TestCleaner2.java\n" +
             "ql/src/test/org/apache/hadoop/hive/ql/txn//compactor/TestInitiator.java\n" +
@@ -109,7 +92,6 @@ public class TestMavenContainerCommandFactory {
         throw new RuntimeException("Unexpected cmd " + shellCmd);
       }
     }
-
   }
 
 }

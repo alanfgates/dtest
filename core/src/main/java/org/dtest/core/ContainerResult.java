@@ -15,11 +15,6 @@
  */
 package org.dtest.core;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 /**
  * ContainerResult tracks the result of running a container.
  */
@@ -29,20 +24,22 @@ public class ContainerResult {
   private final ContainerCommand cmd;
   private final int rc;
   private final String stdout;
+  private final String containerName;
   private ContainerStatus analysisResult;
-  private Map<String, List<String>> logFilesToFetch;
+  private TestReports reports;
 
   /**
    *
    * @param cmd the command run in the container.
+   * @param containerName name of the container;
    * @param rc result code from running the command.
    * @param stdout the output of the container as printed on stdout.
    */
-  public ContainerResult(ContainerCommand cmd, int rc, String stdout) {
+  public ContainerResult(ContainerCommand cmd, String containerName, int rc, String stdout) {
     this.cmd = cmd;
+    this.containerName = containerName;
     this.rc = rc;
     this.stdout = stdout;
-    logFilesToFetch = new HashMap<>();
   }
 
   /**
@@ -86,26 +83,15 @@ public class ContainerResult {
     this.analysisResult = analysisResult;
   }
 
-  /**
-   * Get a list of files from the container that should be fetched for the user.  Examples include log4j logs,
-   * build logs, etc. that the user may want to see to analyze the build.  DockerTest will fetch these and
-   * tar them up for the caller.
-   * @return set of logs files to fetch, keyed to the test name
-   */
-  public Map<String, List<String>> getLogFilesToFetch() {
-    return logFilesToFetch;
+  public String getContainerName() {
+    return containerName;
   }
 
-  /**
-   * Add a file to the list of log files that should be fetched for the user.  This is a log file inside the
-   * container that will be of interest to the user.  This should be called by implementations of
-   * {@link ResultAnalyzer}.
-   * @param testName name of the test this log file is for
-   * @param logFile file to add to the list
-   */
-  public void addLogFileToFetch(String testName, String logFile) {
-    List<String> logFiles = logFilesToFetch.computeIfAbsent(testName, s -> new ArrayList<>());
-    logFiles.add(logFile);
+  public TestReports getReports() {
+    return reports;
   }
 
+  public void setReports(TestReports reports) {
+    this.reports = reports;
+  }
 }

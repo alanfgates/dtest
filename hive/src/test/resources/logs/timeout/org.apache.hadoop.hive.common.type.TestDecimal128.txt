@@ -1,0 +1,4 @@
+-------------------------------------------------------------------------------
+Test set: org.apache.hadoop.hive.common.type.TestDecimal128
+-------------------------------------------------------------------------------
+Tests run: 26, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 2.742 s - in org.apache.hadoop.hive.common.type.TestDecimal128

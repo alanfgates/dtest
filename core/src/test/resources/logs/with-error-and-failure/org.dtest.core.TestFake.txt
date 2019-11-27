@@ -1,0 +1,8 @@
+-------------------------------------------------------------------------------
+Test set: org.dtest.core.TestFake
+-------------------------------------------------------------------------------
+Tests run: 2, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 0.075 s <<< FAILURE! - in org.dtest.core.TestFake
+fail(org.dtest.core.TestFake)  Time elapsed: 0.011 s  <<< FAILURE!
+java.lang.AssertionError: expected:<1> but was:<0>
+	at org.dtest.core.TestFake.fail(TestFake.java:36)
+
