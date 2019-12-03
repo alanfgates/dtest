@@ -37,11 +37,13 @@ public class HtmlReporter extends Reporter {
   @Override
   public File getLogDirForContainer(ContainerResult result) throws IOException {
     File logDir = new File(buildInfo.getBuildDir(), result.getCmd().containerSuffix());
+    /*
     log.info("Creating directory " + logDir.getAbsolutePath() + " for logs from container "
         + result.getCmd().containerSuffix());
     if (!logDir.mkdir()) {
       log.warn("Expected to create directory " + logDir + ", but it appears to already exist");
     }
+     */
     return logDir;
   }
 

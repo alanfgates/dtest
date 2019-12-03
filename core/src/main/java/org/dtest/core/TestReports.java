@@ -151,6 +151,7 @@ public class TestReports {
       return;
     }
     if (keptFiles.add(file.getName())) {
+      createReportDirIfNotExists();
       File newName = new File(reportDir, file.getName());
       if (!file.renameTo(newName)) {
         throw new IOException("Failed to move file: " + file.getAbsolutePath() + " to " + tmpDir.getAbsolutePath());
@@ -158,5 +159,14 @@ public class TestReports {
     }
     Set<File> files = testToKeptFileMap.computeIfAbsent(testName, s -> new HashSet<>());
     files.add(file);
+  }
+
+  private void createReportDirIfNotExists() {
+    if (!reportDir.exists()) {
+      log.info("Creating directory " + reportDir.getAbsolutePath() + " for reports");
+      if (!reportDir.mkdir()) {
+        log.warn("Expected to create directory " + reportDir + ", but it appears to already exist");
+      }
+    }
   }
 }
