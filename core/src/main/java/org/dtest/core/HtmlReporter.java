@@ -36,15 +36,8 @@ public class HtmlReporter extends Reporter {
 
   @Override
   public File getLogDirForContainer(ContainerResult result) throws IOException {
-    File logDir = new File(buildInfo.getBuildDir(), result.getCmd().containerSuffix());
-    /*
-    log.info("Creating directory " + logDir.getAbsolutePath() + " for logs from container "
-        + result.getCmd().containerSuffix());
-    if (!logDir.mkdir()) {
-      log.warn("Expected to create directory " + logDir + ", but it appears to already exist");
-    }
-     */
-    return logDir;
+    // Don't actually create the directory, we'll do that lazily.
+    return new File(buildInfo.getBuildDir(), result.getCmd().containerSuffix());
   }
 
   @Override
@@ -111,10 +104,7 @@ public class HtmlReporter extends Reporter {
     writer.write("<p>Repository:  " + repo + "</p>\n");
     writer.write("<p>Branch:  " + branch + "</p>\n");
     writer.write("<p>Profile:  " + profile + "</p>\n");
-    writer.write("<p>Counts:</p>\n");
-    writer.write("<p>Succeeded:  " + numSucceeded + "</p>\n");
-    writer.write("<p>Errors:  " + numErrors + "</p>\n");
-    writer.write("<p>Failures:  " + numFailures + "</p>\n");
+    writer.write("<p><b>Counts:  Succeeded:  " + numSucceeded + ", Errors:  " + numErrors + ", Failures:  " + numFailures + "</b></p>\n");
     if (logLinks.size() > 0) {
       writer.write("<p>Links to logfiles for tests with errors, failures, or timeout:</p>\n");
       writer.write("<ul>\n");
