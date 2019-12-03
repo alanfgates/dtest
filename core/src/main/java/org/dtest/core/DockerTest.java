@@ -301,7 +301,10 @@ public class DockerTest {
 
         // Copy log files from any failed tests to a directory specific to this container
         reporter.addFailedTests(docker, result);
-        if (buildInfo.shouldCleanupAfter()) docker.removeContainer(result);
+        if (buildInfo.shouldCleanupAfter()) {
+          result.getReports().cleanupTempDir();
+          docker.removeContainer(result);
+        }
         return 1;
       }));
     }

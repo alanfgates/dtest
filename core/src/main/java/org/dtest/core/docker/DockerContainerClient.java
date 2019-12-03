@@ -95,10 +95,11 @@ public class DockerContainerClient extends ContainerClient {
         getDockerExec(), "cp",
         result.getContainerName() + ":" + result.getCmd().containerDirectory() + File.separator + analyzer.getTestResultsDir() +
             File.separator + ".",
-        result.getReports().getDir().getAbsolutePath());
+        result.getReports().getTempDir().getAbsolutePath());
     for (String additionalLog : additionalLogs) {
       Utils.runProcess("copying-additional-logs-for-" + result.getContainerName(), 60, log, getDockerExec(),
-          "cp", result.getContainerName() + ":" + result.getCmd().containerDirectory() + File.separator + additionalLog);
+          "cp", result.getContainerName() + ":" + result.getCmd().containerDirectory() + File.separator + additionalLog,
+          result.getReports().getTempDir().getAbsolutePath());
       result.getReports().addAdditionalLog(additionalLog);
     }
   }

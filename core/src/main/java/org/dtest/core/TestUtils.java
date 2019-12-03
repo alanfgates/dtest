@@ -73,7 +73,6 @@ public class TestUtils {
     if (!buildDir.mkdir() && !buildDir.isDirectory()) {
       throw new IOException("Failed to create temporary directory " + buildDir.getAbsolutePath());
     }
-    buildDir.deleteOnExit();
     return buildDir;
   }
 
@@ -361,7 +360,7 @@ public class TestUtils {
     public void fetchTestReports(ContainerResult result, ResultAnalyzer analyzer, Reporter reporter, String[] additionalLogs) throws IOException {
       result.setReports(new TestReports(log, result.getContainerName(), reporter.getLogDirForContainer(result)));
       for (Map.Entry<String, String> e : testReports.entrySet()) {
-        FileWriter writer = new FileWriter(new File(result.getReports().getDir(), e.getKey()));
+        FileWriter writer = new FileWriter(new File(result.getReports().getTempDir(), e.getKey()));
         writer.write(e.getValue());
         writer.close();
       }

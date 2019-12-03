@@ -29,7 +29,6 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class HtmlReporter extends Reporter {
   private Map<String, String> logLinks; // HTML links to the logs, need to be
-  private File logDir;
 
   public HtmlReporter() {
     this.logLinks = new ConcurrentHashMap<>();
@@ -37,11 +36,11 @@ public class HtmlReporter extends Reporter {
 
   @Override
   public File getLogDirForContainer(ContainerResult result) throws IOException {
-    if (logDir == null) {
-      logDir = new File(buildInfo.getBuildDir(), result.getCmd().containerSuffix());
-      log.info("Creating directory " + logDir.getAbsolutePath() + " for logs from container "
-          + result.getCmd().containerSuffix());
-      logDir.mkdir();
+    File logDir = new File(buildInfo.getBuildDir(), result.getCmd().containerSuffix());
+    log.info("Creating directory " + logDir.getAbsolutePath() + " for logs from container "
+        + result.getCmd().containerSuffix());
+    if (!logDir.mkdir()) {
+      log.warn("Expected to create directory " + logDir + ", but it appears to already exist");
     }
     return logDir;
   }
@@ -62,7 +61,7 @@ public class HtmlReporter extends Reporter {
       boolean copiedDTest = true;
       try {
         BufferedReader reader = new BufferedReader(new FileReader(new File(buildInfo.getBuildDir(), "dtest.log")));
-        FileWriter dtestWriter = new FileWriter(new File(logDir, "dtest.log"));
+        FileWriter dtestWriter = new FileWriter(new File(result.getReports().getReportDir(), "dtest.log"));
         String line;
         while ((line = reader.readLine()) != null) {
           if (line.contains(result.getCmd().containerSuffix())) dtestWriter.write(line + "\n");
@@ -75,7 +74,7 @@ public class HtmlReporter extends Reporter {
         copiedDTest = false;
       }
       // Create an index.html file in the target directory so that Jenkins can display them
-      FileWriter writer = new FileWriter(new File(logDir, "index.html"));
+      FileWriter writer = new FileWriter(new File(result.getReports().getReportDir(), "index.html"));
       writer.write("<html>\n");
       writer.write("<head>\n");
       writer.write("<title>" + result.getCmd().containerSuffix() + "</title>\n");

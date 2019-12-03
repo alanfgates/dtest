@@ -17,6 +17,11 @@ package org.dtest.core;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.FileVisitResult;
+import java.nio.file.FileVisitor;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -50,7 +55,6 @@ public class TestReports {
     if (!tmpDir.mkdir() && !tmpDir.isDirectory()) {
       throw new IOException("Failed to create temporary directory " + tmpDir.getAbsolutePath());
     }
-    tmpDir.deleteOnExit();
     keptFiles = new HashSet<>();
     additionalLogs = new ArrayList<>();
     testToKeptFileMap = new HashMap<>();
@@ -58,11 +62,19 @@ public class TestReports {
   }
 
   /**
-   * Get the directory the reports are in.
+   * Get the temporary directory the reports are cached in after being moved from the docker container.
    * @return handle to the directory.
    */
-  public File getDir() {
+  public File getTempDir() {
     return tmpDir;
+  }
+
+  /**
+   * Get the directory that files are moved to for the {@link Reporter}.
+   * @return handle to the directory
+   */
+  public File getReportDir() {
+    return reportDir;
   }
 
   /**
@@ -97,6 +109,40 @@ public class TestReports {
    */
   public Map<String, Set<File>> getKeptFiles() {
     return testToKeptFileMap;
+  }
+
+  /**
+   * Removes the temporary directory and all the files that were placed in it.
+   */
+  public void cleanupTempDir() {
+    try {
+      Files.walkFileTree(tmpDir.toPath(), new FileVisitor<Path>() {
+        @Override
+        public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) {
+          return FileVisitResult.CONTINUE;
+        }
+
+        @Override
+        public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+          Files.delete(file);
+          return FileVisitResult.CONTINUE;
+        }
+
+        @Override
+        public FileVisitResult visitFileFailed(Path file, IOException exc) {
+          log.warn("Unable to delete file " + file);
+          return FileVisitResult.CONTINUE;
+        }
+
+        @Override
+        public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
+          Files.delete(dir);
+          return FileVisitResult.CONTINUE;
+        }
+      });
+    } catch (IOException e) {
+      log.warn("Caught exception while trying to clean up temporary directory " + tmpDir, e);
+    }
   }
 
   private void internalKeep(File file, String testName) throws IOException {

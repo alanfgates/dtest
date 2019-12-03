@@ -127,7 +127,7 @@ public class MavenResultAnalyzer extends ResultAnalyzer {
 
   private void examineReports(ContainerResult result) throws IOException {
     // find all the xml files
-    File[] xmlFiles = result.getReports().getDir().listFiles((dir, name) -> name.endsWith(".xml"));
+    File[] xmlFiles = result.getReports().getTempDir().listFiles((dir, name) -> name.endsWith(".xml"));
     if (xmlFiles == null) {
       log.warn("Unable to find any xml files for container " + result.getContainerName() + " not sure if this is ok or not.");
       return;
@@ -147,7 +147,7 @@ public class MavenResultAnalyzer extends ResultAnalyzer {
             if (tc.result == TestResult.FAILURE) failed.add(testName + "." + determineTestCaseName(tc.name));
             else if (tc.result == TestResult.ERROR) errors.add(testName + "." + determineTestCaseName(tc.name));
             else throw new RuntimeException("Unexpected enum value");
-            File[] toFetch = result.getReports().getDir().listFiles(
+            File[] toFetch = result.getReports().getTempDir().listFiles(
                 (dir, name) -> name.contains(handler.report.name + ".txt") || name.contains(handler.report.name + "-output.txt"));
             if (toFetch == null) log.warn("Unable to find any logfile for testcase " + testNameForLogs(testName, tc.name));
             else for (File fetchie : toFetch) result.getReports().keep(fetchie, testNameForLogs(testName, tc.name));
