@@ -57,10 +57,7 @@ public class TestHtmlReporter {
         "<p>Repository:  github</p>\n" +
         "<p>Branch:  new-feature</p>\n" +
         "<p>Profile:  master</p>\n" +
-        "<p>Counts:</p>\n" +
-        "<p>Succeeded:  17</p>\n" +
-        "<p>Errors:  0</p>\n" +
-        "<p>Failures:  0</p>\n" +
+        "<p><b>Counts:  Succeeded:  17, Errors:  0, Failures:  0</b></p>\n" +
         "<p>Logfile from build: <a href=\"dtest.log\">dtest.log</a></p>\n" +
         "<p>Dockerfile used for build: <a href=\"Dockerfile\">Dockerfile</a></p>\n" +
         "</body>\n" +
@@ -100,10 +97,7 @@ public class TestHtmlReporter {
         "<p>Repository:  github</p>\n" +
         "<p>Branch:  new-feature</p>\n" +
         "<p>Profile:  master</p>\n" +
-        "<p>Counts:</p>\n" +
-        "<p>Succeeded:  17</p>\n" +
-        "<p>Errors:  1</p>\n" +
-        "<p>Failures:  1</p>\n" +
+        "<p><b>Counts:  Succeeded:  17, Errors:  1, Failures:  1</b></p>\n" +
         "<p>Links to logfiles for tests with errors, failures, or timeout:</p>\n" +
         "<ul>\n" +
         "<li>TestFakeTwo  <a href=\"reporter-fail\">reporter-fail</a></li>\n" +
@@ -161,10 +155,7 @@ public class TestHtmlReporter {
         "<p>Repository:  github</p>\n" +
         "<p>Branch:  new-feature</p>\n" +
         "<p>Profile:  master</p>\n" +
-        "<p>Counts:</p>\n" +
-        "<p>Succeeded:  18</p>\n" +
-        "<p>Errors:  0</p>\n" +
-        "<p>Failures:  0</p>\n" +
+        "<p><b>Counts:  Succeeded:  18, Errors:  0, Failures:  0</b></p>\n" +
         "<p>Logfile from build: <a href=\"dtest.log\">dtest.log</a></p>\n" +
         "<p>Dockerfile used for build: <a href=\"Dockerfile\">Dockerfile</a></p>\n" +
         "</body>\n" +
