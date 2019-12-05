@@ -16,6 +16,7 @@
 package org.dtest.core.mvn;
 
 import org.dtest.core.BuildState;
+import org.dtest.core.ContainerCommand;
 import org.dtest.core.ContainerResult;
 import org.dtest.core.ResultAnalyzer;
 import org.xml.sax.Attributes;
@@ -28,8 +29,11 @@ import javax.xml.parsers.SAXParserFactory;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.Vector;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
@@ -80,14 +84,14 @@ public class MavenResultAnalyzer extends ResultAnalyzer {
   }
 
   @Override
-  public void analyzeLog(ContainerResult result) throws IOException {
+  public void analyzeResult(ContainerResult result, ContainerCommand cmd) throws IOException {
     lastContainerState = new BuildState();
     String[] lines = result.getStdout().split("\n");
     for (String line : lines) {
       assert line != null;
       lookForTimeouts(result, line);
     }
-    examineReports(result);
+    examineReports(result, cmd);
     try {
       if (lastContainerState.getState() == BuildState.State.HAD_TIMEOUTS) {
         result.setAnalysisResult(ContainerResult.ContainerStatus.TIMED_OUT);
@@ -125,13 +129,18 @@ public class MavenResultAnalyzer extends ResultAnalyzer {
     }
   }
 
-  private void examineReports(ContainerResult result) throws IOException {
+  private void examineReports(ContainerResult result, ContainerCommand cmd) throws IOException {
     // find all the xml files
     File[] xmlFiles = result.getReports().getTempDir().listFiles((dir, name) -> name.endsWith(".xml"));
     if (xmlFiles == null) {
       log.warn("Unable to find any xml files for container " + result.getContainerName() + " not sure if this is ok or not.");
       return;
     }
+
+    Set<String> failuresToIgnore =
+        (cmd.getModuleDir().getFailuresToIgnore() == null || cmd.getModuleDir().getFailuresToIgnore().length == 0)
+        ? Collections.emptySet()
+        : new HashSet<>(Arrays.asList(cmd.getModuleDir().getFailuresToIgnore()));
 
     try {
       SAXParserFactory factory = SAXParserFactory.newInstance();
@@ -143,6 +152,8 @@ public class MavenResultAnalyzer extends ResultAnalyzer {
         for (TestCase tc : handler.report.cases) {
           if (tc.result != TestResult.SUCCESS) {
             String testName = handler.report.name.substring(handler.report.name.lastIndexOf('.') + 1);
+            String fullTestName = testName + "." + determineTestCaseName(tc.name);
+            if (failuresToIgnore.contains(fullTestName)) continue;
             lastContainerState.sawTestFailureOrError();
             if (tc.result == TestResult.FAILURE) failed.add(testName + "." + determineTestCaseName(tc.name));
             else if (tc.result == TestResult.ERROR) errors.add(testName + "." + determineTestCaseName(tc.name));

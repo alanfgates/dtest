@@ -43,13 +43,14 @@ public abstract class ResultAnalyzer extends Configurable {
   public final static String CFG_RESULTANALYZER_IMPL = "dtest.core.resultanalyzer.impl";
 
   /**
-   * Analyze a log.  This can be called a on logs returned by containers.  Implementations of this method must
+   * Analyze a the result of running a container.  Implementations of this method must
    * be thread safe.
    * @param containerResult the result from the container run.  Information in the result will be
    *                       appended by this method.
+   * @param cmd command for this container, passed because it contains information on failures to ignore.
    * @throws IOException if it fails to find the information it needs when analyzing the log.
    */
-  public abstract void analyzeLog(ContainerResult containerResult) throws IOException;
+  public abstract void analyzeResult(ContainerResult containerResult, ContainerCommand cmd) throws IOException;
 
   /**
    * Get the directory where we expect to find test result files.

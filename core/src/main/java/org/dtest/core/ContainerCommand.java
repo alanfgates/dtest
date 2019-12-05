@@ -27,6 +27,27 @@ public abstract class ContainerCommand extends Configurable {
   protected static final long CFG_CONTAINERCOMMAND_SINGLERUNTIME_DEFAULT = 5 * 60;
 
   /**
+   * ModuleDirectory used to construct this command.
+   */
+  protected final ModuleDirectory moduleDir;
+
+  public ContainerCommand() {
+    this(null);
+  }
+
+  public ContainerCommand(ModuleDirectory moduleDir) {
+    this.moduleDir = moduleDir;
+  }
+
+  /**
+   * Get portion of the yaml file that controls this container.
+   * @return module dir
+   */
+  public ModuleDirectory getModuleDir() {
+    return moduleDir;
+  }
+
+  /**
    * Get a unique suffix for the container name for this command.  This must return the same value
    * every time for a given instance.  The name must be unique, and it must be a valid docker
    * container name (generally means it uses only letters, numbers, underscore, and dash).

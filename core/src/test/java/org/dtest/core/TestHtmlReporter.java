@@ -35,7 +35,8 @@ public class TestHtmlReporter {
     client.setLog(log);
     client.setConfig(cfg);
     client.setBuildInfo(new TestUtils.MockBuildInfo(buildDir));
-    ContainerResult cr = client.runContainer(new TestUtils.MockContainerCommand(containerName, buildDir.getAbsolutePath(), "/bin/bash"));
+    ContainerCommand cmd = new TestUtils.MockContainerCommand(containerName, buildDir.getAbsolutePath(), "/bin/bash");
+    ContainerResult cr = client.runContainer(cmd);
     Reporter reporter = Reporter.getInstance(cfg, log);
     Assert.assertTrue(reporter instanceof HtmlReporter);
     reporter.setRepo("github")
@@ -43,7 +44,7 @@ public class TestHtmlReporter {
         .setProfile("master")
         .setBuildInfo(client.buildInfo);
     client.fetchTestReports(cr, analyzer, reporter, null);
-    analyzer.analyzeLog(cr);
+    analyzer.analyzeResult(cr, cmd);
     reporter.summarize(analyzer);
     reporter.addFailedTests(client, cr);
     reporter.publish();
@@ -75,7 +76,8 @@ public class TestHtmlReporter {
     client.setLog(log);
     client.setConfig(cfg);
     client.setBuildInfo(new TestUtils.MockBuildInfo(buildDir));
-    ContainerResult cr = client.runContainer(new TestUtils.MockContainerCommand(containerName, buildDir.getAbsolutePath(), "/bin/bash"));
+    ContainerCommand cmd = new TestUtils.MockContainerCommand(containerName, buildDir.getAbsolutePath(), "/bin/bash");
+    ContainerResult cr = client.runContainer(cmd);
     Reporter reporter = Reporter.getInstance(cfg, log);
     Assert.assertTrue(reporter instanceof HtmlReporter);
     reporter.setRepo("github")
@@ -83,7 +85,7 @@ public class TestHtmlReporter {
         .setProfile("master")
         .setBuildInfo(client.buildInfo);
     client.fetchTestReports(cr, analyzer, reporter, null);
-    analyzer.analyzeLog(cr);
+    analyzer.analyzeResult(cr, cmd);
     reporter.summarize(analyzer);
     reporter.addFailedTests(client, cr);
     reporter.publish();
@@ -133,7 +135,8 @@ public class TestHtmlReporter {
     client.setLog(log);
     client.setConfig(cfg);
     client.setBuildInfo(new TestUtils.MockBuildInfo(buildDir));
-    ContainerResult cr = client.runContainer(new TestUtils.MockContainerCommand(containerName, buildDir.getAbsolutePath(), "/bin/bash"));
+    ContainerCommand cmd = new TestUtils.MockContainerCommand(containerName, buildDir.getAbsolutePath(), "/bin/bash");
+    ContainerResult cr = client.runContainer(cmd);
     Reporter reporter = Reporter.getInstance(cfg, log);
     Assert.assertTrue(reporter instanceof HtmlReporter);
     reporter.setRepo("github")
@@ -141,7 +144,7 @@ public class TestHtmlReporter {
         .setProfile("master")
         .setBuildInfo(client.buildInfo);
     client.fetchTestReports(cr, analyzer, reporter, null);
-    analyzer.analyzeLog(cr);
+    analyzer.analyzeResult(cr, cmd);
     reporter.summarize(analyzer);
     reporter.addFailedTests(client, cr);
     reporter.publish();

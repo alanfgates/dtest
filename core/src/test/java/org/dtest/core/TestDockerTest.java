@@ -84,7 +84,7 @@ public class TestDockerTest {
   public static class HelloWorldCommandList extends TestUtils.MockContainerCommandFactory {
 
     public HelloWorldCommandList() {
-      super(Collections.singletonList(new ContainerCommand() {
+      super(Collections.singletonList(new ContainerCommand(new ModuleDirectory()) {
         @Override
         public String containerSuffix() {
           return "friendly";
@@ -103,7 +103,28 @@ public class TestDockerTest {
     }
   }
 
-  public static class SpyingResultAnalyzer extends ResultAnalyzer {
+  public static class FailureIgnoringCommandList extends TestUtils.MockContainerCommandFactory {
+    public FailureIgnoringCommandList() {
+      super(Collections.singletonList(new ContainerCommand(new ModuleDirectory().setFailuresToIgnore(new String[] {"TestFakeTwo.errorTwo", "TestFake.fail"})) {
+        @Override
+        public String containerSuffix() {
+          return "friendly";
+        }
+
+        @Override
+        public String[] shellCommand() {
+          return new String[] {"echo", "hello", "world"};
+        }
+
+        @Override
+        public String containerDirectory() {
+          return buildDir.getAbsolutePath();
+        }
+      }));
+    }
+  }
+
+public static class SpyingResultAnalyzer extends ResultAnalyzer {
     final MavenResultAnalyzer wrapped;
 
     public SpyingResultAnalyzer() {
@@ -126,8 +147,8 @@ public class TestDockerTest {
     }
 
     @Override
-    public void analyzeLog(ContainerResult containerResult) throws IOException {
-      wrapped.analyzeLog(containerResult);
+    public void analyzeResult(ContainerResult containerResult, ContainerCommand cmd) throws IOException {
+      wrapped.analyzeResult(containerResult, cmd);
     }
 
     @Override
@@ -177,6 +198,29 @@ public class TestDockerTest {
       Properties props = TestUtils.buildProperties(
           ContainerClient.CFG_CONTAINERCLIENT_IMPL, SuccessfulClient.class.getName(),
           ContainerCommandFactory.CFG_CONTAINERCOMMANDLIST_IMPL, HelloWorldCommandList.class.getName(),
+          ResultAnalyzer.CFG_RESULTANALYZER_IMPL, SpyingResultAnalyzer.class.getName(),
+          BuildInfo.CFG_BUILDINFO_BASEDIR, TestUtils.getConfDir().getAbsolutePath(),
+          BuildInfo.CFG_BUILDINFO_LABEL, "firsttry");
+      DockerTest test = TestUtils.getAndPrepDockerTest(props, log);
+      BuildState state = test.runBuild();
+      Assert.assertEquals(BuildState.State.SUCCEEDED, state.getState());
+      Assert.assertTrue(imageBuilt);
+      Assert.assertEquals(0, errors.size());
+      Assert.assertEquals(0, failures.size());
+      Assert.assertEquals(17, succeeded);
+      Assert.assertTrue(log.toString().contains("SUCCEEDED, the build ran to completion and all tests passed"));
+    } finally {
+      log.dumpToLog();
+    }
+  }
+
+  @Test
+  public void ignoreFailures() throws IOException {
+    TestUtils.TestLogger log = new TestUtils.TestLogger();
+    try {
+      Properties props = TestUtils.buildProperties(
+          ContainerClient.CFG_CONTAINERCLIENT_IMPL, SuccessfulClient.class.getName(),
+          ContainerCommandFactory.CFG_CONTAINERCOMMANDLIST_IMPL, FailureIgnoringCommandList.class.getName(),
           ResultAnalyzer.CFG_RESULTANALYZER_IMPL, SpyingResultAnalyzer.class.getName(),
           BuildInfo.CFG_BUILDINFO_BASEDIR, TestUtils.getConfDir().getAbsolutePath(),
           BuildInfo.CFG_BUILDINFO_LABEL, "firsttry");

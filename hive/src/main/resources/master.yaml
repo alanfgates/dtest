@@ -72,6 +72,18 @@ hiveDirs:
       - TestReplTableMigrationWithJsonFormat
       - TestStatsReplicationScenariosACIDNoAutogather
       - TestStatsReplicationScenariosMMNoAutogather
+      - TestReplicationScenariosIncrementalLoadAcidTables
+      - TestReplAcidTablesBootstrapWithJsonMessage
+      - TestReplicationScenariosAcidTables
+      - TestTableLevelReplicationScenarios
+      - TestReplicationWithTableMigration
+      - TestStatsReplicationScenariosMigrationNoAutogather
+      - TestStatsReplicationScenariosMigration
+      - TestReplAcidTablesWithJsonMessage
+      - TestReplicationScenarios
+      - TestReplWithJsonMessageFormat
+      - TestStatsReplicationScenariosACID
+      - TestJdbcWithMiniHS2ErasureCoding
     skippedTests:
       - TestSparkSessionTimeout           # verified 6/13/19
       - TestSparkStatistics               # verified 6/13/19
@@ -114,22 +126,24 @@ hiveDirs:
       - druid.query.files
     properties:
       skipSparkTests: null
-    isolatedQFiles:          # I think only one of these is really an
-      - druidmini_test_ts.q  # issue.  After the next run look at which
-      - druidmini_mv.q       # on is taking the time and isolate only it
+    isolatedQFiles:
+      - druidmini_test_ts.q
+      - druidmini_mv.q
       - druidmini_floorTime.q
       - druidmini_test1.q
       - druidmini_expressions.q
     excludedQFiles:
-      - druid_timestamptz.q        # verified 6/12/19
-      - druidmini_joins.q          # verified 6/12/19
-      - druidmini_masking.q        # verified 6/12/19
+      - druid_timestamptz.q        # verified 12/4/19
+      - druidmini_joins.q          # verified 12/4/19
+      - druidmini_masking.q        # verified 12/4/19
   - dir: itests/qtest
     singleTest: MiniDruidLlapLocalCliDriver
     includedQFilesProperties:
       - druid.llap.local.query.files
     properties:
       skipSparkTests: null
+    excludedQFiles:
+      - druidmini_noop.q
   - dir: itests/qtest
     singleTest: TestMiniDruidKafkaCliDriver
     includedQFilesProperties:
@@ -152,11 +166,11 @@ hiveDirs:
       - encrypted.query.files
       - erasurecoding.only.query.files
     excludedQFiles:
-      - cbo_query44.q        # verified 6/12/19
-      - cbo_query45.q        # verified 6/12/19
-      - cbo_query67.q        # verified 6/12/19
-      - cbo_query70.q        # verified 6/12/19
-      - cbo_query86.q        # verified 6/12/19
+      - cbo_query44.q        # verified 12/4/19
+      - cbo_query45.q        # verified 12/4/19
+      - cbo_query67.q        # verified 12/4/19
+      - cbo_query70.q        # verified 12/4/19
+      - cbo_query86.q        # verified 12/4/19
     properties:
       skipSparkTests: null
   - dir: itests/qtest
@@ -168,7 +182,7 @@ hiveDirs:
     singleTest: TestAccumuloCliDriver
     qfilesDir: accumulo-hanlder/src/test/queries/positive
     excludedQFiles:
-      - accumulo_joins.q    # verified 6/12/19
+      - accumulo_joins.q    # verified 12/4/19
     properties:
       skipSparkTests: null
   - dir: itests/hive-blobstore
@@ -196,12 +210,9 @@ hiveDirs:
     isolatedQFiles:
       - authorization_show_grant.q
     excludedQFiles:
-      - fouter_join_ppr.q            # verified 6/12/19
-      - udaf_context_ngrams.q        # verified 6/12/19
-      - udaf_corr.q                  # verified 6/12/19
-      - udaf_histogram_numeric.q     # verified 6/12/19
-      - stat_estimate_related_col.q  # verified 6/12/19
-      - vector_groupby_reduce.q      # verified 6/12/19
+      - fouter_join_ppr.q            # verified 12/4/19
+      - stat_estimate_related_col.q  # verified 12/4/19
+      - vector_groupby_reduce.q      # verified 12/4/19
     properties:
       skipSparkTests: null
   - dir: itests/qtest  # Moved this up in the list because some of the tests take a long time and I didn't want them started last
@@ -211,21 +222,21 @@ hiveDirs:
       - minillaplocal.shared.query.files
     isolatedQFiles:
       - hybridgrace_hashjoin_2.q
+      - sysdb_schq.q
     excludedQFiles:
-      - bucket_map_join_tez1.q               # verified 6/12/19
-      - special_character_in_tabnames_1.q    # verified 6/12/19
-      - tez_smb_1.q                          # verified 6/12/19
-      - union_fast_stats.q                   # verified 6/12/19
-      - schema_evol_orc_acidvec_part.q       # verified 6/12/19
-      - schema_evol_orc_vec_part_llap_io.q   # verified 6/12/19
-      - load_dyn_part3.q                     # verified 6/12/19
-      - cbo_limit.q                          # verified 6/12/19
-      - rfc5424_parser_file_pruning.q        # verified 6/12/19
-      - cbo_rp_limit.q                       # verified 6/12/19
-      - vector_udf_inline.q                  # verified 6/13/19
+      - bucket_map_join_tez1.q               # verified 12/4/19
+      - special_character_in_tabnames_1.q    # verified 12/4/19
+      - tez_smb_1.q                          # verified 12/4/19
+      - union_fast_stats.q                   # verified 12/4/19
+      - schema_evol_orc_acidvec_part.q       # verified 12/4/19
+      - schema_evol_orc_vec_part_llap_io.q   # verified 12/4/19
+      - load_dyn_part3.q                     # verified 12/4/19
+      - cbo_limit.q                          # verified 12/4/19
+      - cbo_rp_limit.q                       # verified 12/6/19
+      - vector_udf_inline.q                  # verified 12/4/19
       - alter_partition_change_col           # verified 6/12/19 no .q is intentional, as it's a mistake in testconfiguration.properties
-      - semijoin_reddedup                    # verified 6/12/19 no .q is intentional, as it's a mistake in testconfiguration.properties
-      - sysdb.q                              # verified 8/22/19
+      - semijoin_reddedup                    # verified 12/4/19 no .q is intentional, as it's a mistake in testconfiguration.properties
+      - sysdb.q                              # verified 12/4/19
     env:
       USER: dtestuser
     properties:
@@ -235,7 +246,7 @@ hiveDirs:
     includedQFilesProperties:
       - encrypted.query.files
     excludedQFiles:
-      - encryption_with_trash.q      # verified 6/12/19
+      - encryption_with_trash.q      # verified 12/4/19
     properties:
       skipSparkTests: null
   - dir: itests/qtest
@@ -245,8 +256,8 @@ hiveDirs:
       - minimr.query.negative.files
       - spark.only.query.negative.files
     excludedQFiles:
-      - authorization_uri_import.q    # verified 6/12/19
-      - strict_pruning_2.q            # verified 11/18/19
+      - authorization_uri_import.q    # verified 12/6/19
+      - strict_pruning_2.q            # verified 12/6/19
     properties:
       skipSparkTests: null
   - dir: itests/qtest

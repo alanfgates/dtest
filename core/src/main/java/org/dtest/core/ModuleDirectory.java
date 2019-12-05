@@ -30,7 +30,7 @@ public class ModuleDirectory {
   private String[] isolatedTests;
   private String singleTest;
   private String[] skippedTests;
-  private TestMethod[] ignoreFailures;
+  private String[] failuresToIgnore;
   private Map<String, String> env;
   private Map<String, String> properties;
 
@@ -114,12 +114,13 @@ public class ModuleDirectory {
     this.properties = properties;
   }
 
-  public TestMethod[] getIgnoreFailures() {
-    return ignoreFailures;
+  public String[] getFailuresToIgnore() {
+    return failuresToIgnore;
   }
 
-  public void setIgnoreFailures(TestMethod[] ignoreFailures) {
-    this.ignoreFailures = ignoreFailures;
+  public ModuleDirectory setFailuresToIgnore(String[] failuresToIgnore) {
+    this.failuresToIgnore = failuresToIgnore;
+    return this;
   }
 
   /**
@@ -137,26 +138,4 @@ public class ModuleDirectory {
       throw new InvalidObjectException("You cannot specify a split on a single test, " + dir);
     }
   }
-
-  public class TestMethod {
-    public String testCase;
-    public String method;
-
-    public String getTestCase() {
-      return testCase;
-    }
-
-    public void setTestCase(String testCase) {
-      this.testCase = testCase;
-    }
-
-    public String getMethod() {
-      return method;
-    }
-
-    public void setMethod(String method) {
-      this.method = method;
-    }
-  }
-
 }

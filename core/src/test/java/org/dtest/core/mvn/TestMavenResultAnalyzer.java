@@ -18,7 +18,9 @@ package org.dtest.core.mvn;
 import org.dtest.core.BuildState;
 import org.dtest.core.Config;
 import org.dtest.core.ContainerClient;
+import org.dtest.core.ContainerCommand;
 import org.dtest.core.ContainerResult;
+import org.dtest.core.ModuleDirectory;
 import org.dtest.core.Reporter;
 import org.dtest.core.TestUtils;
 import org.junit.Assert;
@@ -43,9 +45,10 @@ public class TestMavenResultAnalyzer {
     ContainerClient client = new TestUtils.MockContainerClient(containerName, "with-error-and-failure", buildDir, 0);
     client.setLog(log);
     client.setConfig(cfg);
-    ContainerResult cr = client.runContainer(new TestUtils.MockContainerCommand(containerName, buildDir.getAbsolutePath(), "/bin/bash"));
+    ContainerCommand cmd = new TestUtils.MockContainerCommand(containerName, buildDir.getAbsolutePath(), "/bin/bash");
+    ContainerResult cr = client.runContainer(cmd);
     client.fetchTestReports(cr, analyzer, reporter, new String[] {"additional.log"});
-    analyzer.analyzeLog(cr);
+    analyzer.analyzeResult(cr, cmd);
 
     Assert.assertEquals(1, analyzer.getErrors().size());
     Assert.assertEquals("TestFakeTwo.errorTwo", analyzer.getErrors().get(0));
@@ -70,6 +73,31 @@ public class TestMavenResultAnalyzer {
   }
 
   @Test
+  public void ignoreFailedTests() throws IOException {
+    File buildDir = TestUtils.createBuildDir();
+    String containerName = "maven-result-analyzer-unit-testlog";
+    TestUtils.TestLogger log = new TestUtils.TestLogger();
+    Config cfg = TestUtils.buildCfg();
+    MavenResultAnalyzer analyzer = new MavenResultAnalyzer();
+    Reporter reporter = new TestUtils.MockReporter(buildDir);
+    ContainerClient client = new TestUtils.MockContainerClient(containerName, "with-error-and-failure", buildDir, 0);
+    client.setLog(log);
+    client.setConfig(cfg);
+    ModuleDirectory moduleDir = new ModuleDirectory();
+    moduleDir.setFailuresToIgnore(new String[] {"TestFakeTwo.errorTwo", "TestFake.fail"});
+    ContainerCommand cmd = new TestUtils.MockContainerCommand(moduleDir, containerName, buildDir.getAbsolutePath(), "/bin/bash");
+    ContainerResult cr = client.runContainer(cmd);
+    client.fetchTestReports(cr, analyzer, reporter, new String[] {"additional.log"});
+    analyzer.analyzeResult(cr, cmd);
+
+    Assert.assertEquals(0, analyzer.getErrors().size());
+    Assert.assertEquals(17, analyzer.getSucceeded());
+    Assert.assertEquals(BuildState.State.SUCCEEDED, analyzer.getBuildState().getState());
+    Assert.assertEquals(0, cr.getReports().getKeptFiles().size());
+    log.dumpToLog();
+  }
+
+  @Test
   public void successfulLog() throws IOException {
     File buildDir = TestUtils.createBuildDir();
     String containerName = "maven-result-analyzer-unit-testlog-good";
@@ -80,9 +108,10 @@ public class TestMavenResultAnalyzer {
     ContainerClient client = new TestUtils.MockContainerClient(containerName, "allgood", buildDir, 0);
     client.setLog(log);
     client.setConfig(cfg);
-    ContainerResult cr = client.runContainer(new TestUtils.MockContainerCommand(containerName, buildDir.getAbsolutePath(), "/bin/bash"));
+    ContainerCommand cmd = new TestUtils.MockContainerCommand(containerName, buildDir.getAbsolutePath(), "/bin/bash");
+    ContainerResult cr = client.runContainer(cmd);
     client.fetchTestReports(cr, analyzer, reporter, null);
-    analyzer.analyzeLog(cr);
+    analyzer.analyzeResult(cr, cmd);
 
     Assert.assertEquals(0, analyzer.getErrors().size());
     Assert.assertEquals(0, analyzer.getFailed().size());
@@ -103,9 +132,10 @@ public class TestMavenResultAnalyzer {
     ContainerClient client = new TestUtils.MockContainerClient(containerName, "timeout", buildDir, 0);
     client.setLog(log);
     client.setConfig(cfg);
-    ContainerResult cr = client.runContainer(new TestUtils.MockContainerCommand(containerName, buildDir.getAbsolutePath(), "/bin/bash"));
+    ContainerCommand cmd = new TestUtils.MockContainerCommand(containerName, buildDir.getAbsolutePath(), "/bin/bash");
+    ContainerResult cr = client.runContainer(cmd);
     client.fetchTestReports(cr, analyzer, reporter, null);
-    analyzer.analyzeLog(cr);
+    analyzer.analyzeResult(cr, cmd);
 
     Assert.assertEquals(0, analyzer.getErrors().size());
     Assert.assertEquals(0, analyzer.getFailed().size());

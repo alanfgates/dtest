@@ -434,6 +434,11 @@ public class TestUtils {
     private final String[] shellCommand;
 
     public MockContainerCommand(String name, String dir, String... shellCommand) {
+      this(new ModuleDirectory(), name, dir, shellCommand);  // avoid npe
+    }
+
+    public MockContainerCommand(ModuleDirectory moduleDir, String name, String dir, String... shellCommand) {
+      super(moduleDir);
       this.name = name;
       this.dir = dir;
       this.shellCommand = shellCommand;

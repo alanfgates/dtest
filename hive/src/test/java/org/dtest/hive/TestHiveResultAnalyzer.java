@@ -18,6 +18,7 @@ package org.dtest.hive;
 import org.dtest.core.BuildState;
 import org.dtest.core.Config;
 import org.dtest.core.ContainerClient;
+import org.dtest.core.ContainerCommand;
 import org.dtest.core.ContainerResult;
 import org.dtest.core.Reporter;
 import org.dtest.core.ResultAnalyzer;
@@ -42,9 +43,10 @@ public class TestHiveResultAnalyzer {
     Reporter reporter = new TestUtils.MockReporter(buildDir);
     ContainerClient client = new TestUtils.MockContainerClient(containerName, "allgood", buildDir, 0);
     client.setLog(log);
-    ContainerResult cr = client.runContainer(new TestUtils.MockContainerCommand(containerName, buildDir.getAbsolutePath(), "/bin/bash"));
+    ContainerCommand cmd = new TestUtils.MockContainerCommand(containerName, buildDir.getAbsolutePath(), "/bin/bash");
+    ContainerResult cr = client.runContainer(cmd);
     client.fetchTestReports(cr, analyzer, reporter, new String[] {"hive.log"});
-    analyzer.analyzeLog(cr);
+    analyzer.analyzeResult(cr, cmd);
 
     Assert.assertEquals(0, analyzer.getErrors().size());
     Assert.assertEquals(0, analyzer.getFailed().size());
@@ -64,9 +66,10 @@ public class TestHiveResultAnalyzer {
     Reporter reporter = new TestUtils.MockReporter(buildDir);
     ContainerClient client = new TestUtils.MockContainerClient(containerName, "with-error-and-failure", buildDir, 0);
     client.setLog(log);
-    ContainerResult cr = client.runContainer(new TestUtils.MockContainerCommand(containerName, buildDir.getAbsolutePath(), "/bin/bash"));
+    ContainerCommand cmd = new TestUtils.MockContainerCommand(containerName, buildDir.getAbsolutePath(), "/bin/bash");
+    ContainerResult cr = client.runContainer(cmd);
     client.fetchTestReports(cr, analyzer, reporter, new String[] {"hive.log"}); // there isn't actually a hive.log there, make sure that doesn't cause an issue
-    analyzer.analyzeLog(cr);
+    analyzer.analyzeResult(cr, cmd);
 
     Assert.assertEquals(1, analyzer.getErrors().size());
     Assert.assertEquals("TestHiveConfUtil.testError", analyzer.getErrors().get(0));
@@ -101,9 +104,10 @@ public class TestHiveResultAnalyzer {
     ContainerClient client = new TestUtils.MockContainerClient(containerName, "timeout", buildDir, 0);
     client.setLog(log);
     client.setConfig(cfg);
-    ContainerResult cr = client.runContainer(new TestUtils.MockContainerCommand(containerName, buildDir.getAbsolutePath(), "/bin/bash"));
+    ContainerCommand cmd = new TestUtils.MockContainerCommand(containerName, buildDir.getAbsolutePath(), "/bin/bash");
+    ContainerResult cr = client.runContainer(cmd);
     client.fetchTestReports(cr, analyzer, reporter, new String[] {"hive.log"});
-    analyzer.analyzeLog(cr);
+    analyzer.analyzeResult(cr, cmd);
 
     Assert.assertEquals(0, analyzer.getErrors().size());
     Assert.assertEquals(0, analyzer.getFailed().size());
@@ -122,9 +126,10 @@ public class TestHiveResultAnalyzer {
     Reporter reporter = new TestUtils.MockReporter(buildDir);
     ContainerClient client = new TestUtils.MockContainerClient(containerName, "qfile-allgood", buildDir, 0);
     client.setLog(log);
-    ContainerResult cr = client.runContainer(new TestUtils.MockContainerCommand(containerName, buildDir.getAbsolutePath(), "/bin/bash"));
+    ContainerCommand cmd = new TestUtils.MockContainerCommand(containerName, buildDir.getAbsolutePath(), "/bin/bash");
+    ContainerResult cr = client.runContainer(cmd);
     client.fetchTestReports(cr, analyzer, reporter, new String[] {"hive.log"});
-    analyzer.analyzeLog(cr);
+    analyzer.analyzeResult(cr, cmd);
 
     Assert.assertEquals(0, analyzer.getErrors().size());
     Assert.assertEquals(0, analyzer.getFailed().size());
@@ -143,9 +148,10 @@ public class TestHiveResultAnalyzer {
     Reporter reporter = new TestUtils.MockReporter(buildDir);
     ContainerClient client = new TestUtils.MockContainerClient(containerName, "qfile-with-failure", buildDir, 0);
     client.setLog(log);
-    ContainerResult cr = client.runContainer(new TestUtils.MockContainerCommand(containerName, buildDir.getAbsolutePath(), "/bin/bash"));
+    ContainerCommand cmd = new TestUtils.MockContainerCommand(containerName, buildDir.getAbsolutePath(), "/bin/bash");
+    ContainerResult cr = client.runContainer(cmd);
     client.fetchTestReports(cr, analyzer, reporter, new String[] {"hive.log"}); // there isn't actually a hive.log there, make sure that doesn't cause an issue
-    analyzer.analyzeLog(cr);
+    analyzer.analyzeResult(cr, cmd);
 
     Assert.assertEquals(0, analyzer.getErrors().size());
     Assert.assertEquals(1, analyzer.getFailed().size());

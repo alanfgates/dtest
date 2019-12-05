@@ -60,7 +60,8 @@ public class HiveContainerCommandFactory extends MavenContainerCommandFactory {
     return Arrays.asList(
       "/usr/bin/mvn install -DskipTests",
       "cd itests",
-      "/usr/bin/mvn install -DskipSparkTests -DskipTests");
+      "/usr/bin/mvn install -DskipTests");
+      //"/usr/bin/mvn install -DskipSparkTests -DskipTests");
   }
 
   @Override
@@ -82,7 +83,7 @@ public class HiveContainerCommandFactory extends MavenContainerCommandFactory {
       // Deal with any tests that need to be run alone
       if (mDir.isSetIsolatedQFiles()) {
         for (String test : mDir.getIsolatedQFiles()) {
-          cmds.add(buildOneQFilesCmd(containerClient, Collections.singleton(test), mDir));
+          cmds.add(buildOneQFilesCmd(mDir, containerClient, Collections.singleton(test), mDir));
           qfiles.remove(test);
         }
       }
@@ -93,7 +94,7 @@ public class HiveContainerCommandFactory extends MavenContainerCommandFactory {
           if (oneSet.size() >= testsPerContainer) break;
           oneSet.add(qFile);
         }
-        cmds.add(buildOneQFilesCmd(containerClient, oneSet, mDir));
+        cmds.add(buildOneQFilesCmd(mDir, containerClient, oneSet, mDir));
         qfiles.removeAll(oneSet);
       }
     } else {
@@ -108,11 +109,10 @@ public class HiveContainerCommandFactory extends MavenContainerCommandFactory {
     return ((HiveBuildYaml)yaml).getHiveDirs();
   }
 
-  private ContainerCommand buildOneQFilesCmd(ContainerClient containerClient,
-                                             Collection<String> qfiles,
-                                             HiveModuleDirectory mDir) {
-    HiveContainerCommand mvn = new HiveContainerCommand(containerClient.getContainerBaseDir() + "/" + mDir.getDir(),
-        containerNumber++);
+  private ContainerCommand buildOneQFilesCmd(ModuleDirectory moduleDir, ContainerClient containerClient,
+                                             Collection<String> qfiles, HiveModuleDirectory mDir) {
+    HiveContainerCommand mvn = new HiveContainerCommand(moduleDir,
+        containerClient.getContainerBaseDir() + "/" + mDir.getDir(), containerNumber++);
     setEnvsAndProperties(mDir, mvn);
     mvn.addTest(mDir.getSingleTest());
     for (String qfile : qfiles) {

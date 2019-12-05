@@ -15,6 +15,7 @@
  */
 package org.dtest.hive;
 
+import org.dtest.core.ModuleDirectory;
 import org.dtest.core.mvn.MavenContainerCommand;
 
 import java.util.ArrayList;
@@ -24,8 +25,8 @@ public class HiveContainerCommand extends MavenContainerCommand {
   private boolean isITest;
   private List<String> qfiles; // set of qfiles to run
 
-  public HiveContainerCommand(String baseDir, int cmdNumber) {
-    super(baseDir, cmdNumber);
+  public HiveContainerCommand(ModuleDirectory moduleDir, String baseDir, int cmdNumber) {
+    super(moduleDir, baseDir, cmdNumber);
     qfiles = new ArrayList<>();
     isITest = false;
   }

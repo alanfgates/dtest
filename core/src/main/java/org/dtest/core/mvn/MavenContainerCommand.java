@@ -17,6 +17,7 @@ package org.dtest.core.mvn;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.dtest.core.ContainerCommand;
+import org.dtest.core.ModuleDirectory;
 import org.dtest.core.impl.Utils;
 
 import java.util.ArrayList;
@@ -41,10 +42,12 @@ public class MavenContainerCommand extends ContainerCommand {
 
   /**
    * Protected because it should only be called by {@link MavenContainerCommandFactory} or subclasses.
+   * @param moduleDir module directory for this command
    * @param buildDir working directory on the build machine.
    * @param cmdNumber command number for this command, used in logging and labeling containers.
    */
-  protected MavenContainerCommand(String buildDir, int cmdNumber) {
+  protected MavenContainerCommand(ModuleDirectory moduleDir, String buildDir, int cmdNumber) {
+    super(moduleDir);
     this.buildDir = buildDir;
     this.cmdNumber = cmdNumber;
     tests = new ArrayList<>();
