@@ -16,6 +16,11 @@
 package org.dtest.core;
 
 import org.dtest.core.mvn.MavenResultAnalyzer;
+import org.dtest.core.testutils.MockBuildInfo;
+import org.dtest.core.testutils.MockContainerClient;
+import org.dtest.core.testutils.MockContainerCommand;
+import org.dtest.core.testutils.TestLogger;
+import org.dtest.core.testutils.TestUtils;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -29,13 +34,13 @@ public class TestHtmlReporter {
     File buildDir = TestUtils.createBuildDir();
     Config cfg = TestUtils.buildCfg();
     String containerName = "reporter-good";
-    TestUtils.TestLogger log = new TestUtils.TestLogger();
+    TestLogger log = new TestLogger();
     ResultAnalyzer analyzer = new MavenResultAnalyzer();
-    ContainerClient client = new TestUtils.MockContainerClient(containerName, "allgood", buildDir, 0);
+    ContainerClient client = new MockContainerClient(containerName, "allgood", buildDir, 0);
     client.setLog(log);
     client.setConfig(cfg);
-    client.setBuildInfo(new TestUtils.MockBuildInfo(buildDir));
-    ContainerCommand cmd = new TestUtils.MockContainerCommand(containerName, buildDir.getAbsolutePath(), "/bin/bash");
+    client.setBuildInfo(new MockBuildInfo(buildDir));
+    ContainerCommand cmd = new MockContainerCommand(containerName, buildDir.getAbsolutePath(), "/bin/bash");
     ContainerResult cr = client.runContainer(cmd);
     Reporter reporter = Reporter.getInstance(cfg, log);
     Assert.assertTrue(reporter instanceof HtmlReporter);
@@ -70,13 +75,13 @@ public class TestHtmlReporter {
     File buildDir = TestUtils.createBuildDir();
     Config cfg = TestUtils.buildCfg();
     String containerName = "reporter-fail";
-    TestUtils.TestLogger log = new TestUtils.TestLogger();
+    TestLogger log = new TestLogger();
     ResultAnalyzer analyzer = new MavenResultAnalyzer();
-    ContainerClient client = new TestUtils.MockContainerClient(containerName, "with-error-and-failure", buildDir, 0);
+    ContainerClient client = new MockContainerClient(containerName, "with-error-and-failure", buildDir, 0);
     client.setLog(log);
     client.setConfig(cfg);
-    client.setBuildInfo(new TestUtils.MockBuildInfo(buildDir));
-    ContainerCommand cmd = new TestUtils.MockContainerCommand(containerName, buildDir.getAbsolutePath(), "/bin/bash");
+    client.setBuildInfo(new MockBuildInfo(buildDir));
+    ContainerCommand cmd = new MockContainerCommand(containerName, buildDir.getAbsolutePath(), "/bin/bash");
     ContainerResult cr = client.runContainer(cmd);
     Reporter reporter = Reporter.getInstance(cfg, log);
     Assert.assertTrue(reporter instanceof HtmlReporter);
@@ -129,13 +134,13 @@ public class TestHtmlReporter {
     File buildDir = TestUtils.createBuildDir();
     Config cfg = TestUtils.buildCfg();
     String containerName = "reporter-timeout";
-    TestUtils.TestLogger log = new TestUtils.TestLogger();
+    TestLogger log = new TestLogger();
     ResultAnalyzer analyzer = new MavenResultAnalyzer();
-    ContainerClient client = new TestUtils.MockContainerClient(containerName, "timeout", buildDir, 0);
+    ContainerClient client = new MockContainerClient(containerName, "timeout", buildDir, 0);
     client.setLog(log);
     client.setConfig(cfg);
-    client.setBuildInfo(new TestUtils.MockBuildInfo(buildDir));
-    ContainerCommand cmd = new TestUtils.MockContainerCommand(containerName, buildDir.getAbsolutePath(), "/bin/bash");
+    client.setBuildInfo(new MockBuildInfo(buildDir));
+    ContainerCommand cmd = new MockContainerCommand(containerName, buildDir.getAbsolutePath(), "/bin/bash");
     ContainerResult cr = client.runContainer(cmd);
     Reporter reporter = Reporter.getInstance(cfg, log);
     Assert.assertTrue(reporter instanceof HtmlReporter);

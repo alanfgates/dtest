@@ -56,7 +56,7 @@ public class MavenResultAnalyzer extends ResultAnalyzer {
   private List<String> failed;
   private List<String> errors;
   private final Pattern timeout;
-  private BuildState lastContainerState;
+  //private BuildState lastContainerState;
 
   public MavenResultAnalyzer() {
     // Access to these needs to be synchronized.
@@ -85,25 +85,25 @@ public class MavenResultAnalyzer extends ResultAnalyzer {
 
   @Override
   public void analyzeResult(ContainerResult result, ContainerCommand cmd) throws IOException {
-    lastContainerState = new BuildState();
+    BuildState containerState = new BuildState();
     String[] lines = result.getStdout().split("\n");
     for (String line : lines) {
       assert line != null;
-      lookForTimeouts(result, line);
+      lookForTimeouts(containerState, result, line);
     }
-    examineReports(result, cmd);
+    examineReports(containerState, result, cmd);
     try {
-      if (lastContainerState.getState() == BuildState.State.HAD_TIMEOUTS) {
+      if (containerState.getState() == BuildState.State.HAD_TIMEOUTS) {
         result.setAnalysisResult(ContainerResult.ContainerStatus.TIMED_OUT);
-      } else if (lastContainerState.getState() == BuildState.State.HAD_FAILURES_OR_ERRORS) {
+      } else if (containerState.getState() == BuildState.State.HAD_FAILURES_OR_ERRORS) {
         result.setAnalysisResult(ContainerResult.ContainerStatus.FAILED);
       } else {
-        // This can get overwritten by later analysis.  It won't overwrite early analysis if there was a failure
-        lastContainerState.success();
+        containerState.success();
         result.setAnalysisResult(ContainerResult.ContainerStatus.SUCCEEDED);
       }
     } finally {
-      buildState.update(lastContainerState);
+      // This can get overwritten by later analysis.  It won't overwrite early analysis if there was a failure
+      buildState.update(containerState);
     }
   }
 
@@ -112,24 +112,37 @@ public class MavenResultAnalyzer extends ResultAnalyzer {
     return "target" + File.separator + "surefire-reports";
   }
 
+  /**
+   * Determine the name of the test case.  For standard junit tests this will be the method, as opposed to the class
+   * name.
+   * @param caseName name as extracted from the surefire generated XML file.
+   * @return name for this type of test case.
+   */
   protected String determineTestCaseName(String caseName) {
     return caseName;
   }
 
+  /**
+   * How to refer to the test in the logs.  It is important that this be consistent because we use the value as a
+   * hash key for tracking the test.  The default result is 'testClass.testMethod'
+   * @param testName test name as extracted from the surefire generated XML file.
+   * @param caseName test case name as extracted from teh surefire genreated XML file.
+   * @return test name
+   */
   protected String testNameForLogs(String testName, String caseName) {
     return testName;
   }
 
-  private void lookForTimeouts(ContainerResult result, String line) throws IOException {
+  private void lookForTimeouts(BuildState containerState, ContainerResult result, String line) throws IOException {
     // Look for timeouts
     Matcher m = timeout.matcher(line);
     if (m.matches()) {
-      lastContainerState.sawTimeouts();
+      containerState.sawTimeouts();
       result.getReports().keepAdditionalLogs(MavenResultAnalyzer.TIMED_OUT_KEY);
     }
   }
 
-  private void examineReports(ContainerResult result, ContainerCommand cmd) throws IOException {
+  private void examineReports(BuildState containerState, ContainerResult result, ContainerCommand cmd) throws IOException {
     // find all the xml files
     File[] xmlFiles = result.getReports().getTempDir().listFiles((dir, name) -> name.endsWith(".xml"));
     if (xmlFiles == null) {
@@ -154,7 +167,7 @@ public class MavenResultAnalyzer extends ResultAnalyzer {
             String testName = handler.report.name.substring(handler.report.name.lastIndexOf('.') + 1);
             String fullTestName = testName + "." + determineTestCaseName(tc.name);
             if (failuresToIgnore.contains(fullTestName)) continue;
-            lastContainerState.sawTestFailureOrError();
+            containerState.sawTestFailureOrError();
             if (tc.result == TestResult.FAILURE) failed.add(testName + "." + determineTestCaseName(tc.name));
             else if (tc.result == TestResult.ERROR) errors.add(testName + "." + determineTestCaseName(tc.name));
             else throw new RuntimeException("Unexpected enum value");

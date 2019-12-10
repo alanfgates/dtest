@@ -41,7 +41,7 @@ public class StreamPumper implements Runnable {
   /**
    *
    * @param keepGoing An AtomicBoolean shared between the calling thread and this class.  When the calling thread wishes
-   *                  to terminate the pumping the stream it sets this value to false.  This should be done after
+   *                  to terminate pumping the stream it sets this value to false.  This should be done after
    *                  the process whose output is being pumped has terminated and before calling
    *                  {@link #finalPump()} to assure that all the output is collected.
    * @param input input stream to read.

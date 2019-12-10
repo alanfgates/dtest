@@ -75,7 +75,11 @@ public class BuildInfo extends Configurable implements Comparable<BuildInfo> {
 
     // This cannot be done in the constructor because it requires the configuration.
     buildDir = new File(getBuildDirName());
-    buildDir.mkdir();
+    if (!buildDir.exists()) {
+      if (!buildDir.mkdir()) {
+        throw new IOException("Failed to create directory " + buildDir);
+      }
+    }
     log.info("Build dir for build is " + buildDir.getAbsolutePath());
     return buildDir;
   }

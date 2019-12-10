@@ -20,7 +20,7 @@ import org.dtest.core.ModuleDirectory;
 import java.io.InvalidObjectException;
 
 /**
- * A container for information about tests to be run in a maven module.
+ * Hive specialization of ModuleDirectory.  Adds support for qfiles.
  */
 public class HiveModuleDirectory extends ModuleDirectory {
   private String[] qFiles;                   // list of qfiles to run

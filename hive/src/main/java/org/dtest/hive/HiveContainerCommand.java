@@ -21,16 +21,31 @@ import org.dtest.core.mvn.MavenContainerCommand;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Hive specialization of MavenContainerCommand.  This provides a a way to add qfiles to the list of tests to run
+ * and provides a subclass of MavenCommandSupplier.
+ */
 public class HiveContainerCommand extends MavenContainerCommand {
   private boolean isITest;
   private List<String> qfiles; // set of qfiles to run
 
-  public HiveContainerCommand(ModuleDirectory moduleDir, String baseDir, int cmdNumber) {
+  /**
+   *
+   * @param moduleDir information for this directory, must be an instance of {@link HiveModuleDirectory}.
+   * @param baseDir working directory on the build machine.
+   * @param cmdNumber command number for this command, used in logging and labeling containers.
+   */
+  HiveContainerCommand(ModuleDirectory moduleDir, String baseDir, int cmdNumber) {
     super(moduleDir, baseDir, cmdNumber);
     qfiles = new ArrayList<>();
     isITest = false;
   }
 
+  /**
+   * Add a qfile to the list of tests to be run.  This should only be called if the test is running one of
+   * the Test*Driver classes.
+   * @param qfile qfile to add.
+   */
   void addQfile(String qfile) {
     qfiles.add(qfile);
     isITest = true;

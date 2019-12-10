@@ -18,7 +18,6 @@ package org.dtest.core.git;
 import org.dtest.core.BuildYaml;
 import org.dtest.core.CodeSource;
 
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -31,7 +30,7 @@ public class GitSource extends CodeSource  {
   private static final String BRANCH_DEFAULT = "master";
 
   @Override
-  public List<String> srcCommands(BuildYaml yaml) throws IOException {
+  public List<String> srcCommands(BuildYaml yaml) {
     String repo = yaml.getRepo();
     String branch = yaml.getBranch();
     if (branch == null) branch = BRANCH_DEFAULT;
@@ -49,6 +48,6 @@ public class GitSource extends CodeSource  {
 
   @Override
   public String getDefaultBranch() {
-    return "master";
+    return BRANCH_DEFAULT;
   }
 }

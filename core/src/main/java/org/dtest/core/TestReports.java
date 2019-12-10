@@ -88,6 +88,11 @@ public class TestReports {
     keepAdditionalLogs(testName);
   }
 
+  /**
+   * Add a file to the list of additional logs to keep.  The implementation assumes that this log has been
+   * fetched from the container an placed in {@link #tmpDir} by the {@link ContainerClient}.
+   * @param log Filename
+   */
   public void addAdditionalLog(String log) {
     additionalLogs.add(log);
   }

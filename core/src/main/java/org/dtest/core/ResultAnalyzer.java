@@ -18,7 +18,6 @@ package org.dtest.core;
 import org.dtest.core.impl.Utils;
 import org.dtest.core.mvn.MavenResultAnalyzer;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.List;
 

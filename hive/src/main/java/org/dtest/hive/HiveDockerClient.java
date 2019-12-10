@@ -17,14 +17,15 @@ package org.dtest.hive;
 
 import org.dtest.core.docker.DockerContainerClient;
 import org.dtest.core.impl.ProcessResults;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.regex.Matcher;
 
+/**
+ * Hive specialization of DockerContainerClient.  Necessary because the Hive build does two builds (hive and itests)
+ * and we need to see success for both before continuing.
+ */
 public class HiveDockerClient extends DockerContainerClient {
-  private static final Logger LOG = LoggerFactory.getLogger(HiveDockerClient.class);
 
   @Override
   protected void checkBuildSucceeded(ProcessResults res) throws IOException {

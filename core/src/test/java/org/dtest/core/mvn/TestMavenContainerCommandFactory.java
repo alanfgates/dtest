@@ -18,14 +18,12 @@ package org.dtest.core.mvn;
 import org.apache.commons.lang3.StringUtils;
 import org.dtest.core.BuildInfo;
 import org.dtest.core.Config;
-import org.dtest.core.ContainerClient;
 import org.dtest.core.ContainerCommand;
-import org.dtest.core.ContainerCommandFactory;
 import org.dtest.core.ContainerResult;
-import org.dtest.core.Reporter;
-import org.dtest.core.ResultAnalyzer;
-import org.dtest.core.TestUtils;
+import org.dtest.core.testutils.TestUtils;
 import org.dtest.core.git.GitSource;
+import org.dtest.core.testutils.MockContainerClient;
+import org.dtest.core.testutils.TestLogger;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -39,7 +37,7 @@ public class TestMavenContainerCommandFactory {
     File buildDir = TestUtils.createBuildDir();
     Config cfg = TestUtils.buildCfg(BuildInfo.CFG_BUILDINFO_LABEL, "profile",
                                     BuildInfo.CFG_BUILDINFO_BASEDIR, System.getProperty("java.io.tmpdir"));
-    TestUtils.TestLogger log = new TestUtils.TestLogger();
+    TestLogger log = new TestLogger();
     MavenContainerCommandFactory cmds = new MavenContainerCommandFactory();
     cmds.setConfig(cfg);
     cmds.setLog(log);
@@ -58,7 +56,7 @@ public class TestMavenContainerCommandFactory {
     log.dumpToLog();
   }
 
-  private static class TestContainerClient extends TestUtils.MockContainerClient {
+  private static class TestContainerClient extends MockContainerClient {
 
     public TestContainerClient(String containerName, String cannedDir, File buildDir, int rc) throws IOException {
       super(containerName, cannedDir, buildDir, rc);

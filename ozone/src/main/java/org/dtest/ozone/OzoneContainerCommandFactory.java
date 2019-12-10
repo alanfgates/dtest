@@ -17,10 +17,15 @@ package org.dtest.ozone;
 
 import org.dtest.core.mvn.MavenContainerCommandFactory;
 
-import java.util.Arrays;
 import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 
+/**
+ * Ozone specialization of MavenContainerCommandFactory.  Ozone requires at least maven 3.6, and many images comes
+ * with earlier versions.  This takes maven out of the required package list and instead inserts a command to
+ * download maven from an Apache mirror.
+ */
 public class OzoneContainerCommandFactory extends MavenContainerCommandFactory {
 
   @Override
@@ -36,7 +41,10 @@ public class OzoneContainerCommandFactory extends MavenContainerCommandFactory {
   public List<String> getRequiredPackages() {
     // Ozone requires a specific version of maven, so don't install it via package, we'll download and install that
     // version.
-    return Arrays.asList("unzip", "which");
+    List<String> ourList = new LinkedList<>(super.getRequiredPackages());
+    ourList.removeIf(s -> s.equals("maven"));
+    ourList.add("which");
+    return ourList;
   }
 
 }

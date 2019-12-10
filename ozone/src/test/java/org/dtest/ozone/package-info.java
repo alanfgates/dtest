@@ -13,22 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.dtest.hive;
-
-import org.dtest.core.BuildYaml;
-
 /**
- * Hive version of BuildYaml, necessary because we want to subclass ModuleDirectory.
+ * DTest implementation for Apache Hadoop Ozone.
  */
-public class HiveBuildYaml extends BuildYaml {
-
-  private HiveModuleDirectory[] hiveDirs;
-
-  public HiveModuleDirectory[] getHiveDirs() {
-    return hiveDirs;
-  }
-
-  public void setHiveDirs(HiveModuleDirectory[] hiveDirs) {
-    this.hiveDirs = hiveDirs;
-  }
-}
+package org.dtest.ozone;

@@ -4,8 +4,9 @@ import org.dtest.core.BuildInfo;
 import org.dtest.core.BuildYaml;
 import org.dtest.core.Config;
 import org.dtest.core.DTestLogger;
-import org.dtest.core.TestUtils;
+import org.dtest.core.testutils.TestUtils;
 import org.dtest.core.git.GitSource;
+import org.dtest.core.testutils.TestLogger;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -18,7 +19,7 @@ public class TestBuildInfoForHive {
     Config cfg = TestUtils.buildCfg(BuildInfo.CFG_BUILDINFO_LABEL, "parse-yaml",
         BuildInfo.CFG_BUILDINFO_BASEDIR, System.getProperty("java.io.tmpdir"),
         BuildYaml.CFG_BUILDYAML_IMPL, HiveBuildYaml.class.getName());
-    DTestLogger log = new TestUtils.TestLogger();
+    DTestLogger log = new TestLogger();
     BuildInfo info = new BuildInfo(TestUtils.buildYaml(cfg, log, "hivetest"), new GitSource(), true, "5");
     info.setConfig(cfg).setLog(log);
     info.getBuildDir();
@@ -112,7 +113,7 @@ public class TestBuildInfoForHive {
         BuildInfo.CFG_BUILDINFO_BASEDIR, System.getProperty("java.io.tmpdir"),
         BuildYaml.CFG_BUILDYAML_IMPL, HiveBuildYaml.class.getName());
     File cfgDir = new File(System.getProperty("java.io.tmpdir"), "classes");
-    DTestLogger log = new TestUtils.TestLogger();
+    DTestLogger log = new TestLogger();
     BuildInfo info = new BuildInfo(BuildYaml.readYaml(cfgDir, cfg, log, null, profile, branch), new GitSource(), true, "7");
     info.setConfig(cfg).setLog(log);
     info.getBuildDir();

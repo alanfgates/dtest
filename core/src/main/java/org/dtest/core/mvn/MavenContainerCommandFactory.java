@@ -88,7 +88,7 @@ public class MavenContainerCommandFactory extends ContainerCommandFactory {
   /**
    * Build an individual container command.  This implementation works with the options present in
    * {@link BuildYaml}.  If a subclass has subclassed BuildYaml and wishes to handle things differently
-   * they can override this method.
+   * it can override this method.
    * @param mDir information on this directory
    * @param containerClient container client handle
    * @param buildInfo build information

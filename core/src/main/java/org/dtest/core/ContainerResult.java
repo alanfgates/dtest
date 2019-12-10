@@ -26,7 +26,7 @@ public class ContainerResult {
   private final String stdout;
   private final String containerName;
   private ContainerStatus analysisResult;
-  private TestReports reports;
+  private TestReports reports; // set by the ResultAnalyzer
 
   /**
    *

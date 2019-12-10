@@ -40,6 +40,9 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
+/**
+ * Hive specialization of MavenContainerCommandFactory.  Implements quite a bit of special logic to handle qfile tests.
+ */
 public class HiveContainerCommandFactory extends MavenContainerCommandFactory {
   private static final Logger LOG = LoggerFactory.getLogger(HiveContainerCommandFactory.class);
   private Properties testProperties;
@@ -185,7 +188,7 @@ public class HiveContainerCommandFactory extends MavenContainerCommandFactory {
   }
 
   /**
-   * Only for use in testing, do not use fo real.
+   * Only for use in testing, do not use for real.
    * @param testProperties test properties
    */
   @VisibleForTesting

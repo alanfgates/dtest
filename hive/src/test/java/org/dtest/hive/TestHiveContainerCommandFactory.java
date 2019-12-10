@@ -21,8 +21,10 @@ import org.dtest.core.BuildYaml;
 import org.dtest.core.Config;
 import org.dtest.core.ContainerCommand;
 import org.dtest.core.ContainerResult;
-import org.dtest.core.TestUtils;
+import org.dtest.core.testutils.TestUtils;
 import org.dtest.core.git.GitSource;
+import org.dtest.core.testutils.MockContainerClient;
+import org.dtest.core.testutils.TestLogger;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -37,7 +39,7 @@ public class TestHiveContainerCommandFactory {
   @Test
   public void buildCommands() throws IOException {
     File buildDir = TestUtils.createBuildDir();
-    TestUtils.TestLogger log = new TestUtils.TestLogger();
+    TestLogger log = new TestLogger();
     Config cfg = TestUtils.buildCfg(
         BuildInfo.CFG_BUILDINFO_LABEL, "mylabel",
         BuildInfo.CFG_BUILDINFO_BASEDIR, System.getProperty("java.io.tmpdir"),
@@ -88,7 +90,7 @@ public class TestHiveContainerCommandFactory {
     Assert.assertTrue(qfiles.contains("mapreduce_stack_trace.q"));
   }
 
-  private static class TestContainerClient extends TestUtils.MockContainerClient {
+  private static class TestContainerClient extends MockContainerClient {
     public TestContainerClient(String containerName, String cannedDir, File buildDir, int rc) throws IOException {
       super(containerName, cannedDir, buildDir, rc);
     }

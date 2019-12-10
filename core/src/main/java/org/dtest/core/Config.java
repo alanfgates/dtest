@@ -108,7 +108,7 @@ public class Config {
    */
   public int getAsInt(String key, int defaultVal) {
     String val = entries.getProperty(key);
-    return val == null ? defaultVal : Integer.valueOf(val);
+    return val == null ? defaultVal : Integer.parseInt(val);
   }
 
   /**

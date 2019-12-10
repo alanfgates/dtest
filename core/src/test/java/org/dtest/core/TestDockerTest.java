@@ -16,6 +16,10 @@
 package org.dtest.core;
 
 import org.dtest.core.mvn.MavenResultAnalyzer;
+import org.dtest.core.testutils.MockContainerClient;
+import org.dtest.core.testutils.MockContainerCommandFactory;
+import org.dtest.core.testutils.TestLogger;
+import org.dtest.core.testutils.TestUtils;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -34,7 +38,7 @@ public class TestDockerTest {
   private static List<String> errors;
   private static File buildDir;
 
-  public static class SuccessfulClient extends TestUtils.MockContainerClient {
+  public static class SuccessfulClient extends MockContainerClient {
     static final String CONTAINER_NAME = "successful";
     static final int CONTAINER_RC = 0;
 
@@ -49,7 +53,7 @@ public class TestDockerTest {
     }
   }
 
-  public static class TimingOutClient extends TestUtils.MockContainerClient {
+  public static class TimingOutClient extends MockContainerClient {
     static final String CONTAINER_NAME = "timing-out";
     static final int CONTAINER_RC = 0;
 
@@ -64,7 +68,7 @@ public class TestDockerTest {
     }
   }
 
-  public static class ClientWithFailures extends TestUtils.MockContainerClient {
+  public static class ClientWithFailures extends MockContainerClient {
     static final String CONTAINER_NAME = "has-issues";
     static final int CONTAINER_RC = 0;
 
@@ -81,7 +85,7 @@ public class TestDockerTest {
   }
 
 
-  public static class HelloWorldCommandList extends TestUtils.MockContainerCommandFactory {
+  public static class HelloWorldCommandList extends MockContainerCommandFactory {
 
     public HelloWorldCommandList() {
       super(Collections.singletonList(new ContainerCommand(new ModuleDirectory()) {
@@ -103,7 +107,7 @@ public class TestDockerTest {
     }
   }
 
-  public static class FailureIgnoringCommandList extends TestUtils.MockContainerCommandFactory {
+  public static class FailureIgnoringCommandList extends MockContainerCommandFactory {
     public FailureIgnoringCommandList() {
       super(Collections.singletonList(new ContainerCommand(new ModuleDirectory().setFailuresToIgnore(new String[] {"TestFakeTwo.errorTwo", "TestFake.fail"})) {
         @Override
@@ -193,7 +197,7 @@ public static class SpyingResultAnalyzer extends ResultAnalyzer {
 
   @Test
   public void successfulRunAllTestsPass() throws IOException {
-    TestUtils.TestLogger log = new TestUtils.TestLogger();
+    TestLogger log = new TestLogger();
     try {
       Properties props = TestUtils.buildProperties(
           ContainerClient.CFG_CONTAINERCLIENT_IMPL, SuccessfulClient.class.getName(),
@@ -216,7 +220,7 @@ public static class SpyingResultAnalyzer extends ResultAnalyzer {
 
   @Test
   public void ignoreFailures() throws IOException {
-    TestUtils.TestLogger log = new TestUtils.TestLogger();
+    TestLogger log = new TestLogger();
     try {
       Properties props = TestUtils.buildProperties(
           ContainerClient.CFG_CONTAINERCLIENT_IMPL, SuccessfulClient.class.getName(),
@@ -239,7 +243,7 @@ public static class SpyingResultAnalyzer extends ResultAnalyzer {
 
   @Test
   public void timeout() throws IOException {
-    TestUtils.TestLogger log = new TestUtils.TestLogger();
+    TestLogger log = new TestLogger();
     Properties props = TestUtils.buildProperties(
         ContainerClient.CFG_CONTAINERCLIENT_IMPL, TimingOutClient.class.getName(),
         ContainerCommandFactory.CFG_CONTAINERCOMMANDLIST_IMPL, HelloWorldCommandList.class.getName(),
@@ -256,7 +260,7 @@ public static class SpyingResultAnalyzer extends ResultAnalyzer {
 
   @Test
   public void runWithFailures() throws IOException {
-    TestUtils.TestLogger log = new TestUtils.TestLogger();
+    TestLogger log = new TestLogger();
     Properties props = TestUtils.buildProperties(
         ContainerClient.CFG_CONTAINERCLIENT_IMPL, ClientWithFailures.class.getName(),
         ContainerCommandFactory.CFG_CONTAINERCOMMANDLIST_IMPL, HelloWorldCommandList.class.getName(),

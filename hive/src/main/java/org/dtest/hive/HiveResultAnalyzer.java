@@ -20,6 +20,9 @@ import org.dtest.core.mvn.MavenResultAnalyzer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ * Hive specialization of MavenResultAnalyzer.  Handles determining test names for qfile tests.
+ */
 public class HiveResultAnalyzer extends MavenResultAnalyzer {
 
   private static final Pattern qFileNameFinder = Pattern.compile("testCliDriver\\[([A-Za-z0-9_]+)\\]");

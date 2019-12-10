@@ -113,10 +113,19 @@ public class MavenContainerCommand extends ContainerCommand {
     properties.putAll(props);
   }
 
+  /**
+   * Get the MavenCommandSupplier that should be used to generate this container command.
+   * @return supplier
+   */
   protected MavenCommandSupplier getCommandSupplier() {
     return new MavenCommandSupplier();
   }
 
+  /**
+   * A class to build maven commands based on configuration obtained from the build.yaml.  This class can be
+   * overridden by subclasses of MavenContainerCommand to supply any additional or different maven commands
+   * they require.
+   */
   protected class MavenCommandSupplier implements Supplier<String> {
     public String get() {
       StringBuilder buf = new StringBuilder();

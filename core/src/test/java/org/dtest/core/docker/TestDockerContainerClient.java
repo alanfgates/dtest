@@ -19,10 +19,11 @@ import org.dtest.core.BuildInfo;
 import org.dtest.core.CodeSource;
 import org.dtest.core.Config;
 import org.dtest.core.ContainerCommandFactory;
-import org.dtest.core.TestUtils;
+import org.dtest.core.testutils.TestUtils;
 import org.dtest.core.git.GitSource;
 import org.dtest.core.impl.ProcessResults;
 import org.dtest.core.mvn.MavenContainerCommandFactory;
+import org.dtest.core.testutils.TestLogger;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -35,14 +36,14 @@ import java.io.IOException;
 
 public class TestDockerContainerClient {
   private Config cfg;
-  private TestUtils.TestLogger log;
+  private TestLogger log;
 
   @Before
   public void buildConfigAndLog() {
     cfg = TestUtils.buildCfg(
         BuildInfo.CFG_BUILDINFO_LABEL, "needsomething",
         BuildInfo.CFG_BUILDINFO_BASEDIR, System.getProperty("java.io.tmpdir"));
-    log = new TestUtils.TestLogger();
+    log = new TestLogger();
   }
 
   @After

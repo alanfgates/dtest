@@ -16,6 +16,8 @@
 package org.dtest.core;
 
 import org.dtest.core.git.GitSource;
+import org.dtest.core.testutils.TestLogger;
+import org.dtest.core.testutils.TestUtils;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -27,7 +29,7 @@ public class TestBuildInfo {
   public void simple() throws IOException {
     Config cfg = TestUtils.buildCfg(BuildInfo.CFG_BUILDINFO_LABEL, "patch1");
     BuildInfo info = new BuildInfo(new BuildYaml(), new GitSource(), true, "1");
-    info.setConfig(cfg).setLog(new TestUtils.TestLogger());
+    info.setConfig(cfg).setLog(new TestLogger());
     info.checkLabelIsDockerable();
   }
 
@@ -35,7 +37,7 @@ public class TestBuildInfo {
   public void withDash() throws IOException {
     Config cfg = TestUtils.buildCfg(BuildInfo.CFG_BUILDINFO_LABEL, "patch1-run2");
     BuildInfo info = new BuildInfo(new BuildYaml(), new GitSource(), true, "2");
-    info.setConfig(cfg).setLog(new TestUtils.TestLogger());
+    info.setConfig(cfg).setLog(new TestLogger());
     info.checkLabelIsDockerable();
   }
 
@@ -43,7 +45,7 @@ public class TestBuildInfo {
   public void withSlash() throws IOException {
     Config cfg = TestUtils.buildCfg(BuildInfo.CFG_BUILDINFO_LABEL, "patch1/run2");
     BuildInfo info = new BuildInfo(new BuildYaml(), new GitSource(), true, "3");
-    info.setConfig(cfg).setLog(new TestUtils.TestLogger());
+    info.setConfig(cfg).setLog(new TestLogger());
     info.checkLabelIsDockerable();
   }
 
@@ -51,7 +53,7 @@ public class TestBuildInfo {
   public void parseYaml() throws IOException {
     Config cfg = TestUtils.buildCfg(BuildInfo.CFG_BUILDINFO_LABEL, "parse-yaml",
                                     BuildInfo.CFG_BUILDINFO_BASEDIR, System.getProperty("java.io.tmpdir"));
-    DTestLogger log = new TestUtils.TestLogger();
+    DTestLogger log = new TestLogger();
     BuildInfo info = new BuildInfo(TestUtils.buildYaml(cfg, log), new GitSource(), true, "4");
     info.setConfig(cfg).setLog(log);
     info.getBuildDir();

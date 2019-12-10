@@ -32,16 +32,25 @@ dirs:
   - dir: hadoop-ozone/insight
   - dir: hadoop-ozone/integration-test
     skippedTests:
-      - TestBlockDeletion                       # fails on mac and linux
-      - TestContainerStateMachine               # passes on mac but fails on Linux
-      - TestOzoneManagerRestart                 # passes on mac but fails on Linux
-      - TestSecureOzoneCluster                  # fails on mac and linux
-      - TestBlockOutputStreamWithFailures       # passes on mac but fails on Linux
-      - TestContainerStateMachineFailures       # fails on mac and linux
-      - TestWatchForCommit                      # fails on mac and linux
+#     - TestBlockDeletion                       # fails on mac and linux
+#     - TestSecureOzoneCluster                  # fails on mac and linux
       - TestMiniChaosOzoneCluster               # fails on mac and linux
-      - TestContainerSmallFile                  # Passes when run individually but fails when run as part of the test
-      - TestScmSafeMode
+#     - TestContainerSmallFile                  # Passes when run individually but fails when run as part of the test
+      - TestSCMSafeModeWithPipelineRules
+      - TestContainerReplication
+    failuresToIgnore:
+      - TestContainerStateMachineFailures.testApplyTransactionFailure
+      - TestContainerStateMachineFailures.testApplyTransactionIdempotencyWithClosedContainer
+      - TestContainerStateMachineFailures.testContainerStateMachineFailures
+      - TestContainerStateMachineFailures.testValidateBCSIDOnDnRestart
+      - TestOzoneManagerRestart.testRestartOMWithKeyOperation
+      - TestScmSafeMode.testSCMSafeMode
+      - TestScmSafeMode.testSCMSafeModeRestrictedOp
+      - TestContainerStateMachineFailures.testUnhealthyContainer
+      - TestContainerStateMachineFailures.testWriteStateMachineDataIdempotencyWithClosedContainer
+      - TestWatchForCommit.testWatchForCommitForGroupMismatchException
+      - TestWatchForCommit.testWatchForCommitForRetryfailure
+      - TestBlockOutputStreamWithFailures.testWatchForCommitDatanodeFailure
     needsSplit: true
     testsPerContainer: 5              # tests are longer in here since they are integration tests
   - dir: hadoop-ozone/ozone-manager

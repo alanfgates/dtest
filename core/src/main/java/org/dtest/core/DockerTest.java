@@ -106,7 +106,7 @@ public class DockerTest {
     this.log = log;
   }
 
-  @VisibleForTesting boolean parseArgs(String[] args) {
+  @VisibleForTesting public boolean parseArgs(String[] args) {
     // The logs have not been set up yet when this method is called.  Also, this method should only be used
     // from the command line.  So any errors encountered here need to be printed out rather than sent to the logs.
     CommandLineParser parser = new DefaultParser();
@@ -127,7 +127,7 @@ public class DockerTest {
 
     opts.addOption(Option.builder("n")
         .longOpt("no-cleanup")
-        .desc("do not cleanup docker containers and image after build")
+        .desc("Do not cleanup docker containers and image after build.  Use only for debugging.")
         .build());
 
     opts.addOption(Option.builder("p")
@@ -191,9 +191,10 @@ public class DockerTest {
     ResultAnalyzer result = null;
     boolean mightHaveBuiltImage = false;
     try {
-      log.info("Going to build branch " + branch + " from repo " + repo + " using profile in " + profile);
       BuildYaml yaml = BuildYaml.readYaml(cfgDir, cfg, log, repo, profile, branch);
       CodeSource codeSource = CodeSource.getInstance(cfg, log);
+      if (branch == null) branch = codeSource.getDefaultBranch();
+      log.info("Going to build branch " + branch + " from repo " + repo + " using profile in " + profile);
       buildInfo = new BuildInfo(yaml, codeSource, cleanupAfter, buildDir);
       buildInfo.setConfig(cfg).setLog(log);
       reporter = Reporter.getInstance(cfg, log)
@@ -212,8 +213,7 @@ public class DockerTest {
     } catch (IOException e) {
       log.error("Failed to run the build", e);
       // we might have failed before state got set
-      BuildState state = null;
-      state = (result == null || result.getBuildState() == null) ? new BuildState() : result.getBuildState();
+      BuildState state = (result == null || result.getBuildState() == null) ? new BuildState() : result.getBuildState();
       state.fail();
       return state;
     } catch (Throwable t) {
@@ -240,7 +240,7 @@ public class DockerTest {
   }
 
   @VisibleForTesting
-  void determineCfgDir() throws IOException {
+  public void determineCfgDir() throws IOException {
     // For testing we set the cfg value as System property rather than using DTEST_HOME
     String testing = System.getProperty(TESTONLY_CFGDIR );
     if (testing != null) {

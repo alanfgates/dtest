@@ -14,6 +14,6 @@
  * limitations under the License.
  */
 /**
- * Implementation of dtest for Apache Hive.  This needs to be moved into Hive.
+ * Implementation of dtest for Apache Hive.
  */
 package org.dtest.hive;

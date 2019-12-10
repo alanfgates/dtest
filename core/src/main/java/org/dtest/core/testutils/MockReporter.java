@@ -13,22 +13,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.dtest.hive;
+package org.dtest.core.testutils;
 
-import org.dtest.core.BuildYaml;
+import org.dtest.core.ContainerClient;
+import org.dtest.core.ContainerResult;
+import org.dtest.core.Reporter;
 
-/**
- * Hive version of BuildYaml, necessary because we want to subclass ModuleDirectory.
- */
-public class HiveBuildYaml extends BuildYaml {
+import java.io.File;
 
-  private HiveModuleDirectory[] hiveDirs;
+public class MockReporter extends Reporter {
+  private final File logDirForContainer;
 
-  public HiveModuleDirectory[] getHiveDirs() {
-    return hiveDirs;
+  public MockReporter(File logDirForContainer) {
+    this.logDirForContainer = logDirForContainer;
   }
 
-  public void setHiveDirs(HiveModuleDirectory[] hiveDirs) {
-    this.hiveDirs = hiveDirs;
+  @Override
+  public File getLogDirForContainer(ContainerResult result) {
+    return logDirForContainer;
+  }
+
+  @Override
+  public void addFailedTests(ContainerClient docker, ContainerResult result) {
+
+  }
+
+  @Override
+  public void publish() {
+
   }
 }

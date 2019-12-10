@@ -22,7 +22,11 @@ import org.dtest.core.ContainerCommand;
 import org.dtest.core.ContainerResult;
 import org.dtest.core.ModuleDirectory;
 import org.dtest.core.Reporter;
-import org.dtest.core.TestUtils;
+import org.dtest.core.testutils.TestUtils;
+import org.dtest.core.testutils.MockContainerClient;
+import org.dtest.core.testutils.MockContainerCommand;
+import org.dtest.core.testutils.MockReporter;
+import org.dtest.core.testutils.TestLogger;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -38,14 +42,14 @@ public class TestMavenResultAnalyzer {
   public void unitTestLog() throws IOException {
     File buildDir = TestUtils.createBuildDir();
     String containerName = "maven-result-analyzer-unit-testlog";
-    TestUtils.TestLogger log = new TestUtils.TestLogger();
+    TestLogger log = new TestLogger();
     Config cfg = TestUtils.buildCfg();
     MavenResultAnalyzer analyzer = new MavenResultAnalyzer();
-    Reporter reporter = new TestUtils.MockReporter(buildDir);
-    ContainerClient client = new TestUtils.MockContainerClient(containerName, "with-error-and-failure", buildDir, 0);
+    Reporter reporter = new MockReporter(buildDir);
+    ContainerClient client = new MockContainerClient(containerName, "with-error-and-failure", buildDir, 0);
     client.setLog(log);
     client.setConfig(cfg);
-    ContainerCommand cmd = new TestUtils.MockContainerCommand(containerName, buildDir.getAbsolutePath(), "/bin/bash");
+    ContainerCommand cmd = new MockContainerCommand(containerName, buildDir.getAbsolutePath(), "/bin/bash");
     ContainerResult cr = client.runContainer(cmd);
     client.fetchTestReports(cr, analyzer, reporter, new String[] {"additional.log"});
     analyzer.analyzeResult(cr, cmd);
@@ -76,16 +80,16 @@ public class TestMavenResultAnalyzer {
   public void ignoreFailedTests() throws IOException {
     File buildDir = TestUtils.createBuildDir();
     String containerName = "maven-result-analyzer-unit-testlog";
-    TestUtils.TestLogger log = new TestUtils.TestLogger();
+    TestLogger log = new TestLogger();
     Config cfg = TestUtils.buildCfg();
     MavenResultAnalyzer analyzer = new MavenResultAnalyzer();
-    Reporter reporter = new TestUtils.MockReporter(buildDir);
-    ContainerClient client = new TestUtils.MockContainerClient(containerName, "with-error-and-failure", buildDir, 0);
+    Reporter reporter = new MockReporter(buildDir);
+    ContainerClient client = new MockContainerClient(containerName, "with-error-and-failure", buildDir, 0);
     client.setLog(log);
     client.setConfig(cfg);
     ModuleDirectory moduleDir = new ModuleDirectory();
     moduleDir.setFailuresToIgnore(new String[] {"TestFakeTwo.errorTwo", "TestFake.fail"});
-    ContainerCommand cmd = new TestUtils.MockContainerCommand(moduleDir, containerName, buildDir.getAbsolutePath(), "/bin/bash");
+    ContainerCommand cmd = new MockContainerCommand(moduleDir, containerName, buildDir.getAbsolutePath(), "/bin/bash");
     ContainerResult cr = client.runContainer(cmd);
     client.fetchTestReports(cr, analyzer, reporter, new String[] {"additional.log"});
     analyzer.analyzeResult(cr, cmd);
@@ -101,14 +105,14 @@ public class TestMavenResultAnalyzer {
   public void successfulLog() throws IOException {
     File buildDir = TestUtils.createBuildDir();
     String containerName = "maven-result-analyzer-unit-testlog-good";
-    TestUtils.TestLogger log = new TestUtils.TestLogger();
+    TestLogger log = new TestLogger();
     Config cfg = TestUtils.buildCfg();
     MavenResultAnalyzer analyzer = new MavenResultAnalyzer();
-    Reporter reporter = new TestUtils.MockReporter(buildDir);
-    ContainerClient client = new TestUtils.MockContainerClient(containerName, "allgood", buildDir, 0);
+    Reporter reporter = new MockReporter(buildDir);
+    ContainerClient client = new MockContainerClient(containerName, "allgood", buildDir, 0);
     client.setLog(log);
     client.setConfig(cfg);
-    ContainerCommand cmd = new TestUtils.MockContainerCommand(containerName, buildDir.getAbsolutePath(), "/bin/bash");
+    ContainerCommand cmd = new MockContainerCommand(containerName, buildDir.getAbsolutePath(), "/bin/bash");
     ContainerResult cr = client.runContainer(cmd);
     client.fetchTestReports(cr, analyzer, reporter, null);
     analyzer.analyzeResult(cr, cmd);
@@ -125,14 +129,14 @@ public class TestMavenResultAnalyzer {
   public void timeoutLog() throws IOException {
     File buildDir = TestUtils.createBuildDir();
     String containerName = "maven-result-analyzer-unit-testlog-timeout";
-    TestUtils.TestLogger log = new TestUtils.TestLogger();
+    TestLogger log = new TestLogger();
     Config cfg = TestUtils.buildCfg();
     MavenResultAnalyzer analyzer = new MavenResultAnalyzer();
-    Reporter reporter = new TestUtils.MockReporter(buildDir);
-    ContainerClient client = new TestUtils.MockContainerClient(containerName, "timeout", buildDir, 0);
+    Reporter reporter = new MockReporter(buildDir);
+    ContainerClient client = new MockContainerClient(containerName, "timeout", buildDir, 0);
     client.setLog(log);
     client.setConfig(cfg);
-    ContainerCommand cmd = new TestUtils.MockContainerCommand(containerName, buildDir.getAbsolutePath(), "/bin/bash");
+    ContainerCommand cmd = new MockContainerCommand(containerName, buildDir.getAbsolutePath(), "/bin/bash");
     ContainerResult cr = client.runContainer(cmd);
     client.fetchTestReports(cr, analyzer, reporter, null);
     analyzer.analyzeResult(cr, cmd);
@@ -143,6 +147,35 @@ public class TestMavenResultAnalyzer {
     Assert.assertEquals(BuildState.State.HAD_TIMEOUTS, analyzer.getBuildState().getState());
     Assert.assertEquals(0, cr.getReports().getKeptFiles().size());
     log.dumpToLog();
+  }
+
+  @Test
+  public void testBuildStateTransitions() throws IOException {
+    // Timeout followed by success should still give a build state of timeout.
+    File buildDir = TestUtils.createBuildDir();
+    String containerName = "maven-result-analyzer-unit-testlog-timeout";
+    TestLogger log = new TestLogger();
+    Config cfg = TestUtils.buildCfg();
+    MavenResultAnalyzer analyzer = new MavenResultAnalyzer();
+    Reporter reporter = new MockReporter(buildDir);
+    ContainerClient client = new MockContainerClient(containerName, "timeout", buildDir, 0);
+    client.setLog(log);
+    client.setConfig(cfg);
+    ContainerCommand cmd = new MockContainerCommand(containerName, buildDir.getAbsolutePath(), "/bin/bash");
+    ContainerResult cr = client.runContainer(cmd);
+    client.fetchTestReports(cr, analyzer, reporter, null);
+    analyzer.analyzeResult(cr, cmd);
+
+    containerName = "maven-result-analyzer-unit-testlog-good";
+    client = new MockContainerClient(containerName, "allgood", buildDir, 0);
+    client.setLog(log);
+    client.setConfig(cfg);
+    cmd = new MockContainerCommand(containerName, buildDir.getAbsolutePath(), "/bin/bash");
+    cr = client.runContainer(cmd);
+    client.fetchTestReports(cr, analyzer, reporter, null);
+    analyzer.analyzeResult(cr, cmd);
+
+    Assert.assertEquals(BuildState.State.HAD_TIMEOUTS, analyzer.getBuildState().getState());
   }
 
 }

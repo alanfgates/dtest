@@ -13,22 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.dtest.hive;
+package org.dtest.core.testutils;
 
+import org.dtest.core.BuildInfo;
 import org.dtest.core.BuildYaml;
+import org.dtest.core.git.GitSource;
 
-/**
- * Hive version of BuildYaml, necessary because we want to subclass ModuleDirectory.
- */
-public class HiveBuildYaml extends BuildYaml {
+import java.io.File;
 
-  private HiveModuleDirectory[] hiveDirs;
+public class MockBuildInfo extends BuildInfo {
+  private File fakeBuildDir;
 
-  public HiveModuleDirectory[] getHiveDirs() {
-    return hiveDirs;
+  public MockBuildInfo(File buildDir) {
+    super(new BuildYaml(), new GitSource(), false, buildDir.getAbsolutePath());
+    fakeBuildDir = buildDir;
   }
 
-  public void setHiveDirs(HiveModuleDirectory[] hiveDirs) {
-    this.hiveDirs = hiveDirs;
+  @Override
+  public File getBuildDir() {
+    return fakeBuildDir;
   }
 }
