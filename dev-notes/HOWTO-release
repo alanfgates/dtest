@@ -1,0 +1,20 @@
+1. Set the pom versions from SNAPSHOT to the version you plan to release.
+  mvn versions:set -DnewVersion=x.y.z -DgenerateBackupPoms=false
+
+2. Run the build, make sure all is good.
+  mvn clean install
+  git commit -a
+
+3. Run on a build machine with a real workload (like Hive or Ozone) and make sure it works.
+
+4. Tag the release
+  git tag -a release-x.y.z -m "DTest x.y.z release"
+
+5. Advance the pom versions to the next version and add SNAPSHOT
+   (Note, next version shown here as y+1, but it could be x or z +1 as well.)
+  mvn versions:set -DnewVersion=x.y+1.z-SNAPSHOT -DgenerateBackupPoms=false
+  git commit -a
+
+6. Push all this to github
+  git push master afg
+
