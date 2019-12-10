@@ -102,6 +102,7 @@ limitations under the License.
           <systemPropertyVariables>
             <java.io.tmpdir>${project.build.directory}</java.io.tmpdir>
             <dtest.testonly.conf.dir>${project.build.directory}/test-classes</dtest.testonly.conf.dir>
+            <basedir>${project.basedir}</basedir>
           </systemPropertyVariables>
           <environmentVariables>
             <DTEST_HOME>${project.build.directory}</DTEST_HOME>
@@ -131,7 +132,6 @@ limitations under the License.
             <java.io.tmpdir>${project.build.directory}</java.io.tmpdir>
             <dtest.home>${project.build.directory}/${distribution.dir}/dtest</dtest.home>
             <dtest.itest.resource.dir>${project.build.directory}/test-classes/itest</dtest.itest.resource.dir>
-            <basedir>${project.basedir}</basedir>
           </systemPropertyVariables>
         </configuration>
       </plugin>

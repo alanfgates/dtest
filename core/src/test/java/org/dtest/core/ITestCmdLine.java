@@ -16,6 +16,8 @@
 package org.dtest.core;
 
 import org.apache.commons.lang3.StringUtils;
+import org.dtest.core.impl.StreamPumper;
+import org.dtest.core.testutils.TestLogger;
 import org.junit.Assert;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -31,6 +33,7 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class ITestCmdLine {
   private static final Logger LOG = LoggerFactory.getLogger(ITestCmdLine.class);
@@ -57,18 +60,21 @@ public class ITestCmdLine {
       int i = 0;
       for (Map.Entry<String, String> e : env.entrySet()) envArray[i++] = e.getKey() + "=" + e.getValue();
       Process proc = Runtime.getRuntime().exec(cmd, envArray);
-      BufferedReader reader = new BufferedReader(new InputStreamReader(proc.getInputStream()));
-      final StringBuilder lines = new StringBuilder();
-      reader.lines()
-          .forEach(s -> lines.append(s).append('\n'));
-
-      reader = new BufferedReader(new InputStreamReader(proc.getErrorStream()));
-      final StringBuilder errLines = new StringBuilder();
-      reader.lines()
-          .forEach(s -> errLines.append(s).append('\n'));
-      LOG.info("stdout: " + lines.toString());
-      LOG.info("stderr: " + errLines.toString());
-      Assert.assertTrue(proc.waitFor(300, TimeUnit.SECONDS));
+      AtomicBoolean running = new AtomicBoolean(true);
+      TestLogger dtestLog = new TestLogger();
+      StreamPumper stdout = new StreamPumper(running, proc.getInputStream(), "itest", dtestLog);
+      StreamPumper stderr = new StreamPumper(running, proc.getErrorStream(), "itest", dtestLog);
+      new Thread(stdout).start();
+      new Thread(stderr).start();
+      try {
+        Assert.assertTrue(proc.waitFor(300, TimeUnit.SECONDS));
+      } finally {
+        running.set(false);
+        stdout.finalPump();
+        stderr.finalPump();
+      }
+      LOG.info("output:");
+      dtestLog.dumpToLog();
       Assert.assertEquals(0, proc.exitValue());
     } finally {
       Files.deleteIfExists(profileYamlInDTestHome);

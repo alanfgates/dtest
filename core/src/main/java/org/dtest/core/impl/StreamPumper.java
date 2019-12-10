@@ -15,6 +15,7 @@
  */
 package org.dtest.core.impl;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.dtest.core.DTestLogger;
 
 import java.io.BufferedReader;
@@ -48,7 +49,8 @@ public class StreamPumper implements Runnable {
    * @param containerId id of the container whose output is being pumped.  This value is used in the log.
    * @param log log object
    */
-  StreamPumper(AtomicBoolean keepGoing, InputStream input, String containerId, DTestLogger log) {
+  @VisibleForTesting
+  public StreamPumper(AtomicBoolean keepGoing, InputStream input, String containerId, DTestLogger log) {
     this.keepGoing = keepGoing;
     reader = new BufferedReader(new InputStreamReader(input));
     this.containerId = containerId;

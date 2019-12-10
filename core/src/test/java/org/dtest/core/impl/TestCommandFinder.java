@@ -26,7 +26,8 @@ public class TestCommandFinder {
   public void findInDefaultPath() {
     CommandFinder.forceReset();
     Config cfg = TestUtilities.buildCfg();
-    Assert.assertEquals("/bin/ls", CommandFinder.get(cfg).findCommand("ls"));
+    // Can't assert a particular location because it's different depeneding on whether we're in a container or not.
+    Assert.assertNotNull(CommandFinder.get(cfg).findCommand("ls"));
     Assert.assertNull(CommandFinder.get(cfg).findCommand("nosuch"));
     Assert.assertNull(CommandFinder.get(cfg).findCommand("dtest"));
   }
@@ -37,7 +38,7 @@ public class TestCommandFinder {
     String scriptDir = System.getProperty("basedir") + "/src/main/scripts";
     Config cfg = TestUtilities.buildCfg(CommandFinder.CFG_COMMANDFINDER_ADDITIONALPATH, "/etc:" + scriptDir);
     Assert.assertEquals(scriptDir + "/dtest", CommandFinder.get(cfg).findCommand("dtest"));
-    Assert.assertEquals("/bin/ls", CommandFinder.get(cfg).findCommand("ls"));
+    Assert.assertNotNull(CommandFinder.get(cfg).findCommand("ls"));
     Assert.assertNull(CommandFinder.get(cfg).findCommand("nosuch"));
   }
 }
