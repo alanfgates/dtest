@@ -20,7 +20,7 @@ import org.dtest.core.BuildInfo;
 import org.dtest.core.Config;
 import org.dtest.core.ContainerCommand;
 import org.dtest.core.ContainerResult;
-import org.dtest.core.testutils.TestUtils;
+import org.dtest.core.testutils.TestUtilities;
 import org.dtest.core.git.GitSource;
 import org.dtest.core.testutils.MockContainerClient;
 import org.dtest.core.testutils.TestLogger;
@@ -34,14 +34,14 @@ public class TestMavenContainerCommandFactory {
 
   @Test
   public void buildCommands() throws IOException {
-    File buildDir = TestUtils.createBuildDir();
-    Config cfg = TestUtils.buildCfg(BuildInfo.CFG_BUILDINFO_LABEL, "profile",
+    File buildDir = TestUtilities.createBuildDir();
+    Config cfg = TestUtilities.buildCfg(BuildInfo.CFG_BUILDINFO_LABEL, "profile",
                                     BuildInfo.CFG_BUILDINFO_BASEDIR, System.getProperty("java.io.tmpdir"));
     TestLogger log = new TestLogger();
     MavenContainerCommandFactory cmds = new MavenContainerCommandFactory();
     cmds.setConfig(cfg);
     cmds.setLog(log);
-    BuildInfo buildInfo = new BuildInfo(TestUtils.buildYaml(cfg, log), new GitSource(), true, "1");
+    BuildInfo buildInfo = new BuildInfo(TestUtilities.buildYaml(cfg, log), new GitSource(), true, "1");
     buildInfo.setConfig(cfg).setLog(log);
     buildInfo.getBuildDir();
     cmds.buildContainerCommands(new TestContainerClient("test-maven-container-command-factory", "allgood", buildDir, 0), buildInfo);

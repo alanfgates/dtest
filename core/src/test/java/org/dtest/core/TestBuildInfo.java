@@ -17,7 +17,7 @@ package org.dtest.core;
 
 import org.dtest.core.git.GitSource;
 import org.dtest.core.testutils.TestLogger;
-import org.dtest.core.testutils.TestUtils;
+import org.dtest.core.testutils.TestUtilities;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -27,7 +27,7 @@ public class TestBuildInfo {
 
   @Test
   public void simple() throws IOException {
-    Config cfg = TestUtils.buildCfg(BuildInfo.CFG_BUILDINFO_LABEL, "patch1");
+    Config cfg = TestUtilities.buildCfg(BuildInfo.CFG_BUILDINFO_LABEL, "patch1");
     BuildInfo info = new BuildInfo(new BuildYaml(), new GitSource(), true, "1");
     info.setConfig(cfg).setLog(new TestLogger());
     info.checkLabelIsDockerable();
@@ -35,7 +35,7 @@ public class TestBuildInfo {
 
   @Test
   public void withDash() throws IOException {
-    Config cfg = TestUtils.buildCfg(BuildInfo.CFG_BUILDINFO_LABEL, "patch1-run2");
+    Config cfg = TestUtilities.buildCfg(BuildInfo.CFG_BUILDINFO_LABEL, "patch1-run2");
     BuildInfo info = new BuildInfo(new BuildYaml(), new GitSource(), true, "2");
     info.setConfig(cfg).setLog(new TestLogger());
     info.checkLabelIsDockerable();
@@ -43,7 +43,7 @@ public class TestBuildInfo {
 
   @Test(expected = IOException.class)
   public void withSlash() throws IOException {
-    Config cfg = TestUtils.buildCfg(BuildInfo.CFG_BUILDINFO_LABEL, "patch1/run2");
+    Config cfg = TestUtilities.buildCfg(BuildInfo.CFG_BUILDINFO_LABEL, "patch1/run2");
     BuildInfo info = new BuildInfo(new BuildYaml(), new GitSource(), true, "3");
     info.setConfig(cfg).setLog(new TestLogger());
     info.checkLabelIsDockerable();
@@ -51,10 +51,10 @@ public class TestBuildInfo {
 
   @Test
   public void parseYaml() throws IOException {
-    Config cfg = TestUtils.buildCfg(BuildInfo.CFG_BUILDINFO_LABEL, "parse-yaml",
+    Config cfg = TestUtilities.buildCfg(BuildInfo.CFG_BUILDINFO_LABEL, "parse-yaml",
                                     BuildInfo.CFG_BUILDINFO_BASEDIR, System.getProperty("java.io.tmpdir"));
     DTestLogger log = new TestLogger();
-    BuildInfo info = new BuildInfo(TestUtils.buildYaml(cfg, log), new GitSource(), true, "4");
+    BuildInfo info = new BuildInfo(TestUtilities.buildYaml(cfg, log), new GitSource(), true, "4");
     info.setConfig(cfg).setLog(log);
     info.getBuildDir();
     BuildYaml yaml = info.getYaml();

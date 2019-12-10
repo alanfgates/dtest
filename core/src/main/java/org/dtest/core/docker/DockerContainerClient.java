@@ -23,6 +23,7 @@ import org.dtest.core.ContainerResult;
 import org.dtest.core.Reporter;
 import org.dtest.core.TestReports;
 import org.dtest.core.ResultAnalyzer;
+import org.dtest.core.impl.CommandFinder;
 import org.dtest.core.impl.ProcessResults;
 import org.dtest.core.impl.Utils;
 
@@ -41,19 +42,12 @@ import java.util.regex.Pattern;
  * Default implementation of ContainerClient.  Implements container client for Docker.
  */
 public class DockerContainerClient extends ContainerClient {
-  /**
-   * Path to the docker executable.  Defaults to /usr/local/bin/docker
-   */
-  public static final String CFG_DOCKERCONTAINERCLIENT_DOCKERPATH = "dtest.docker.dockercontainerclient.dockerpath";
-  private static final String CFG_DOCKERCONTAINERCLIENT_DOCKERPATH_DEFAULT = "/usr/local/bin/docker";
-
   protected static final Pattern IMAGE_SUCCESS = Pattern.compile("BUILD SUCCESS");
   protected static final Pattern USING_CACHE = Pattern.compile("Using cache");
   private static final String IMAGE_BASE = "dtest-";
   private static final String BUILD_CONTAINER_NAME = "image_build";
 
   private String imageName;
-  private String dockerExec;
 
   @Override
   public void setBuildInfo(BuildInfo buildInfo) throws IOException {
@@ -73,14 +67,14 @@ public class DockerContainerClient extends ContainerClient {
     checkBuildSucceeded(Utils.runProcess(BUILD_CONTAINER_NAME,
         cfg.getAsTime(CFG_CONTAINERCLIENT_IMAGEBUILDTIME, TimeUnit.SECONDS,
             CFG_CONTAINERCLIENT_IMAGEBUILDTIME_DEFAULT),
-        log, getDockerExec(), "build", "--tag", imageName, buildInfo.getBuildDir().getAbsolutePath()));
+        log, CommandFinder.get(cfg).findCommand("docker"), "build", "--tag", imageName, buildInfo.getBuildDir().getAbsolutePath()));
   }
 
   @Override
   public ContainerResult runContainer(ContainerCommand cmd) throws IOException {
     List<String> runCmd = new ArrayList<>();
     String containerName = Utils.buildContainerName(buildInfo.getLabel(), cmd.containerSuffix());
-    Collections.addAll(runCmd, getDockerExec(), "run", "--name", containerName, imageName);
+    Collections.addAll(runCmd, CommandFinder.get(cfg).findCommand("docker"), "run", "--name", containerName, imageName);
     Collections.addAll(runCmd, cmd.shellCommand());
     ProcessResults res = Utils.runProcess(cmd.containerSuffix(),
         cfg.getAsTime(CFG_CONTAINERCLIENT_CONTAINERRUNTIME, TimeUnit.SECONDS,
@@ -92,12 +86,12 @@ public class DockerContainerClient extends ContainerClient {
   public void fetchTestReports(ContainerResult result, ResultAnalyzer analyzer, Reporter reporter, String[] additionalLogs) throws IOException {
     result.setReports(new TestReports(log, result.getContainerName(), reporter.getLogDirForContainer(result)));
     Utils.runProcess("copying-files-for-" + result.getContainerName(), 60, log,
-        getDockerExec(), "cp",
+        CommandFinder.get(cfg).findCommand("docker"), "cp",
         result.getContainerName() + ":" + result.getCmd().containerDirectory() + File.separator + analyzer.getTestResultsDir() +
             File.separator + ".",
         result.getReports().getTempDir().getAbsolutePath());
     for (String additionalLog : additionalLogs) {
-      Utils.runProcess("copying-additional-logs-for-" + result.getContainerName(), 60, log, getDockerExec(),
+      Utils.runProcess("copying-additional-logs-for-" + result.getContainerName(), 60, log, CommandFinder.get(cfg).findCommand("docker"),
           "cp", result.getContainerName() + ":" + result.getCmd().containerDirectory() + File.separator + additionalLog,
           result.getReports().getTempDir().getAbsolutePath());
       result.getReports().addAdditionalLog(additionalLog);
@@ -107,7 +101,7 @@ public class DockerContainerClient extends ContainerClient {
   @Override
   public void removeContainer(ContainerResult result) throws IOException {
     if (buildInfo.shouldCleanupAfter()) {
-      ProcessResults res = Utils.runProcess("cleanup", 300, log, getDockerExec(), "rm", result.getContainerName());
+      ProcessResults res = Utils.runProcess("cleanup", 300, log, CommandFinder.get(cfg).findCommand("docker"), "rm", result.getContainerName());
       if (res.rc != 0) {
         log.warn("Failed to cleanup containers: " + res.stderr);
       }
@@ -118,7 +112,7 @@ public class DockerContainerClient extends ContainerClient {
 
   @Override
   public void removeImage() throws IOException {
-    ProcessResults res = Utils.runProcess("cleanup", 300, log, getDockerExec(), "image", "rm", imageName);
+    ProcessResults res = Utils.runProcess("cleanup", 300, log, CommandFinder.get(cfg).findCommand("docker"), "image", "rm", imageName);
     if (res.rc != 0) {
       log.error("Failed to cleanup image: " + res.stderr);
     }
@@ -201,12 +195,5 @@ public class DockerContainerClient extends ContainerClient {
    */
   protected String getHomeDir() {
     return "/home/" + getUser();
-  }
-
-  private String getDockerExec() {
-    if (dockerExec == null) {
-      dockerExec = cfg.getAsString(CFG_DOCKERCONTAINERCLIENT_DOCKERPATH, CFG_DOCKERCONTAINERCLIENT_DOCKERPATH_DEFAULT);
-    }
-    return dockerExec;
   }
 }

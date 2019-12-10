@@ -101,7 +101,6 @@ dtest.core.containercommandfactory.testspercontainer | When splitting tests, tes
 dtest.core.dockertest.numcontainers | Number of containers to run, should be 1 per core | 2
 dtest.core.reporter.impl | Subclass of `Reporter` to use to generate reports on the run | `HtmlReporter`
 dtest.core.resultanalyzer.impl | Subclass of `ResultAnalyzer` to use to analyze the output of the container commands and interpret test success, error, failure, or timeout |  `MavenResultAnalyzer`
-dtest.docker.dockercontainerclient.dockerpath | Path to the docker executable | `/usr/local/bin/docker`
 
 ### Profile Configuration
 Each profile is controlled by a Yaml file.  The name of this file will be *profile*.yaml, where *profile* 

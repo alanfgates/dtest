@@ -20,7 +20,7 @@ import org.dtest.core.testutils.MockBuildInfo;
 import org.dtest.core.testutils.MockContainerClient;
 import org.dtest.core.testutils.MockContainerCommand;
 import org.dtest.core.testutils.TestLogger;
-import org.dtest.core.testutils.TestUtils;
+import org.dtest.core.testutils.TestUtilities;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -31,8 +31,8 @@ public class TestHtmlReporter {
 
   @Test
   public void allGood() throws IOException {
-    File buildDir = TestUtils.createBuildDir();
-    Config cfg = TestUtils.buildCfg();
+    File buildDir = TestUtilities.createBuildDir();
+    Config cfg = TestUtilities.buildCfg();
     String containerName = "reporter-good";
     TestLogger log = new TestLogger();
     ResultAnalyzer analyzer = new MavenResultAnalyzer();
@@ -54,7 +54,7 @@ public class TestHtmlReporter {
     reporter.addFailedTests(client, cr);
     reporter.publish();
 
-    TestUtils.assertFile("<html>\n" +
+    TestUtilities.assertFile("<html>\n" +
         "<head>\n" +
         "<title>Docker Test</title>\n" +
         "</head>\n" +
@@ -72,8 +72,8 @@ public class TestHtmlReporter {
 
   @Test
   public void failedTest() throws IOException {
-    File buildDir = TestUtils.createBuildDir();
-    Config cfg = TestUtils.buildCfg();
+    File buildDir = TestUtilities.createBuildDir();
+    Config cfg = TestUtilities.buildCfg();
     String containerName = "reporter-fail";
     TestLogger log = new TestLogger();
     ResultAnalyzer analyzer = new MavenResultAnalyzer();
@@ -95,7 +95,7 @@ public class TestHtmlReporter {
     reporter.addFailedTests(client, cr);
     reporter.publish();
 
-    TestUtils.assertFile("<html>\n" +
+    TestUtilities.assertFile("<html>\n" +
         "<head>\n" +
         "<title>Docker Test</title>\n" +
         "</head>\n" +
@@ -115,7 +115,7 @@ public class TestHtmlReporter {
         "</body>\n" +
         "</html>\n", new File(client.getContainerBaseDir(), "index.html"));
 
-    TestUtils.assertFile("<html>\n" +
+    TestUtilities.assertFile("<html>\n" +
         "<head>\n" +
         "<title>reporter-fail</title>\n" +
         "</head>\n" +
@@ -131,8 +131,8 @@ public class TestHtmlReporter {
 
   @Test
   public void timedout() throws IOException {
-    File buildDir = TestUtils.createBuildDir();
-    Config cfg = TestUtils.buildCfg();
+    File buildDir = TestUtilities.createBuildDir();
+    Config cfg = TestUtilities.buildCfg();
     String containerName = "reporter-timeout";
     TestLogger log = new TestLogger();
     ResultAnalyzer analyzer = new MavenResultAnalyzer();
@@ -154,7 +154,7 @@ public class TestHtmlReporter {
     reporter.addFailedTests(client, cr);
     reporter.publish();
 
-    TestUtils.assertFile("<html>\n" +
+    TestUtilities.assertFile("<html>\n" +
         "<head>\n" +
         "<title>Docker Test</title>\n" +
         "</head>\n" +

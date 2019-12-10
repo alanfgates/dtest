@@ -31,7 +31,7 @@ import java.util.Properties;
 /**
  * Utilities functions for testing.
  */
-public class TestUtils {
+public class TestUtilities {
 
   /**
    * Construct a set of properties from string pairs.

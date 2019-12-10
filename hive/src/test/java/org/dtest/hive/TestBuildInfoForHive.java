@@ -4,7 +4,7 @@ import org.dtest.core.BuildInfo;
 import org.dtest.core.BuildYaml;
 import org.dtest.core.Config;
 import org.dtest.core.DTestLogger;
-import org.dtest.core.testutils.TestUtils;
+import org.dtest.core.testutils.TestUtilities;
 import org.dtest.core.git.GitSource;
 import org.dtest.core.testutils.TestLogger;
 import org.junit.Assert;
@@ -16,11 +16,11 @@ import java.io.IOException;
 public class TestBuildInfoForHive {
   @Test
   public void parseYaml() throws IOException {
-    Config cfg = TestUtils.buildCfg(BuildInfo.CFG_BUILDINFO_LABEL, "parse-yaml",
+    Config cfg = TestUtilities.buildCfg(BuildInfo.CFG_BUILDINFO_LABEL, "parse-yaml",
         BuildInfo.CFG_BUILDINFO_BASEDIR, System.getProperty("java.io.tmpdir"),
         BuildYaml.CFG_BUILDYAML_IMPL, HiveBuildYaml.class.getName());
     DTestLogger log = new TestLogger();
-    BuildInfo info = new BuildInfo(TestUtils.buildYaml(cfg, log, "hivetest"), new GitSource(), true, "5");
+    BuildInfo info = new BuildInfo(TestUtilities.buildYaml(cfg, log, "hivetest"), new GitSource(), true, "5");
     info.setConfig(cfg).setLog(log);
     info.getBuildDir();
     BuildYaml yaml = info.getYaml();
@@ -109,7 +109,7 @@ public class TestBuildInfoForHive {
   }
 
   private void readYaml(String label, String profile, String branch, String expectedComment) throws IOException {
-    Config cfg = TestUtils.buildCfg(BuildInfo.CFG_BUILDINFO_LABEL, label,
+    Config cfg = TestUtilities.buildCfg(BuildInfo.CFG_BUILDINFO_LABEL, label,
         BuildInfo.CFG_BUILDINFO_BASEDIR, System.getProperty("java.io.tmpdir"),
         BuildYaml.CFG_BUILDYAML_IMPL, HiveBuildYaml.class.getName());
     File cfgDir = new File(System.getProperty("java.io.tmpdir"), "classes");

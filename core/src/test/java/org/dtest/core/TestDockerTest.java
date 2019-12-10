@@ -19,7 +19,7 @@ import org.dtest.core.mvn.MavenResultAnalyzer;
 import org.dtest.core.testutils.MockContainerClient;
 import org.dtest.core.testutils.MockContainerCommandFactory;
 import org.dtest.core.testutils.TestLogger;
-import org.dtest.core.testutils.TestUtils;
+import org.dtest.core.testutils.TestUtilities;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -192,20 +192,20 @@ public static class SpyingResultAnalyzer extends ResultAnalyzer {
     succeeded = 0;
     failures = new ArrayList<>();
     errors = new ArrayList<>();
-    buildDir = TestUtils.createBuildDir();
+    buildDir = TestUtilities.createBuildDir();
   }
 
   @Test
   public void successfulRunAllTestsPass() throws IOException {
     TestLogger log = new TestLogger();
     try {
-      Properties props = TestUtils.buildProperties(
+      Properties props = TestUtilities.buildProperties(
           ContainerClient.CFG_CONTAINERCLIENT_IMPL, SuccessfulClient.class.getName(),
           ContainerCommandFactory.CFG_CONTAINERCOMMANDLIST_IMPL, HelloWorldCommandList.class.getName(),
           ResultAnalyzer.CFG_RESULTANALYZER_IMPL, SpyingResultAnalyzer.class.getName(),
-          BuildInfo.CFG_BUILDINFO_BASEDIR, TestUtils.getConfDir().getAbsolutePath(),
+          BuildInfo.CFG_BUILDINFO_BASEDIR, TestUtilities.getConfDir().getAbsolutePath(),
           BuildInfo.CFG_BUILDINFO_LABEL, "firsttry");
-      DockerTest test = TestUtils.getAndPrepDockerTest(props, log);
+      DockerTest test = TestUtilities.getAndPrepDockerTest(props, log);
       BuildState state = test.runBuild();
       Assert.assertEquals(BuildState.State.SUCCEEDED, state.getState());
       Assert.assertTrue(imageBuilt);
@@ -222,13 +222,13 @@ public static class SpyingResultAnalyzer extends ResultAnalyzer {
   public void ignoreFailures() throws IOException {
     TestLogger log = new TestLogger();
     try {
-      Properties props = TestUtils.buildProperties(
+      Properties props = TestUtilities.buildProperties(
           ContainerClient.CFG_CONTAINERCLIENT_IMPL, SuccessfulClient.class.getName(),
           ContainerCommandFactory.CFG_CONTAINERCOMMANDLIST_IMPL, FailureIgnoringCommandList.class.getName(),
           ResultAnalyzer.CFG_RESULTANALYZER_IMPL, SpyingResultAnalyzer.class.getName(),
-          BuildInfo.CFG_BUILDINFO_BASEDIR, TestUtils.getConfDir().getAbsolutePath(),
+          BuildInfo.CFG_BUILDINFO_BASEDIR, TestUtilities.getConfDir().getAbsolutePath(),
           BuildInfo.CFG_BUILDINFO_LABEL, "firsttry");
-      DockerTest test = TestUtils.getAndPrepDockerTest(props, log);
+      DockerTest test = TestUtilities.getAndPrepDockerTest(props, log);
       BuildState state = test.runBuild();
       Assert.assertEquals(BuildState.State.SUCCEEDED, state.getState());
       Assert.assertTrue(imageBuilt);
@@ -244,13 +244,13 @@ public static class SpyingResultAnalyzer extends ResultAnalyzer {
   @Test
   public void timeout() throws IOException {
     TestLogger log = new TestLogger();
-    Properties props = TestUtils.buildProperties(
+    Properties props = TestUtilities.buildProperties(
         ContainerClient.CFG_CONTAINERCLIENT_IMPL, TimingOutClient.class.getName(),
         ContainerCommandFactory.CFG_CONTAINERCOMMANDLIST_IMPL, HelloWorldCommandList.class.getName(),
         ResultAnalyzer.CFG_RESULTANALYZER_IMPL, SpyingResultAnalyzer.class.getName(),
         BuildInfo.CFG_BUILDINFO_BASEDIR, System.getProperty("java.io.tmpdir"),
         BuildInfo.CFG_BUILDINFO_LABEL, "will-time-out");
-    DockerTest test = TestUtils.getAndPrepDockerTest(props, log);
+    DockerTest test = TestUtilities.getAndPrepDockerTest(props, log);
     BuildState state = test.runBuild();
     log.dumpToLog();
     Assert.assertEquals(BuildState.State.HAD_TIMEOUTS, state.getState());
@@ -261,13 +261,13 @@ public static class SpyingResultAnalyzer extends ResultAnalyzer {
   @Test
   public void runWithFailures() throws IOException {
     TestLogger log = new TestLogger();
-    Properties props = TestUtils.buildProperties(
+    Properties props = TestUtilities.buildProperties(
         ContainerClient.CFG_CONTAINERCLIENT_IMPL, ClientWithFailures.class.getName(),
         ContainerCommandFactory.CFG_CONTAINERCOMMANDLIST_IMPL, HelloWorldCommandList.class.getName(),
         ResultAnalyzer.CFG_RESULTANALYZER_IMPL, SpyingResultAnalyzer.class.getName(),
         BuildInfo.CFG_BUILDINFO_BASEDIR, System.getProperty("java.io.tmpdir"),
         BuildInfo.CFG_BUILDINFO_LABEL, "take2");
-    DockerTest test = TestUtils.getAndPrepDockerTest(props, log);
+    DockerTest test = TestUtilities.getAndPrepDockerTest(props, log);
     BuildState state = test.runBuild();
     log.dumpToLog();
     Assert.assertEquals(BuildState.State.HAD_FAILURES_OR_ERRORS, state.getState());

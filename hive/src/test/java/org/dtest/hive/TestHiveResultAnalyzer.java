@@ -22,7 +22,7 @@ import org.dtest.core.ContainerCommand;
 import org.dtest.core.ContainerResult;
 import org.dtest.core.Reporter;
 import org.dtest.core.ResultAnalyzer;
-import org.dtest.core.testutils.TestUtils;
+import org.dtest.core.testutils.TestUtilities;
 import org.dtest.core.testutils.MockContainerClient;
 import org.dtest.core.testutils.MockContainerCommand;
 import org.dtest.core.testutils.MockReporter;
@@ -40,7 +40,7 @@ public class TestHiveResultAnalyzer {
 
   @Test
   public void unitTestAllGood() throws IOException {
-    File buildDir = TestUtils.createBuildDir();
+    File buildDir = TestUtilities.createBuildDir();
     String containerName = "hive-result-analyzer-unit-testlog-good";
     TestLogger log = new TestLogger();
     ResultAnalyzer analyzer = new HiveResultAnalyzer();
@@ -63,7 +63,7 @@ public class TestHiveResultAnalyzer {
 
   @Test
   public void unitTestErrorsAndFailures() throws IOException {
-    File buildDir = TestUtils.createBuildDir();
+    File buildDir = TestUtilities.createBuildDir();
     String containerName = "hive-result-analyzer-unit-testlog-errors-and-failures";
     TestLogger log = new TestLogger();
     ResultAnalyzer analyzer = new HiveResultAnalyzer();
@@ -99,10 +99,10 @@ public class TestHiveResultAnalyzer {
 
   @Test
   public void timeoutLog() throws IOException {
-    File buildDir = TestUtils.createBuildDir();
+    File buildDir = TestUtilities.createBuildDir();
     String containerName = "maven-result-analyzer-hive-timeout";
     TestLogger log = new TestLogger();
-    Config cfg = TestUtils.buildCfg();
+    Config cfg = TestUtilities.buildCfg();
     ResultAnalyzer analyzer = new HiveResultAnalyzer();
     Reporter reporter = new MockReporter(buildDir);
     ContainerClient client = new MockContainerClient(containerName, "timeout", buildDir, 0);
@@ -123,7 +123,7 @@ public class TestHiveResultAnalyzer {
 
   @Test
   public void qfileAllGood() throws IOException {
-    File buildDir = TestUtils.createBuildDir();
+    File buildDir = TestUtilities.createBuildDir();
     String containerName = "hive-result-analyzer-qfile-good";
     TestLogger log = new TestLogger();
     ResultAnalyzer analyzer = new HiveResultAnalyzer();
@@ -145,7 +145,7 @@ public class TestHiveResultAnalyzer {
 
   @Test
   public void qfileFailures() throws IOException {
-    File buildDir = TestUtils.createBuildDir();
+    File buildDir = TestUtilities.createBuildDir();
     String containerName = "hive-result-analyzer-qfile-errors-and-failures";
     TestLogger log = new TestLogger();
     ResultAnalyzer analyzer = new HiveResultAnalyzer();

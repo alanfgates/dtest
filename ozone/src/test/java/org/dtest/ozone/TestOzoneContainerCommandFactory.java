@@ -20,7 +20,7 @@ import org.dtest.core.BuildInfo;
 import org.dtest.core.BuildYaml;
 import org.dtest.core.Config;
 import org.dtest.core.ContainerCommandFactory;
-import org.dtest.core.testutils.TestUtils;
+import org.dtest.core.testutils.TestUtilities;
 import org.dtest.core.git.GitSource;
 import org.dtest.core.testutils.MockContainerClient;
 import org.dtest.core.testutils.TestLogger;
@@ -36,15 +36,15 @@ public class TestOzoneContainerCommandFactory {
   @Test
   public void buildCommands() throws IOException {
     TestLogger log = new TestLogger();
-    Config cfg = TestUtils.buildCfg(
+    Config cfg = TestUtilities.buildCfg(
         BuildInfo.CFG_BUILDINFO_LABEL, "mylabel",
         BuildInfo.CFG_BUILDINFO_BASEDIR, System.getProperty("java.io.tmpdir"),
         BuildYaml.CFG_BUILDYAML_IMPL, BuildYaml.class.getName());
     OzoneContainerCommandFactory cmds = new OzoneContainerCommandFactory();
     cmds.setConfig(cfg).setLog(log);
-    BuildInfo buildInfo = new BuildInfo(TestUtils.buildYaml(cfg, log, "ozonetest"), new GitSource(), true, "1");
+    BuildInfo buildInfo = new BuildInfo(TestUtilities.buildYaml(cfg, log, "ozonetest"), new GitSource(), true, "1");
     buildInfo.setConfig(cfg).setLog(log);
-    File buildDir = TestUtils.createBuildDir();
+    File buildDir = TestUtilities.createBuildDir();
     cmds.buildContainerCommands(new MockContainerClient("ozone", null, buildDir, 0), buildInfo);
     log.dumpToLog();
     Assert.assertEquals(2, cmds.getCmds().size());

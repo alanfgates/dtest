@@ -22,7 +22,7 @@ import org.dtest.core.ContainerCommand;
 import org.dtest.core.ContainerResult;
 import org.dtest.core.ModuleDirectory;
 import org.dtest.core.Reporter;
-import org.dtest.core.testutils.TestUtils;
+import org.dtest.core.testutils.TestUtilities;
 import org.dtest.core.testutils.MockContainerClient;
 import org.dtest.core.testutils.MockContainerCommand;
 import org.dtest.core.testutils.MockReporter;
@@ -40,10 +40,10 @@ public class TestMavenResultAnalyzer {
 
   @Test
   public void unitTestLog() throws IOException {
-    File buildDir = TestUtils.createBuildDir();
+    File buildDir = TestUtilities.createBuildDir();
     String containerName = "maven-result-analyzer-unit-testlog";
     TestLogger log = new TestLogger();
-    Config cfg = TestUtils.buildCfg();
+    Config cfg = TestUtilities.buildCfg();
     MavenResultAnalyzer analyzer = new MavenResultAnalyzer();
     Reporter reporter = new MockReporter(buildDir);
     ContainerClient client = new MockContainerClient(containerName, "with-error-and-failure", buildDir, 0);
@@ -78,10 +78,10 @@ public class TestMavenResultAnalyzer {
 
   @Test
   public void ignoreFailedTests() throws IOException {
-    File buildDir = TestUtils.createBuildDir();
+    File buildDir = TestUtilities.createBuildDir();
     String containerName = "maven-result-analyzer-unit-testlog";
     TestLogger log = new TestLogger();
-    Config cfg = TestUtils.buildCfg();
+    Config cfg = TestUtilities.buildCfg();
     MavenResultAnalyzer analyzer = new MavenResultAnalyzer();
     Reporter reporter = new MockReporter(buildDir);
     ContainerClient client = new MockContainerClient(containerName, "with-error-and-failure", buildDir, 0);
@@ -103,10 +103,10 @@ public class TestMavenResultAnalyzer {
 
   @Test
   public void successfulLog() throws IOException {
-    File buildDir = TestUtils.createBuildDir();
+    File buildDir = TestUtilities.createBuildDir();
     String containerName = "maven-result-analyzer-unit-testlog-good";
     TestLogger log = new TestLogger();
-    Config cfg = TestUtils.buildCfg();
+    Config cfg = TestUtilities.buildCfg();
     MavenResultAnalyzer analyzer = new MavenResultAnalyzer();
     Reporter reporter = new MockReporter(buildDir);
     ContainerClient client = new MockContainerClient(containerName, "allgood", buildDir, 0);
@@ -127,10 +127,10 @@ public class TestMavenResultAnalyzer {
 
   @Test
   public void timeoutLog() throws IOException {
-    File buildDir = TestUtils.createBuildDir();
+    File buildDir = TestUtilities.createBuildDir();
     String containerName = "maven-result-analyzer-unit-testlog-timeout";
     TestLogger log = new TestLogger();
-    Config cfg = TestUtils.buildCfg();
+    Config cfg = TestUtilities.buildCfg();
     MavenResultAnalyzer analyzer = new MavenResultAnalyzer();
     Reporter reporter = new MockReporter(buildDir);
     ContainerClient client = new MockContainerClient(containerName, "timeout", buildDir, 0);
@@ -152,10 +152,10 @@ public class TestMavenResultAnalyzer {
   @Test
   public void testBuildStateTransitions() throws IOException {
     // Timeout followed by success should still give a build state of timeout.
-    File buildDir = TestUtils.createBuildDir();
+    File buildDir = TestUtilities.createBuildDir();
     String containerName = "maven-result-analyzer-unit-testlog-timeout";
     TestLogger log = new TestLogger();
-    Config cfg = TestUtils.buildCfg();
+    Config cfg = TestUtilities.buildCfg();
     MavenResultAnalyzer analyzer = new MavenResultAnalyzer();
     Reporter reporter = new MockReporter(buildDir);
     ContainerClient client = new MockContainerClient(containerName, "timeout", buildDir, 0);

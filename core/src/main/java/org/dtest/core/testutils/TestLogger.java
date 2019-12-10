@@ -27,7 +27,7 @@ import java.util.List;
  * and should, be dumped to Slf4j log by calling {@link #dumpToLog()} at the end of the test.
  */
 public class TestLogger implements DTestLogger {
-  private Logger log = LoggerFactory.getLogger(TestUtils.class);
+  private Logger log = LoggerFactory.getLogger(TestUtilities.class);
   private List<String> entries = new ArrayList<>();
 
   @Override

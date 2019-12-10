@@ -19,7 +19,7 @@ import org.dtest.core.BuildInfo;
 import org.dtest.core.CodeSource;
 import org.dtest.core.Config;
 import org.dtest.core.ContainerCommandFactory;
-import org.dtest.core.testutils.TestUtils;
+import org.dtest.core.testutils.TestUtilities;
 import org.dtest.core.git.GitSource;
 import org.dtest.core.impl.ProcessResults;
 import org.dtest.core.mvn.MavenContainerCommandFactory;
@@ -40,7 +40,7 @@ public class TestDockerContainerClient {
 
   @Before
   public void buildConfigAndLog() {
-    cfg = TestUtils.buildCfg(
+    cfg = TestUtilities.buildCfg(
         BuildInfo.CFG_BUILDINFO_LABEL, "needsomething",
         BuildInfo.CFG_BUILDINFO_BASEDIR, System.getProperty("java.io.tmpdir"));
     log = new TestLogger();
@@ -57,7 +57,7 @@ public class TestDockerContainerClient {
     client.setConfig(cfg).setLog(log);
     CodeSource src = new GitSource();
     src.setConfig(cfg).setLog(log);
-    BuildInfo info = new BuildInfo(TestUtils.buildYaml(cfg, log), src, true, "1");
+    BuildInfo info = new BuildInfo(TestUtilities.buildYaml(cfg, log), src, true, "1");
     info.setConfig(cfg).setLog(log);
     client.setBuildInfo(info);
     ContainerCommandFactory cmdFactory = new MavenContainerCommandFactory();
@@ -73,7 +73,7 @@ public class TestDockerContainerClient {
     } while (line != null);
     reader.close();
 
-    Assert.assertTrue(buf.toString().startsWith("FROM centos\n" +
+    Assert.assertTrue("Actual is " + buf.toString(), buf.toString().startsWith("FROM centos\n" +
         "\n" +
         "RUN yum upgrade -y && yum update -y\n" +
         "RUN yum install -y java-1.8.0-openjdk-devel git unzip maven \n" +

@@ -56,11 +56,11 @@ public class MockContainerClient extends ContainerClient {
     if (cannedDir != null) {
       File logDir = new File(System.getProperty("dtest.testonly.conf.dir") + File.separator + "logs" + File.separator + cannedDir);
       assert logDir.isDirectory() : "Expected directory " + logDir.getAbsolutePath() + " to exist.";
-      this.stdout = TestUtils.readLogFile(new File(logDir, "stdout").getAbsolutePath());
+      this.stdout = TestUtilities.readLogFile(new File(logDir, "stdout").getAbsolutePath());
       File[] files = logDir.listFiles();
       assert files != null : "Expected some files";
       for (File file : files) {
-        testReports.put(file.getName(), TestUtils.readLogFile(file.getAbsolutePath()));
+        testReports.put(file.getName(), TestUtilities.readLogFile(file.getAbsolutePath()));
       }
     } else {
       stdout = "";

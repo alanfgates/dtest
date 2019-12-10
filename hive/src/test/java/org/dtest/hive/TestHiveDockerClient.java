@@ -20,7 +20,7 @@ import org.dtest.core.BuildYaml;
 import org.dtest.core.CodeSource;
 import org.dtest.core.Config;
 import org.dtest.core.ContainerCommandFactory;
-import org.dtest.core.testutils.TestUtils;
+import org.dtest.core.testutils.TestUtilities;
 import org.dtest.core.docker.DockerContainerClient;
 import org.dtest.core.git.GitSource;
 import org.dtest.core.impl.ProcessResults;
@@ -41,7 +41,7 @@ public class TestHiveDockerClient {
 
   @Before
   public void buildConfigAndLog() {
-    cfg = TestUtils.buildCfg(
+    cfg = TestUtilities.buildCfg(
         BuildInfo.CFG_BUILDINFO_LABEL, "needsomething",
         BuildInfo.CFG_BUILDINFO_BASEDIR, System.getProperty("java.io.tmpdir"),
         BuildYaml.CFG_BUILDYAML_IMPL, HiveBuildYaml.class.getName());
@@ -59,7 +59,7 @@ public class TestHiveDockerClient {
     client.setConfig(cfg).setLog(log);
     CodeSource src = new GitSource();
     src.setConfig(cfg).setLog(log);
-    BuildInfo info = new BuildInfo(TestUtils.buildYaml(cfg, log, "hivetest"), src, true, "3");
+    BuildInfo info = new BuildInfo(TestUtilities.buildYaml(cfg, log, "hivetest"), src, true, "3");
     info.setConfig(cfg).setLog(log);
     client.setBuildInfo(info);
     ContainerCommandFactory cmdFactory = new HiveContainerCommandFactory();
