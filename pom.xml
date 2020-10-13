@@ -47,7 +47,7 @@ limitations under the License.
     <jackson.version>2.9.9</jackson.version>
     <jersey.version>1.19</jersey.version>
     <jetty.version>9.3.8.v20160314</jetty.version>
-    <junit.version>4.11</junit.version>
+    <junit.version>4.13.1</junit.version>
     <log4j2.version>2.10.0</log4j2.version>
     <maven.plugin.plugin.version>3.6.0</maven.plugin.plugin.version>
     <maven.assembly.plugin.version>2.3</maven.assembly.plugin.version>
